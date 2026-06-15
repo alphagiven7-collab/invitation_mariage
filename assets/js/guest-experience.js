@@ -1,8 +1,10 @@
 /**
- * Parcours invité personnalisé — lien unique, accueil, préremplissage, QR
+ * Parcours invité — accueil, préremplissage, RSVP, confirmation QR
+ * Chargé EN DERNIER pour écraser les handlers de app.js
  */
 const GuestExperience = (() => {
     let profile = null;
+    let initDone = false;
 
     function getParams() {
         return new URLSearchParams(window.location.search);
@@ -17,13 +19,30 @@ const GuestExperience = (() => {
     }
 
     function getEventId() {
-        if (window.EventConfig && EventConfig.isReady()) return EventConfig.getEventId();
+        if (window.EventConfig && EventConfig.isReady && EventConfig.isReady()) {
+            return EventConfig.getEventId();
+        }
         return getParams().get("event") || "yanick-keren";
     }
 
     function getCoupleLabel() {
         const cfg = window.EventConfig && EventConfig.getConfig && EventConfig.getConfig();
         return (cfg && cfg.subtitle) ? cfg.subtitle : "Yanick & Keren";
+    }
+
+    function showToast(msg) {
+        if (typeof window.showToast === "function") {
+            window.showToast(msg);
+            return;
+        }
+        const toast = document.getElementById("toast");
+        if (toast) {
+            toast.textContent = msg;
+            toast.classList.add("show");
+            setTimeout(() => toast.classList.remove("show"), 2200);
+        } else {
+            alert(msg);
+        }
     }
 
     function applyProfile(guest) {
@@ -39,13 +58,13 @@ const GuestExperience = (() => {
         const setField = (id, val) => {
             const el = document.getElementById(id);
             if (!el || val === undefined || val === null || val === "") return;
-            el.value = val;
+            el.value = String(val);
             el.classList.add("rsvp-prefilled");
         };
 
         setField("rsvp-name", guest.fullName);
         setField("rsvp-phone", guest.phone || "");
-        if (guest.adults) setField("rsvp-adults", guest.adults);
+        if (guest.adults !== undefined) setField("rsvp-adults", guest.adults);
         if (guest.children !== undefined) setField("rsvp-children", guest.children);
         if (guest.status === "yes" || guest.status === "no") {
             const st = document.getElementById("rsvp-status");
@@ -63,38 +82,109 @@ const GuestExperience = (() => {
         personal.classList.remove("hidden");
         personal.classList.add("gate-personal-visible");
 
-        const first = guest.fullName.split(" ")[0];
+        const first = (guest.fullName || "Invité").split(" ")[0];
         const couple = getCoupleLabel();
-        document.getElementById("gate-personal-greeting").textContent = `Cher/Chère ${guest.fullName}`;
-        document.getElementById("gate-personal-message").innerHTML =
-            `<strong>${couple}</strong> ont le bonheur de vous inviter <strong>personnellement</strong> à célébrer leur union.<br><br>` +
-            `Cette enveloppe a été préparée uniquement pour vous, <strong>${first}</strong>. ` +
-            `Votre présence serait pour eux un immense bonheur.`;
+        const greeting = document.getElementById("gate-personal-greeting");
+        const message = document.getElementById("gate-personal-message");
+        if (greeting) greeting.textContent = `Cher/Chère ${guest.fullName}`;
+        if (message) {
+            message.innerHTML =
+                `<strong>${couple}</strong> ont le bonheur de vous inviter <strong>personnellement</strong> à célébrer leur union.<br><br>` +
+                `Cette enveloppe a été préparée uniquement pour vous, <strong>${first}</strong>. ` +
+                `Votre présence serait pour eux un immense bonheur.`;
+        }
+    }
+
+    function guestFromUrlParams() {
+        const params = getParams();
+        const guestParam = (params.get("nom") || params.get("guest") || "").trim();
+        const tel = (params.get("tel") || params.get("phone") || "").trim();
+        const token = (params.get("t") || "").trim();
+        if (!guestParam) return null;
+
+        const fullName = guestParam.includes("-") && !guestParam.includes(" ")
+            ? slugToName(guestParam)
+            : decodeURIComponent(guestParam.replace(/\+/g, " "));
+
+        return {
+            fullName,
+            phone: tel,
+            token,
+            status: "pending",
+            adults: 1,
+            children: 0
+        };
     }
 
     async function resolveGuestFromUrl() {
         const params = getParams();
         const token = (params.get("t") || "").trim();
-        const guestParam = (params.get("guest") || params.get("nom") || "").trim();
+        const urlGuest = guestFromUrlParams();
 
         if (window.GuestManager && token) {
-            const byToken = await GuestManager.findByToken(token);
-            if (byToken) return byToken;
+            try {
+                const byToken = await GuestManager.findByToken(token);
+                if (byToken) {
+                    return { ...byToken, phone: byToken.phone || (urlGuest && urlGuest.phone) || "" };
+                }
+            } catch (e) {}
         }
 
-        if (window.GuestManager && guestParam && !guestParam.includes(" ")) {
-            const bySlug = await GuestManager.findBySlug(guestParam);
-            if (bySlug) return bySlug;
+        if (window.GuestManager && urlGuest) {
+            try {
+                const bySlug = await GuestManager.findBySlug(
+                    params.get("guest") || slugify(urlGuest.fullName)
+                );
+                if (bySlug) {
+                    return { ...bySlug, phone: bySlug.phone || urlGuest.phone || "" };
+                }
+            } catch (e) {}
         }
 
-        if (guestParam) {
-            const name = guestParam.includes(" ")
-                ? decodeURIComponent(guestParam.replace(/\+/g, " "))
-                : slugToName(guestParam);
-            return { fullName: name, phone: "", token: token || "", status: "pending" };
+        return urlGuest;
+    }
+
+    function slugify(name) {
+        return (name || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/(^-|-$)/g, "");
+    }
+
+    function initSync() {
+        const guest = guestFromUrlParams();
+        if (!guest) return false;
+        applyProfile(guest);
+        showPersonalWelcome(guest);
+        return true;
+    }
+
+    async function initAsync() {
+        if (initDone) return !!profile;
+        initDone = true;
+
+        if (window.EventConfig && EventConfig.init) {
+            try {
+                await EventConfig.init();
+                if (EventConfig.applyToPage) EventConfig.applyToPage();
+            } catch (e) {}
         }
 
-        return null;
+        const guest = await resolveGuestFromUrl();
+        if (guest) {
+            applyProfile(guest);
+            showPersonalWelcome(guest);
+            const token = getParams().get("t");
+            if (token && window.CloudAPI && CloudAPI.isEnabled()) {
+                try {
+                    CloudAPI.track(getEventId(), "guest_link_open", { guestToken: token });
+                } catch (e) {}
+            }
+            return true;
+        }
+        return false;
     }
 
     function prefillRsvp() {
@@ -103,7 +193,7 @@ const GuestExperience = (() => {
             return;
         }
         const saved = (localStorage.getItem("wedding_guest_name_simple") || "").trim();
-        if (saved) applyProfile({ fullName: saved, phone: "", status: "pending" });
+        if (saved) applyProfile({ fullName: saved, phone: "", status: "pending", adults: 1, children: 0 });
     }
 
     function openRsvp() {
@@ -164,43 +254,119 @@ const GuestExperience = (() => {
         });
         setQrImage(qrData);
 
+        const modal = document.getElementById("rsvp-confirmation-modal");
         if (typeof window.openModal === "function") {
             window.openModal("rsvp-confirmation-modal");
-        } else {
-            document.getElementById("rsvp-confirmation-modal")?.classList.remove("hidden");
+        } else if (modal) {
+            modal.classList.remove("hidden");
+            document.body.style.overflow = "hidden";
         }
     }
 
-    async function init() {
-        if (window.EventConfig && EventConfig.init) {
-            try { await EventConfig.init(); EventConfig.applyToPage(); } catch (e) {}
+    function validatePhone(phone) {
+        return (phone || "").replace(/\D/g, "").length >= 9;
+    }
+
+    async function submitRsvp(event) {
+        event.preventDefault();
+
+        prefillRsvp();
+
+        const payload = {
+            name: (document.getElementById("rsvp-name")?.value || "").trim(),
+            phone: (document.getElementById("rsvp-phone")?.value || "").trim(),
+            status: document.getElementById("rsvp-status")?.value || "yes",
+            adults: document.getElementById("rsvp-adults")?.value || "1",
+            children: document.getElementById("rsvp-children")?.value || "0",
+            message: (document.getElementById("rsvp-message")?.value || "").trim(),
+            sentAt: new Date().toISOString()
+        };
+
+        if (!payload.name || payload.name.length < 2) {
+            showToast("Nom obligatoire (2 caractères minimum).");
+            return;
+        }
+        if (!validatePhone(payload.phone)) {
+            showToast("Téléphone invalide (9 chiffres minimum).");
+            return;
         }
 
-        const guest = await resolveGuestFromUrl();
-        if (guest) {
-            applyProfile(guest);
-            showPersonalWelcome(guest);
+        localStorage.setItem("wedding_rsvp_data", JSON.stringify(payload));
+        localStorage.setItem("wedding_rsvp_status", payload.status);
+
+        if (window.GuestManager) {
             const token = getParams().get("t");
-            if (token && window.CloudAPI && CloudAPI.isEnabled()) {
-                CloudAPI.track(getEventId(), "guest_link_open", { guestToken: token });
+            let guestByToken = null;
+            if (token) {
+                try { guestByToken = await GuestManager.findByToken(token); } catch (e) {}
             }
-            return true;
+            try {
+                await GuestManager.recordRSVP({
+                    guestId: guestByToken ? guestByToken.id : null,
+                    fullName: payload.name,
+                    phone: payload.phone,
+                    status: payload.status,
+                    adults: payload.adults,
+                    children: payload.children,
+                    message: payload.message
+                });
+            } catch (e) {}
         }
-        return false;
+
+        if (window.CloudAPI && EventConfig && EventConfig.isReady && EventConfig.isReady()) {
+            try {
+                CloudAPI.track(getEventId(), "rsvp_submit", { status: payload.status });
+            } catch (e) {}
+        }
+
+        if (typeof window.closeModal === "function") {
+            window.closeModal("rsvp-modal");
+        } else {
+            document.getElementById("rsvp-modal")?.classList.add("hidden");
+        }
+
+        const confirmCode = buildConfirmCode(profile, payload);
+        const token = getParams().get("t");
+        if (token) {
+            localStorage.setItem(`wedding_confirm_${token}`, JSON.stringify({ payload, code: confirmCode }));
+        }
+
+        showConfirmation(payload, confirmCode);
+    }
+
+    function bindHandlers() {
+        window.confirmPresence = openRsvp;
+        window.submitRsvp = submitRsvp;
+
+        const form = document.getElementById("rsvp-form");
+        if (form) {
+            form.addEventListener("submit", submitRsvp);
+        }
+    }
+
+    function boot() {
+        initSync();
+        bindHandlers();
+        initAsync().catch(() => {});
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", boot);
+    } else {
+        boot();
     }
 
     return {
-        init,
+        init: initAsync,
+        initSync,
         getProfile: () => profile,
         applyProfile,
         prefillRsvp,
         openRsvp,
+        submitRsvp,
         buildConfirmCode,
         showConfirmation
     };
 })();
 
 window.GuestExperience = GuestExperience;
-window.confirmPresence = function () {
-    GuestExperience.openRsvp();
-};

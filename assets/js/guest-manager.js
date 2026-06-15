@@ -36,7 +36,10 @@ const GuestManager = (() => {
         const params = new URLSearchParams();
         params.set("event", getEventId());
         params.set("guest", guest.slug);
+        params.set("nom", guest.fullName);
         params.set("t", guest.token);
+        const phone = (guest.phone || "").replace(/\s/g, "");
+        if (phone) params.set("tel", phone);
         return `${base}?${params.toString()}`;
     }
 

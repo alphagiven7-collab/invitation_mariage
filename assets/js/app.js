@@ -977,7 +977,7 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
             }
 
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('../sw.js').catch(() => {});
+                navigator.serviceWorker.register('../sw.js?v=3').catch(() => {});
             }
 
             defaultCustomizationState = getCurrentCustomizationState();
