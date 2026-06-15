@@ -1,7 +1,3 @@
-// Initialiser les icônes Lucide (sans bloquer le reste)
-        if (window.lucide && typeof window.lucide.createIcons === "function") {
-            window.lucide.createIcons();
-        }
         const DESIGNER_ACCESS_CODE = 'YANICK-KEREN-ADMIN';
         const designerModeKey = 'wedding_designer_mode';
         const dashboardStateKey = 'wedding_dashboard_state';
@@ -888,8 +884,9 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
 
         // Système de modales (Pages)
         function openModal(id) {
-            if (id === 'rsvp-modal') prefillRsvpForm();
+            if (id === 'rsvp-modal' && typeof prefillRsvpForm === 'function') prefillRsvpForm();
             const modal = document.getElementById(id);
+            if (!modal) return;
             modal.classList.remove('hidden');
             modal.classList.remove('modal-leave');
             modal.classList.add('modal-enter');
@@ -898,12 +895,14 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
 
         function closeModal(id) {
             const modal = document.getElementById(id);
+            if (!modal) return;
             modal.classList.remove('modal-enter');
             modal.classList.add('modal-leave');
             setTimeout(() => {
+                if (!document.getElementById(id)) return;
                 modal.classList.add('hidden');
                 document.body.style.overflow = 'auto';
-            }, 300); // Correspond à la durée de l'animation CSS
+            }, 300);
         }
 
         // Compte à rebours
