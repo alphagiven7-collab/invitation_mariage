@@ -1,5 +1,17 @@
 const WeddingDB = (() => {
-    const KEY = "wedding_app_db_v1";
+    function getEventKey() {
+        if (window.EventConfig && EventConfig.isReady()) {
+            return EventConfig.getEventId();
+        }
+        const params = new URLSearchParams(window.location.search);
+        return params.get("event") || "yanick-keren";
+    }
+
+    function scopedKey(suffix) {
+        return `wedding_event_${getEventKey()}_${suffix}`;
+    }
+
+    const KEY = () => scopedKey("app_db_v1");
 
     const defaults = {
         settings: {
@@ -23,7 +35,7 @@ const WeddingDB = (() => {
 
     function load() {
         try {
-            const raw = localStorage.getItem(KEY);
+            const raw = localStorage.getItem(KEY());
             if (!raw) return structuredClone(defaults);
             return { ...structuredClone(defaults), ...JSON.parse(raw) };
         } catch {
@@ -32,7 +44,7 @@ const WeddingDB = (() => {
     }
 
     function save(db) {
-        localStorage.setItem(KEY, JSON.stringify(db));
+        localStorage.setItem(KEY(), JSON.stringify(db));
     }
 
     function getSettings() {

@@ -1,0 +1,31 @@
+{
+  "id": "mon-evenement",
+  "slug": "mon-evenement",
+  "type": "wedding",
+  "title": "Titre de l'événement",
+  "subtitle": "Sous-titre",
+  "welcomeMessage": "Message d'accueil pour vos invités.",
+  "mainText": "Description principale de l'événement.",
+  "eventDate": "2026-12-31T20:00:00",
+  "venue": "Lieu de l'événement",
+  "rsvpDeadline": "2026-12-15",
+  "branding": {
+    "primaryColor": "#4caf50",
+    "accentColor": "#ec4899",
+    "welcomeImage": "",
+    "heroImage": ""
+  },
+  "sections": {
+    "quiz": true,
+    "donation": false,
+    "guestbook": true,
+    "gallery": true,
+    "countdown": true,
+    "dressCode": false
+  },
+  "links": {
+    "donation": "",
+    "supportEmail": "",
+    "map": ""
+  }
+}

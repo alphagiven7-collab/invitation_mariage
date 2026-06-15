@@ -50,9 +50,30 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
 
         function initEntryFlow() {
             const urlParams = new URLSearchParams(window.location.search);
-            const urlName = (urlParams.get('guest') || urlParams.get('nom') || '').trim();
+            const token = (urlParams.get('t') || '').trim();
+            const guestParam = (urlParams.get('guest') || urlParams.get('nom') || '').trim();
+
+            if (window.GuestManager && token) {
+                const guestByToken = GuestManager.findByToken(token);
+                if (guestByToken) {
+                    guestName = guestByToken.fullName;
+                    document.getElementById('gate-name-input-container').classList.add('hidden');
+                    document.getElementById('gate-welcome-back-container').classList.remove('hidden');
+                    document.getElementById('gate-welcome-back-name').textContent = guestName;
+                    applyGuestName(guestName);
+                    localStorage.setItem('wedding_guest_name_simple', guestName);
+                    return;
+                }
+            }
+
+            let resolvedName = guestParam;
+            if (window.GuestManager && guestParam && !guestParam.includes(' ')) {
+                const guestBySlug = GuestManager.findBySlug(guestParam);
+                if (guestBySlug) resolvedName = guestBySlug.fullName;
+            }
+
             const savedName = (localStorage.getItem('wedding_guest_name_simple') || '').trim();
-            const startName = urlName || savedName;
+            const startName = resolvedName || savedName;
             if (startName) {
                 guestName = decodeURIComponent(startName.replace(/\+/g, ' '));
                 document.getElementById('gate-name-input-container').classList.add('hidden');
@@ -485,6 +506,21 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
             localStorage.setItem(rsvpListKey, JSON.stringify(rsvpList));
             localStorage.setItem('wedding_rsvp_status', payload.status);
 
+            if (window.GuestManager) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get('t');
+                const guestByToken = token ? GuestManager.findByToken(token) : null;
+                GuestManager.recordRSVP({
+                    guestId: guestByToken ? guestByToken.id : null,
+                    fullName: payload.name,
+                    phone: payload.phone,
+                    status: payload.status,
+                    adults: payload.adults,
+                    children: payload.children,
+                    message: payload.message
+                });
+            }
+
             const externalRsvpLink = (document.getElementById('rsvp-form').dataset.externalLink || '').trim();
             closeModal('rsvp-modal');
             showToast(payload.status === 'yes'
@@ -725,22 +761,41 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
             if (event.key === 'ArrowRight') changeBestGallerySlide(1);
             if (event.key === 'ArrowLeft') changeBestGallerySlide(-1);
         });
-        defaultCustomizationState = getCurrentCustomizationState();
-        const savedState = localStorage.getItem(dashboardStateKey);
-        if (savedState) {
-            try {
-                const state = JSON.parse(savedState);
-                const hasLocalCursorImages = JSON.stringify(state).includes('file:///C:/Users/AL/.cursor');
-                if (hasLocalCursorImages) {
-                    localStorage.removeItem(dashboardStateKey);
-                } else {
-                    applyCustomizationState(state);
-                }
-            } catch (e) {}
-        }
         loadGuestbookMessages();
-        initEntryFlow();
-        applyDesignerVisibility();
+
+        (async function bootstrapApp() {
+            if (window.EventConfig) {
+                try {
+                    await EventConfig.init();
+                    EventConfig.applyToPage();
+                    const cfg = EventConfig.getConfig();
+                    if (cfg && cfg.eventDate) {
+                        countDownDate = new Date(cfg.eventDate).getTime();
+                    }
+                } catch (e) {}
+            }
+
+            defaultCustomizationState = getCurrentCustomizationState();
+            const scopedDashboardKey = window.EventConfig && EventConfig.isReady()
+                ? EventConfig.storageKey('dashboard_state')
+                : dashboardStateKey;
+            const savedState = localStorage.getItem(scopedDashboardKey) || localStorage.getItem(dashboardStateKey);
+            if (savedState) {
+                try {
+                    const state = JSON.parse(savedState);
+                    const hasLocalCursorImages = JSON.stringify(state).includes('file:///C:/Users/AL/.cursor');
+                    if (hasLocalCursorImages) {
+                        localStorage.removeItem(scopedDashboardKey);
+                        localStorage.removeItem(dashboardStateKey);
+                    } else {
+                        applyCustomizationState(state);
+                    }
+                } catch (e) {}
+            }
+
+            initEntryFlow();
+            applyDesignerVisibility();
+        })();
 
         // Fallback: si les onclick inline échouent, ces listeners prennent le relais
         const gateOpenBtn = document.querySelector('#gate-name-input-container button');

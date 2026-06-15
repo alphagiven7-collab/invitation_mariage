@@ -568,6 +568,7 @@
 .dash-btn-apply { background: linear-gradient(120deg, #3730a3 0%, #4338ca 100%); color: #fff; }
 .dash-btn-reset { background: linear-gradient(120deg, #b91c1c 0%, #dc2626 100%); color: #fff; }
 .dash-btn-open { background: #0f172a; color: #fff; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+.dash-btn-ghost { background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; }
 @media (max-width: 980px) {
     .dash-layout { grid-template-columns: 1fr; }
     .dash-nav { position: static; }

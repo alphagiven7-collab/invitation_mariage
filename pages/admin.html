@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration invités</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../assets/css/app.css">
+    <style>
+        .admin-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        .admin-table th, .admin-table td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
+        .admin-table th { background: #f8fafc; font-weight: 600; color: #475569; }
+        .admin-table tr:hover td { background: #f8fafc; }
+        .badge { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px; font-size: 0.7rem; font-weight: 600; }
+        .badge-yes { background: #dcfce7; color: #166534; }
+        .badge-no { background: #fee2e2; color: #991b1b; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .stat-card { background: white; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1rem; }
+        .stat-card strong { font-size: 1.6rem; display: block; color: #0f172a; }
+        .stat-card span { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+    </style>
+</head>
+<body class="pro-page bg-slate-100 text-slate-800">
+    <main class="dash-wrap">
+        <header class="dash-top ring-1 ring-white/10">
+            <p class="dash-overline">Administration événement</p>
+            <h1 id="admin-event-title">Gestion des invités</h1>
+            <p class="dash-sub">Importez vos invités, générez leurs liens personnalisés et suivez les RSVP en temps réel.</p>
+            <div class="dash-head-actions pt-1">
+                <a id="back-invitation-link" href="./invitation.html" class="dash-head-btn">Voir invitation</a>
+                <a id="back-custom-link" href="./personnalisation.html" class="dash-head-btn">Personnaliser</a>
+            </div>
+        </header>
+
+        <div class="dash-main">
+            <section class="dash-card">
+                <h2>Vue d'ensemble</h2>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-3">
+                    <div class="stat-card"><strong id="stat-total">0</strong><span>Total invités</span></div>
+                    <div class="stat-card"><strong id="stat-yes">0</strong><span>Confirmés</span></div>
+                    <div class="stat-card"><strong id="stat-no">0</strong><span>Refus</span></div>
+                    <div class="stat-card"><strong id="stat-pending">0</strong><span>En attente</span></div>
+                    <div class="stat-card"><strong id="stat-adults">0</strong><span>Adultes confirmés</span></div>
+                </div>
+            </section>
+
+            <section class="dash-card mt-4">
+                <h2>Importer des invités (CSV)</h2>
+                <p class="dash-tip">Format : <code>nom,telephone,groupe</code> — un fichier exemple est dans <code>data/guests-exemple.csv</code></p>
+                <div class="flex flex-wrap gap-2 mt-3">
+                    <input id="csv-file-input" type="file" accept=".csv,text/csv" class="dash-input max-w-xs">
+                    <button id="import-csv-btn" type="button" class="dash-btn">Importer CSV</button>
+                    <a href="../data/guests-exemple.csv" download class="dash-btn dash-btn-ghost">Télécharger exemple</a>
+                </div>
+                <p id="import-result" class="dash-field-note mt-2"></p>
+            </section>
+
+            <section class="dash-card mt-4">
+                <h2>Ajouter un invité</h2>
+                <form id="add-guest-form" class="dash-grid-2 mt-3">
+                    <label>
+                        <span class="dash-field-label">Nom complet</span>
+                        <input id="guest-name" class="dash-input" required placeholder="Marie Kasongo">
+                    </label>
+                    <label>
+                        <span class="dash-field-label">Téléphone (WhatsApp)</span>
+                        <input id="guest-phone" class="dash-input" placeholder="+243900000000">
+                    </label>
+                    <label>
+                        <span class="dash-field-label">Groupe</span>
+                        <input id="guest-group" class="dash-input" placeholder="Famille, Amis…">
+                    </label>
+                    <div class="flex items-end">
+                        <button type="submit" class="dash-btn w-full">Ajouter invité</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="dash-card mt-4">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <h2 class="mb-0">Liste des invités</h2>
+                    <div class="flex flex-wrap gap-2">
+                        <input id="guest-search" class="dash-input" placeholder="Rechercher…" style="max-width:200px">
+                        <select id="guest-filter" class="dash-select" style="max-width:160px">
+                            <option value="all">Tous</option>
+                            <option value="pending">En attente</option>
+                            <option value="yes">Confirmés</option>
+                            <option value="no">Refus</option>
+                        </select>
+                        <button id="export-links-btn" type="button" class="dash-btn dash-btn-ghost">Exporter liens CSV</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Téléphone</th>
+                                <th>Groupe</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="guests-table-body"></tbody>
+                    </table>
+                </div>
+                <p id="guests-empty" class="dash-tip mt-3 hidden">Aucun invité. Importez un CSV ou ajoutez manuellement.</p>
+            </section>
+        </div>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="../assets/js/event-config.js"></script>
+    <script src="../assets/js/guest-manager.js"></script>
+    <script src="../assets/js/admin.js"></script>
+</body>
+</html>

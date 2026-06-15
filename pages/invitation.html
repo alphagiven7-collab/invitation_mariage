@@ -91,7 +91,7 @@
                     Ils seraient honorés de vous compter parmi leurs invités pour célébrer cette union sacrée et partager le bonheur de leur engagement.
                 </p>
                 <p id="invite-main-text" class="text-[13px] leading-relaxed mb-6 text-gray-600">
-                    La cérémonie, suivie d'une réception, se tiendra le <strong class="text-gray-800">jeudi 30 avril 2026 à partir de 19h30</strong> au <strong class="text-gray-800">Sultani River</strong>. Votre présence à leurs côtés, dans ce cadre mémorable au bord du fleuve, témoignera de l'affection que vous leur portez et rendra cette journée inoubliable.
+                    La cérémonie, suivie d'une réception, se tiendra le <strong class="text-gray-800">jeudi 30 avril 2026 à partir de 19h30</strong> au <strong class="text-gray-800">Sultani River</strong>. <span id="invitation-main-text">Votre présence à leurs côtés, dans ce cadre mémorable au bord du fleuve, témoignera de l'affection que vous leur portez et rendra cette journée inoubliable.</span>
                 </p>
 
                 <button id="reserve-deadline-btn" onclick="openModal('rsvp-modal')" class="bg-gray-50 border border-gray-100 rounded-lg p-3 inline-block hover:bg-gray-100 transition">
@@ -842,6 +842,8 @@
     <div id="toast" class="toast"></div>
 
     <!-- Scripts pour l'interactivité -->
+    <script src="../assets/js/event-config.js"></script>
+    <script src="../assets/js/guest-manager.js"></script>
     <script src="../assets/js/app.js"></script>
     <script>
         // Fallback robuste si app.js ne se charge pas complètement
