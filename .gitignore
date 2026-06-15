@@ -1,2 +1,2 @@
-# Ne jamais committer vos clés Supabase
-assets/js/supabase-config.js
+# Ne jamais committer le mot de passe DB Supabase
+# supabase-config.js peut être commité (clé anon publique + RLS)

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration Supabase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body class="pro-page bg-slate-100 text-slate-800">
+    <main class="dash-wrap max-w-2xl mx-auto">
+        <header class="dash-top ring-1 ring-white/10">
+            <p class="dash-overline">Étape cloud</p>
+            <h1>Connecter Supabase</h1>
+            <p class="dash-sub">Base de données gratuite pour invités, RSVP et livre d'or partagés.</p>
+        </header>
+
+        <section class="dash-card mt-4">
+            <h2>1. Créer le projet Supabase</h2>
+            <p class="dash-tip">Si pas encore fait : <a href="https://supabase.com/dashboard" target="_blank" class="underline font-semibold">supabase.com/dashboard</a></p>
+            <ol class="text-sm space-y-1 mt-2 list-decimal list-inside text-slate-600">
+                <li>SQL Editor → exécuter <code>docs/SUPABASE-SETUP.sql</code></li>
+                <li>Puis exécuter <code>docs/SUPABASE-SEED.sql</code></li>
+                <li>Settings → API → copier URL + anon key</li>
+            </ol>
+        </section>
+
+        <section class="dash-card mt-4">
+            <h2>2. Entrer vos clés</h2>
+            <form id="setup-form" class="space-y-3 mt-3">
+                <label class="block">
+                    <span class="dash-field-label">Project URL</span>
+                    <input id="sb-url" class="dash-input w-full" placeholder="https://xxxxx.supabase.co" required>
+                </label>
+                <label class="block">
+                    <span class="dash-field-label">Anon public key</span>
+                    <input id="sb-key" class="dash-input w-full" placeholder="eyJhbGciOiJIUzI1NiIs..." required>
+                </label>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" id="test-btn" class="dash-btn dash-btn-ghost">Tester connexion</button>
+                    <button type="submit" class="dash-btn dash-btn-save">Enregistrer (navigateur)</button>
+                </div>
+            </form>
+            <p id="test-result" class="dash-field-note mt-3"></p>
+        </section>
+
+        <section class="dash-card mt-4">
+            <h2>3. Activer sur GitHub Pages</h2>
+            <p class="dash-tip">Copiez ce contenu dans <code>assets/js/supabase-config.js</code> puis <code>git push</code> :</p>
+            <pre id="config-output" class="mt-2 p-3 bg-slate-900 text-green-400 text-xs rounded-xl overflow-x-auto"></pre>
+            <button type="button" id="copy-config-btn" class="dash-btn dash-btn-ghost mt-2">Copier config</button>
+        </section>
+
+        <div class="mt-4 flex gap-2">
+            <a href="./admin.html?event=yanick-keren" class="dash-btn dash-btn-open">Ouvrir admin</a>
+            <a href="./invitation.html?event=yanick-keren" class="dash-btn dash-btn-ghost">Voir invitation</a>
+        </div>
+    </main>
+
+    <script>
+        const STORAGE_KEY = "wedding_supabase_setup_draft";
+
+        function buildConfig(url, key) {
+            return `window.SUPABASE_CONFIG = {
+    enabled: true,
+    url: "${url}",
+    anonKey: "${key}"
+};`;
+        }
+
+        function loadDraft() {
+            try {
+                const d = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+                if (d.url) document.getElementById("sb-url").value = d.url;
+                if (d.key) document.getElementById("sb-key").value = d.key;
+                updateOutput();
+            } catch {}
+        }
+
+        function updateOutput() {
+            const url = document.getElementById("sb-url").value.trim();
+            const key = document.getElementById("sb-key").value.trim();
+            document.getElementById("config-output").textContent = buildConfig(url, key);
+        }
+
+        async function testConnection() {
+            const url = document.getElementById("sb-url").value.trim().replace(/\/$/, "");
+            const key = document.getElementById("sb-key").value.trim();
+            const result = document.getElementById("test-result");
+            if (!url || !key) {
+                result.textContent = "Remplissez URL et clé.";
+                result.className = "dash-field-note mt-3 text-red-600";
+                return;
+            }
+            result.textContent = "Test en cours…";
+            result.className = "dash-field-note mt-3";
+            try {
+                const res = await fetch(`${url}/rest/v1/events?select=id&limit=1`, {
+                    headers: { apikey: key, Authorization: `Bearer ${key}` }
+                });
+                if (res.ok) {
+                    result.textContent = "✅ Connexion OK ! Tables accessibles.";
+                    result.className = "dash-field-note mt-3 text-green-700 font-semibold";
+                } else {
+                    result.textContent = `❌ Erreur ${res.status}. Vérifiez clés et SQL setup.`;
+                    result.className = "dash-field-note mt-3 text-red-600";
+                }
+            } catch (e) {
+                result.textContent = "❌ Impossible de joindre Supabase. Vérifiez l'URL.";
+                result.className = "dash-field-note mt-3 text-red-600";
+            }
+        }
+
+        document.getElementById("sb-url").addEventListener("input", updateOutput);
+        document.getElementById("sb-key").addEventListener("input", updateOutput);
+        document.getElementById("test-btn").addEventListener("click", testConnection);
+        document.getElementById("setup-form").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const url = document.getElementById("sb-url").value.trim();
+            const key = document.getElementById("sb-key").value.trim();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ url, key }));
+            window.SUPABASE_CONFIG = { enabled: true, url, anonKey: key };
+            document.getElementById("test-result").textContent = "✅ Enregistré pour ce navigateur. Pensez à git push le fichier config pour GitHub Pages.";
+            document.getElementById("test-result").className = "dash-field-note mt-3 text-green-700";
+        });
+        document.getElementById("copy-config-btn").addEventListener("click", async () => {
+            const text = document.getElementById("config-output").textContent;
+            await navigator.clipboard.writeText(text);
+            document.getElementById("test-result").textContent = "Config copiée ! Collez dans supabase-config.js";
+        });
+        loadDraft();
+    </script>
+</body>
+</html>
