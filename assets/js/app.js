@@ -873,3 +873,6 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
         window.openDonationLink = openDonationLink;
         window.startQuiz = startQuiz;
         window.openQueueInfo = openQueueInfo;
+        window.submitRsvp = submitRsvp;
+        window.toggleTheme = toggleTheme;
+        if (window.I18n) window.I18n = I18n;
