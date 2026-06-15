@@ -26,6 +26,7 @@ function downloadFile(content, filename, type = "text/csv") {
 }
 
 async function renderStats() {
+    GuestManager.loadGuests && await GuestManager.loadGuests(true);
     const stats = await GuestManager.getStats();
     document.getElementById("stat-total").textContent = stats.total;
     document.getElementById("stat-yes").textContent = stats.yes;
@@ -136,10 +137,30 @@ async function renderAnalytics() {
     ).join("");
 }
 
+async function renderRSVPList() {
+    const eventId = EventConfig.getEventId();
+    const rsvps = CloudAPI.isEnabled() ? await CloudAPI.getRSVPs(eventId) : [];
+    const tbody = document.getElementById("rsvps-table-body");
+    const empty = document.getElementById("rsvps-empty");
+    tbody.innerHTML = "";
+    if (!rsvps.length) {
+        empty.classList.remove("hidden");
+        return;
+    }
+    empty.classList.add("hidden");
+    rsvps.forEach((r) => {
+        const tr = document.createElement("tr");
+        const st = r.status === "yes" ? "Confirmé" : r.status === "no" ? "Refus" : r.status;
+        tr.innerHTML = `<td><strong>${r.full_name || r.fullName}</strong></td><td>${r.phone || "—"}</td><td>${st}</td><td>${r.adults || 0}</td><td>${r.children || 0}</td><td>${r.created_at ? new Date(r.created_at).toLocaleString("fr-FR") : "—"}</td>`;
+        tbody.appendChild(tr);
+    });
+}
+
 async function refreshAll() {
     await renderStats();
     await renderGuestsTable();
     await renderRelances();
+    await renderRSVPList();
     await renderAnalytics();
 }
 
@@ -175,6 +196,11 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("wa-template").value = GuestManager.getMessageTemplate();
     setupTabs();
     await refreshAll();
+
+    document.getElementById("refresh-btn").addEventListener("click", async () => {
+        await refreshAll();
+        showToast("Données actualisées");
+    });
 
     document.getElementById("logout-btn").addEventListener("click", () => AuthGuard.logout());
 

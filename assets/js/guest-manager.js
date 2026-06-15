@@ -133,8 +133,12 @@ const GuestManager = (() => {
     }
 
     async function recordRSVP({ guestId, fullName, phone, status, adults, children, message }) {
+        await loadGuests(true);
         const guests = await loadGuests();
         let guest = guestId ? guests.find((g) => g.id === guestId) : null;
+        if (!guest && fullName) {
+            guest = guests.find((g) => g.fullName.toLowerCase() === fullName.toLowerCase());
+        }
         if (!guest && fullName) {
             guest = await addGuest({ fullName, phone });
         }
@@ -149,9 +153,10 @@ const GuestManager = (() => {
             respondedAt: new Date().toISOString()
         });
 
-        if (window.CloudAPI) {
+        if (window.CloudAPI && CloudAPI.isEnabled()) {
+            const synced = await CloudAPI.upsertGuest(getEventId(), { ...guest, ...updated });
             await CloudAPI.recordRSVP(getEventId(), {
-                guestId: guest.id,
+                guestId: synced ? synced.id : guest.id,
                 fullName: fullName || guest.fullName,
                 phone: phone || guest.phone,
                 status,
@@ -160,6 +165,7 @@ const GuestManager = (() => {
                 message
             });
         }
+        cache = null;
         return updated;
     }
 

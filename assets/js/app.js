@@ -62,6 +62,10 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
                     document.getElementById('gate-welcome-back-name').textContent = guestName;
                     applyGuestName(guestName);
                     localStorage.setItem('wedding_guest_name_simple', guestName);
+                    const rsvpName = document.getElementById('rsvp-name');
+                    if (rsvpName) rsvpName.value = guestName;
+                    const rsvpPhone = document.getElementById('rsvp-phone');
+                    if (rsvpPhone && guestByToken.phone) rsvpPhone.value = guestByToken.phone;
                     if (window.CloudAPI && EventConfig.isReady()) {
                         CloudAPI.track(EventConfig.getEventId(), 'guest_link_open', { guestToken: token });
                     }
@@ -83,6 +87,8 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
                 document.getElementById('gate-welcome-back-container').classList.remove('hidden');
                 document.getElementById('gate-welcome-back-name').textContent = guestName;
                 applyGuestName(guestName);
+                const rsvpName = document.getElementById('rsvp-name');
+                if (rsvpName) rsvpName.value = guestName;
             }
         }
 

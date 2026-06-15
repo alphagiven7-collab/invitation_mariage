@@ -55,30 +55,35 @@ const CloudAPI = (() => {
 
     async function upsertGuest(eventId, guest) {
         const payload = mapGuestToCloud(eventId, guest);
+        let cloudGuest = null;
+
         if (isEnabled()) {
             const existing = await request("guests", {
-                query: `?event_id=eq.${eventId}&slug=eq.${guest.slug}&select=id`
+                query: `?event_id=eq.${eventId}&slug=eq.${encodeURIComponent(guest.slug)}&select=id`
             });
             if (existing && existing.length) {
-                await request("guests", {
+                cloudGuest = await request("guests", {
                     method: "PATCH",
                     query: `?id=eq.${existing[0].id}`,
-                    body: payload
+                    body: payload,
+                    prefer: "return=representation"
                 });
+                if (Array.isArray(cloudGuest) && cloudGuest[0]) cloudGuest = cloudGuest[0];
             } else {
-                await request("guests", {
+                cloudGuest = await request("guests", {
                     method: "POST",
                     body: payload,
                     prefer: "return=representation"
                 });
+                if (Array.isArray(cloudGuest) && cloudGuest[0]) cloudGuest = cloudGuest[0];
             }
         }
-        const guests = await getGuests(eventId);
-        const idx = guests.findIndex((g) => g.id === guest.id || g.slug === guest.slug);
-        if (idx >= 0) guests[idx] = guest;
-        else guests.push(guest);
+
+        const merged = cloudGuest ? mapGuestFromCloud(cloudGuest) : guest;
+        const guests = (await getGuests(eventId)).filter((g) => g.slug !== guest.slug);
+        guests.unshift(merged);
         await saveGuestsLocal(eventId, guests);
-        return guest;
+        return merged;
     }
 
     async function syncAllGuests(eventId, guests) {
@@ -100,9 +105,20 @@ const CloudAPI = (() => {
 
     // --- RSVP ---
     async function recordRSVP(eventId, data) {
+        let resolvedGuestId = data.guestId || null;
+        if (isEnabled() && data.fullName) {
+            const slug = (data.fullName || "")
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+            const found = await request("guests", {
+                query: `?event_id=eq.${eventId}&slug=eq.${encodeURIComponent(slug)}&select=id&limit=1`
+            });
+            if (found && found[0]) resolvedGuestId = found[0].id;
+        }
+
         const payload = {
             event_id: eventId,
-            guest_id: data.guestId || null,
+            guest_id: resolvedGuestId,
             full_name: data.fullName,
             phone: data.phone || "",
             status: data.status,
@@ -111,7 +127,7 @@ const CloudAPI = (() => {
             message: data.message || ""
         };
         if (isEnabled()) {
-            await request("rsvps", { method: "POST", body: payload });
+            await request("rsvps", { method: "POST", body: payload, prefer: "return=representation" });
         }
         const key = localKey(eventId, "rsvps");
         const list = JSON.parse(localStorage.getItem(key) || "[]");
