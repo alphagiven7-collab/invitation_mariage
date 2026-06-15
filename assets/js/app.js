@@ -48,13 +48,13 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
             }, 450);
         }
 
-        function initEntryFlow() {
+        async function initEntryFlow() {
             const urlParams = new URLSearchParams(window.location.search);
             const token = (urlParams.get('t') || '').trim();
             const guestParam = (urlParams.get('guest') || urlParams.get('nom') || '').trim();
 
             if (window.GuestManager && token) {
-                const guestByToken = GuestManager.findByToken(token);
+                const guestByToken = await GuestManager.findByToken(token);
                 if (guestByToken) {
                     guestName = guestByToken.fullName;
                     document.getElementById('gate-name-input-container').classList.add('hidden');
@@ -62,13 +62,16 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
                     document.getElementById('gate-welcome-back-name').textContent = guestName;
                     applyGuestName(guestName);
                     localStorage.setItem('wedding_guest_name_simple', guestName);
+                    if (window.CloudAPI && EventConfig.isReady()) {
+                        CloudAPI.track(EventConfig.getEventId(), 'guest_link_open', { guestToken: token });
+                    }
                     return;
                 }
             }
 
             let resolvedName = guestParam;
             if (window.GuestManager && guestParam && !guestParam.includes(' ')) {
-                const guestBySlug = GuestManager.findBySlug(guestParam);
+                const guestBySlug = await GuestManager.findBySlug(guestParam);
                 if (guestBySlug) resolvedName = guestBySlug.fullName;
             }
 
@@ -112,7 +115,7 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
                 if (typeof openCustomizer === 'function') {
                     openCustomizer();
                 } else {
-                    window.location.href = './personnalisation.html';
+                    window.location.href = './personnalisation.html' + (EventConfig.isReady() ? EventConfig.preserveEventQuery() : '');
                 }
             } else {
                 showToast('Code incorrect');
@@ -485,7 +488,12 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
             openModal('rsvp-modal');
         }
 
-        function submitRsvp(event) {
+        function validatePhone(phone) {
+            const digits = (phone || '').replace(/\D/g, '');
+            return digits.length >= 9;
+        }
+
+        async function submitRsvp(event) {
             event.preventDefault();
             const payload = {
                 name: document.getElementById('rsvp-name').value.trim(),
@@ -496,8 +504,12 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
                 message: document.getElementById('rsvp-message').value.trim(),
                 sentAt: new Date().toISOString()
             };
-            if (!payload.name || !payload.phone) {
-                showToast('Nom et téléphone obligatoires.');
+            if (!payload.name || payload.name.length < 2) {
+                showToast('Nom obligatoire (2 caractères minimum).');
+                return;
+            }
+            if (!validatePhone(payload.phone)) {
+                showToast('Téléphone invalide (9 chiffres minimum).');
                 return;
             }
             localStorage.setItem('wedding_rsvp_data', JSON.stringify(payload));
@@ -509,8 +521,8 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
             if (window.GuestManager) {
                 const urlParams = new URLSearchParams(window.location.search);
                 const token = urlParams.get('t');
-                const guestByToken = token ? GuestManager.findByToken(token) : null;
-                GuestManager.recordRSVP({
+                const guestByToken = token ? await GuestManager.findByToken(token) : null;
+                await GuestManager.recordRSVP({
                     guestId: guestByToken ? guestByToken.id : null,
                     fullName: payload.name,
                     phone: payload.phone,
@@ -521,11 +533,16 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
                 });
             }
 
+            if (window.CloudAPI && EventConfig.isReady()) {
+                CloudAPI.track(EventConfig.getEventId(), 'rsvp_submit', { status: payload.status });
+            }
+
             const externalRsvpLink = (document.getElementById('rsvp-form').dataset.externalLink || '').trim();
             closeModal('rsvp-modal');
-            showToast(payload.status === 'yes'
-                ? 'RSVP envoyé. Merci, votre présence est confirmée !'
-                : 'RSVP envoyé. Merci pour votre réponse.');
+            const msg = payload.status === 'yes'
+                ? (window.I18n ? I18n.t('rsvpConfirmed') : 'RSVP envoyé. Merci, votre présence est confirmée !')
+                : (window.I18n ? I18n.t('rsvpSent') : 'RSVP envoyé. Merci pour votre réponse.');
+            showToast(msg);
             if (externalRsvpLink) {
                 setTimeout(() => window.open(externalRsvpLink, '_blank'), 400);
             }
@@ -576,30 +593,45 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
             });
         }
 
-        function loadGuestbookMessages() {
-            const messages = readLocalJson(guestbookListKey, []);
+        async function loadGuestbookMessages() {
+            let messages = readLocalJson(guestbookListKey, []);
+            if (window.CloudAPI && EventConfig.isReady()) {
+                const cloud = await CloudAPI.getGuestbookMessages(EventConfig.getEventId());
+                if (cloud && cloud.length) {
+                    messages = cloud.map((m) => ({
+                        author: m.author_name || m.authorName,
+                        message: m.message,
+                        sentAt: m.created_at
+                    }));
+                }
+            }
             if (Array.isArray(messages) && messages.length) {
                 renderGuestbookMessages(messages);
             }
         }
 
-        function publishGuestMessage() {
+        async function publishGuestMessage() {
             const textarea = document.getElementById('guestbook-textarea');
             const message = textarea.value.trim();
-            if (!message) return showToast('Veuillez ecrire un message.');
+            if (!message || message.length < 3) return showToast('Message trop court (3 caractères min).');
 
             const author = guestName || 'Invité';
-            const newItem = {
-                author,
-                message,
-                sentAt: new Date().toISOString()
-            };
+            const newItem = { author, message, sentAt: new Date().toISOString() };
             const messages = readLocalJson(guestbookListKey, []);
             messages.unshift(newItem);
             localStorage.setItem(guestbookListKey, JSON.stringify(messages));
+
+            if (window.CloudAPI && EventConfig.isReady()) {
+                await CloudAPI.addGuestbookMessage(EventConfig.getEventId(), {
+                    authorName: author,
+                    message
+                });
+                CloudAPI.track(EventConfig.getEventId(), 'guestbook_post', {});
+            }
+
             renderGuestbookMessages(messages);
             textarea.value = '';
-            showToast('Message publie dans le livre d\'or.');
+            showToast('Message publié dans le livre d\'or.');
         }
 
         function exportRsvpData() {
@@ -775,6 +807,22 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
                 } catch (e) {}
             }
 
+            if (window.I18n) {
+                I18n.apply(I18n.getLang());
+            }
+
+            document.querySelectorAll('img:not([loading])').forEach((img, i) => {
+                if (i > 2) img.loading = 'lazy';
+            });
+
+            if (window.CloudAPI && EventConfig.isReady()) {
+                CloudAPI.track(EventConfig.getEventId(), 'page_view', {});
+            }
+
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('../sw.js').catch(() => {});
+            }
+
             defaultCustomizationState = getCurrentCustomizationState();
             const scopedDashboardKey = window.EventConfig && EventConfig.isReady()
                 ? EventConfig.storageKey('dashboard_state')
@@ -793,7 +841,7 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
                 } catch (e) {}
             }
 
-            initEntryFlow();
+            await initEntryFlow();
             applyDesignerVisibility();
         })();
 

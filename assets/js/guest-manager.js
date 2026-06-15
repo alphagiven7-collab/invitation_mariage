@@ -1,24 +1,18 @@
 /**
- * Gestion des invités (localStorage, scopé par événement)
- * Prêt pour migration vers API/SQLite
+ * Gestion des invités — local + cloud (Supabase)
+ * Étapes 2, 3, 4
  */
 const GuestManager = (() => {
+    let cache = null;
+
+    function getEventId() {
+        if (window.EventConfig && EventConfig.isReady()) return EventConfig.getEventId();
+        const params = new URLSearchParams(window.location.search);
+        return params.get("event") || "yanick-keren";
+    }
+
     function storageKey() {
-        if (window.EventConfig) return EventConfig.storageKey("guests");
-        return "wedding_guests_default";
-    }
-
-    function loadGuests() {
-        try {
-            const raw = localStorage.getItem(storageKey());
-            return raw ? JSON.parse(raw) : [];
-        } catch {
-            return [];
-        }
-    }
-
-    function saveGuests(guests) {
-        localStorage.setItem(storageKey(), JSON.stringify(guests));
+        return `wedding_event_${getEventId()}_guests`;
     }
 
     function slugify(name) {
@@ -40,7 +34,7 @@ const GuestManager = (() => {
     function buildInviteLink(guest) {
         const base = EventConfig.buildInvitationBaseUrl();
         const params = new URLSearchParams();
-        params.set("event", EventConfig.getEventId());
+        params.set("event", getEventId());
         params.set("guest", guest.slug);
         params.set("t", guest.token);
         return `${base}?${params.toString()}`;
@@ -49,16 +43,48 @@ const GuestManager = (() => {
     function buildWhatsAppLink(guest, messageTemplate) {
         const phone = (guest.phone || "").replace(/\D/g, "");
         const link = buildInviteLink(guest);
-        const msg = (messageTemplate || "Bonjour {nom}, voici votre invitation : {lien}")
-            .replace("{nom}", guest.fullName)
-            .replace("{lien}", link);
+        const tpl = messageTemplate || getMessageTemplate();
+        const msg = tpl.replace("{nom}", guest.fullName).replace("{lien}", link);
         const encoded = encodeURIComponent(msg);
         return phone ? `https://wa.me/${phone}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
     }
 
-    function addGuest({ fullName, phone = "", email = "", group = "" }) {
+    function getMessageTemplate() {
+        return localStorage.getItem(`wedding_event_${getEventId()}_wa_template`)
+            || "Bonjour {nom}, vous êtes invité(e) à notre événement. Confirmez via : {lien}";
+    }
+
+    function setMessageTemplate(text) {
+        localStorage.setItem(`wedding_event_${getEventId()}_wa_template`, text);
+    }
+
+    async function loadGuests(force = false) {
+        if (cache && !force) return cache;
+        if (window.CloudAPI) {
+            cache = await CloudAPI.getGuests(getEventId());
+        } else {
+            try {
+                const raw = localStorage.getItem(storageKey());
+                cache = raw ? JSON.parse(raw) : [];
+            } catch {
+                cache = [];
+            }
+        }
+        return cache;
+    }
+
+    async function persistGuests(guests) {
+        cache = guests;
+        if (window.CloudAPI) {
+            await CloudAPI.syncAllGuests(getEventId(), guests);
+        } else {
+            localStorage.setItem(storageKey(), JSON.stringify(guests));
+        }
+    }
+
+    async function addGuest({ fullName, phone = "", email = "", group = "" }) {
         if (!fullName || fullName.trim().length < 2) return null;
-        const guests = loadGuests();
+        const guests = await loadGuests();
         const slug = slugify(fullName);
         const existing = guests.find((g) => g.slug === slug);
         if (existing) return existing;
@@ -79,38 +105,42 @@ const GuestManager = (() => {
             createdAt: new Date().toISOString()
         };
         guests.push(guest);
-        saveGuests(guests);
+        await persistGuests(guests);
+        if (window.CloudAPI) await CloudAPI.upsertGuest(getEventId(), guest);
         return guest;
     }
 
-    function findByToken(token) {
+    async function findByToken(token) {
         if (!token) return null;
-        return loadGuests().find((g) => g.token === token) || null;
+        const guests = await loadGuests();
+        return guests.find((g) => g.token === token) || null;
     }
 
-    function findBySlug(slug) {
+    async function findBySlug(slug) {
         if (!slug) return null;
-        return loadGuests().find((g) => g.slug === slug) || null;
+        const guests = await loadGuests();
+        return guests.find((g) => g.slug === slug) || null;
     }
 
-    function updateGuest(id, patch) {
-        const guests = loadGuests();
+    async function updateGuest(id, patch) {
+        const guests = await loadGuests();
         const idx = guests.findIndex((g) => g.id === id);
         if (idx === -1) return null;
         guests[idx] = { ...guests[idx], ...patch };
-        saveGuests(guests);
+        await persistGuests(guests);
+        if (window.CloudAPI) await CloudAPI.upsertGuest(getEventId(), guests[idx]);
         return guests[idx];
     }
 
-    function recordRSVP({ guestId, fullName, phone, status, adults, children, message }) {
-        const guests = loadGuests();
+    async function recordRSVP({ guestId, fullName, phone, status, adults, children, message }) {
+        const guests = await loadGuests();
         let guest = guestId ? guests.find((g) => g.id === guestId) : null;
         if (!guest && fullName) {
-            guest = addGuest({ fullName, phone });
+            guest = await addGuest({ fullName, phone });
         }
         if (!guest) return null;
 
-        return updateGuest(guest.id, {
+        const updated = await updateGuest(guest.id, {
             status: status === "yes" ? "yes" : status === "no" ? "no" : "pending",
             adults: Number(adults) || 1,
             children: Number(children) || 0,
@@ -118,6 +148,19 @@ const GuestManager = (() => {
             phone: phone || guest.phone,
             respondedAt: new Date().toISOString()
         });
+
+        if (window.CloudAPI) {
+            await CloudAPI.recordRSVP(getEventId(), {
+                guestId: guest.id,
+                fullName: fullName || guest.fullName,
+                phone: phone || guest.phone,
+                status,
+                adults,
+                children,
+                message
+            });
+        }
+        return updated;
     }
 
     function parseCSV(text) {
@@ -132,36 +175,37 @@ const GuestManager = (() => {
 
         if (nameIdx === -1) throw new Error("Colonne 'nom' obligatoire dans le CSV");
 
-        let imported = 0;
-        let skipped = 0;
-        const results = [];
-
+        const rows = [];
         for (let i = 1; i < lines.length; i++) {
-            const cols = lines[i].split(",").map((c) => c.trim());
+            const cols = lines[i].split(",").map((c) => c.trim().replace(/^"|"$/g, ""));
             const fullName = cols[nameIdx];
-            if (!fullName) {
-                skipped++;
-                continue;
-            }
-            const before = loadGuests().length;
-            const guest = addGuest({
+            if (!fullName) continue;
+            rows.push({
                 fullName,
                 phone: phoneIdx >= 0 ? cols[phoneIdx] : "",
                 group: groupIdx >= 0 ? cols[groupIdx] : "",
                 email: emailIdx >= 0 ? cols[emailIdx] : ""
             });
-            if (loadGuests().length > before || guest) {
-                imported++;
-                results.push(guest);
-            } else {
-                skipped++;
-            }
         }
-        return { imported, skipped, guests: results };
+        return rows;
     }
 
-    function getStats() {
-        const guests = loadGuests();
+    async function importCSVRows(rows) {
+        let imported = 0;
+        let skipped = 0;
+        for (const row of rows) {
+            const before = (await loadGuests()).length;
+            const g = await addGuest(row);
+            const after = (await loadGuests()).length;
+            if (after > before || g) imported++;
+            else skipped++;
+        }
+        await loadGuests(true);
+        return { imported, skipped };
+    }
+
+    async function getStats() {
+        const guests = await loadGuests();
         return {
             total: guests.length,
             yes: guests.filter((g) => g.status === "yes").length,
@@ -172,24 +216,42 @@ const GuestManager = (() => {
         };
     }
 
-    function exportLinksCSV() {
-        const guests = loadGuests();
-        const header = "nom,telephone,groupe,statut,lien";
+    async function getPendingGuests() {
+        return (await loadGuests()).filter((g) => g.status === "pending");
+    }
+
+    async function exportLinksCSV() {
+        const guests = await loadGuests();
+        const header = "nom,telephone,email,groupe,statut,adultes,enfants,lien";
         const rows = guests.map((g) => {
             const link = buildInviteLink(g);
-            return `"${g.fullName}","${g.phone || ""}","${g.group || ""}","${g.status}","${link}"`;
+            return `"${g.fullName}","${g.phone || ""}","${g.email || ""}","${g.group || ""}","${g.status}",${g.adults || 0},${g.children || 0},"${link}"`;
         });
         return [header, ...rows].join("\n");
     }
 
-    function regenerateToken(guestId) {
-        const guest = updateGuest(guestId, { token: generateToken() });
-        return guest;
+    async function exportRSVPReport() {
+        const guests = await loadGuests();
+        const header = "nom,telephone,groupe,statut,adultes,enfants,message,repondu_le";
+        const rows = guests.map((g) =>
+            `"${g.fullName}","${g.phone || ""}","${g.group || ""}","${g.status}",${g.adults || 0},${g.children || 0},"${(g.rsvpMessage || "").replace(/"/g, "'")}","${g.respondedAt || ""}"`
+        );
+        return [header, ...rows].join("\n");
     }
 
-    function removeGuest(guestId) {
-        const guests = loadGuests().filter((g) => g.id !== guestId);
-        saveGuests(guests);
+    async function regenerateToken(guestId) {
+        return updateGuest(guestId, { token: generateToken() });
+    }
+
+    async function removeGuest(guestId) {
+        if (window.CloudAPI) {
+            await CloudAPI.removeGuestCloud(getEventId(), guestId);
+        } else {
+            const guests = (await loadGuests()).filter((g) => g.id !== guestId);
+            await persistGuests(guests);
+        }
+        cache = null;
+        await loadGuests(true);
     }
 
     return {
@@ -200,10 +262,15 @@ const GuestManager = (() => {
         updateGuest,
         recordRSVP,
         parseCSV,
+        importCSVRows,
         getStats,
+        getPendingGuests,
         buildInviteLink,
         buildWhatsAppLink,
+        getMessageTemplate,
+        setMessageTemplate,
         exportLinksCSV,
+        exportRSVPReport,
         regenerateToken,
         removeGuest
     };

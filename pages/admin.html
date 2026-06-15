@@ -10,14 +10,18 @@
         .admin-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
         .admin-table th, .admin-table td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
         .admin-table th { background: #f8fafc; font-weight: 600; color: #475569; }
-        .admin-table tr:hover td { background: #f8fafc; }
         .badge { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px; font-size: 0.7rem; font-weight: 600; }
         .badge-yes { background: #dcfce7; color: #166534; }
         .badge-no { background: #fee2e2; color: #991b1b; }
         .badge-pending { background: #fef3c7; color: #92400e; }
         .stat-card { background: white; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1rem; }
         .stat-card strong { font-size: 1.6rem; display: block; color: #0f172a; }
-        .stat-card span { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-card span { font-size: 0.75rem; color: #64748b; text-transform: uppercase; }
+        .admin-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .admin-tab { padding: 0.4rem 0.9rem; border-radius: 999px; font-size: 0.8rem; border: 1px solid #e2e8f0; background: #fff; cursor: pointer; }
+        .admin-tab.active { background: #0f172a; color: #fff; border-color: #0f172a; }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
     </style>
 </head>
 <body class="pro-page bg-slate-100 text-slate-800">
@@ -25,61 +29,66 @@
         <header class="dash-top ring-1 ring-white/10">
             <p class="dash-overline">Administration événement</p>
             <h1 id="admin-event-title">Gestion des invités</h1>
-            <p class="dash-sub">Importez vos invités, générez leurs liens personnalisés et suivez les RSVP en temps réel.</p>
+            <p class="dash-sub">
+                Import CSV · liens uniques · WhatsApp · relances · exports
+                <span id="cloud-status" class="ml-2 text-xs opacity-80"></span>
+            </p>
             <div class="dash-head-actions pt-1">
                 <a id="back-invitation-link" href="./invitation.html" class="dash-head-btn">Voir invitation</a>
                 <a id="back-custom-link" href="./personnalisation.html" class="dash-head-btn">Personnaliser</a>
+                <button type="button" id="logout-btn" class="dash-head-btn">Déconnexion</button>
             </div>
         </header>
 
+        <div class="admin-tabs px-1">
+            <button type="button" class="admin-tab active" data-tab="overview">Vue d'ensemble</button>
+            <button type="button" class="admin-tab" data-tab="guests">Invités</button>
+            <button type="button" class="admin-tab" data-tab="relances">Relances</button>
+            <button type="button" class="admin-tab" data-tab="analytics">Analytics</button>
+            <button type="button" class="admin-tab" data-tab="exports">Exports</button>
+        </div>
+
         <div class="dash-main">
-            <section class="dash-card">
-                <h2>Vue d'ensemble</h2>
-                <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-3">
-                    <div class="stat-card"><strong id="stat-total">0</strong><span>Total invités</span></div>
-                    <div class="stat-card"><strong id="stat-yes">0</strong><span>Confirmés</span></div>
-                    <div class="stat-card"><strong id="stat-no">0</strong><span>Refus</span></div>
-                    <div class="stat-card"><strong id="stat-pending">0</strong><span>En attente</span></div>
-                    <div class="stat-card"><strong id="stat-adults">0</strong><span>Adultes confirmés</span></div>
-                </div>
-            </section>
-
-            <section class="dash-card mt-4">
-                <h2>Importer des invités (CSV)</h2>
-                <p class="dash-tip">Format : <code>nom,telephone,groupe</code> — un fichier exemple est dans <code>data/guests-exemple.csv</code></p>
-                <div class="flex flex-wrap gap-2 mt-3">
-                    <input id="csv-file-input" type="file" accept=".csv,text/csv" class="dash-input max-w-xs">
-                    <button id="import-csv-btn" type="button" class="dash-btn">Importer CSV</button>
-                    <a href="../data/guests-exemple.csv" download class="dash-btn dash-btn-ghost">Télécharger exemple</a>
-                </div>
-                <p id="import-result" class="dash-field-note mt-2"></p>
-            </section>
-
-            <section class="dash-card mt-4">
-                <h2>Ajouter un invité</h2>
-                <form id="add-guest-form" class="dash-grid-2 mt-3">
-                    <label>
-                        <span class="dash-field-label">Nom complet</span>
-                        <input id="guest-name" class="dash-input" required placeholder="Marie Kasongo">
-                    </label>
-                    <label>
-                        <span class="dash-field-label">Téléphone (WhatsApp)</span>
-                        <input id="guest-phone" class="dash-input" placeholder="+243900000000">
-                    </label>
-                    <label>
-                        <span class="dash-field-label">Groupe</span>
-                        <input id="guest-group" class="dash-input" placeholder="Famille, Amis…">
-                    </label>
-                    <div class="flex items-end">
-                        <button type="submit" class="dash-btn w-full">Ajouter invité</button>
+            <div id="tab-overview" class="tab-panel active">
+                <section class="dash-card">
+                    <div class="grid grid-cols-2 md:grid-cols-6 gap-3">
+                        <div class="stat-card"><strong id="stat-total">0</strong><span>Total</span></div>
+                        <div class="stat-card"><strong id="stat-yes">0</strong><span>Confirmés</span></div>
+                        <div class="stat-card"><strong id="stat-no">0</strong><span>Refus</span></div>
+                        <div class="stat-card"><strong id="stat-pending">0</strong><span>En attente</span></div>
+                        <div class="stat-card"><strong id="stat-adults">0</strong><span>Adultes</span></div>
+                        <div class="stat-card"><strong id="stat-children">0</strong><span>Enfants</span></div>
                     </div>
-                </form>
-            </section>
+                </section>
+            </div>
 
-            <section class="dash-card mt-4">
-                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                    <h2 class="mb-0">Liste des invités</h2>
-                    <div class="flex flex-wrap gap-2">
+            <div id="tab-guests" class="tab-panel">
+                <section class="dash-card mb-4">
+                    <h2>Importer CSV</h2>
+                    <p class="dash-tip">Format : <code>nom,telephone,groupe,email</code></p>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        <input id="csv-file-input" type="file" accept=".csv" class="dash-input max-w-xs">
+                        <button id="import-csv-btn" type="button" class="dash-btn">Importer</button>
+                        <a href="../data/guests-exemple.csv" download class="dash-btn dash-btn-ghost">Exemple CSV</a>
+                    </div>
+                    <p id="import-result" class="dash-field-note mt-2"></p>
+                </section>
+                <section class="dash-card mb-4">
+                    <h2>Message WhatsApp</h2>
+                    <textarea id="wa-template" class="dash-textarea" rows="2" placeholder="Bonjour {nom}, voici votre invitation : {lien}"></textarea>
+                    <button id="save-wa-template" type="button" class="dash-btn dash-btn-ghost mt-2">Enregistrer message</button>
+                </section>
+                <section class="dash-card mb-4">
+                    <h2>Ajouter un invité</h2>
+                    <form id="add-guest-form" class="dash-grid-2 mt-2">
+                        <input id="guest-name" class="dash-input" placeholder="Nom complet" required>
+                        <input id="guest-phone" class="dash-input" placeholder="Téléphone WhatsApp">
+                        <input id="guest-group" class="dash-input" placeholder="Groupe">
+                        <button type="submit" class="dash-btn">Ajouter</button>
+                    </form>
+                </section>
+                <section class="dash-card">
+                    <div class="flex flex-wrap gap-2 mb-3">
                         <input id="guest-search" class="dash-input" placeholder="Rechercher…" style="max-width:200px">
                         <select id="guest-filter" class="dash-select" style="max-width:160px">
                             <option value="all">Tous</option>
@@ -87,31 +96,51 @@
                             <option value="yes">Confirmés</option>
                             <option value="no">Refus</option>
                         </select>
-                        <button id="export-links-btn" type="button" class="dash-btn dash-btn-ghost">Exporter liens CSV</button>
                     </div>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Nom</th>
-                                <th>Téléphone</th>
-                                <th>Groupe</th>
-                                <th>Statut</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="guests-table-body"></tbody>
-                    </table>
-                </div>
-                <p id="guests-empty" class="dash-tip mt-3 hidden">Aucun invité. Importez un CSV ou ajoutez manuellement.</p>
-            </section>
+                    <div class="overflow-x-auto">
+                        <table class="admin-table">
+                            <thead><tr><th>Nom</th><th>Tél.</th><th>Groupe</th><th>Statut</th><th>Actions</th></tr></thead>
+                            <tbody id="guests-table-body"></tbody>
+                        </table>
+                    </div>
+                    <p id="guests-empty" class="dash-tip mt-3 hidden">Aucun invité.</p>
+                </section>
+            </div>
+
+            <div id="tab-relances" class="tab-panel">
+                <section class="dash-card">
+                    <h2>Invités sans réponse</h2>
+                    <p class="dash-tip">Relancez via WhatsApp les invités en attente.</p>
+                    <div id="relances-list" class="mt-3 space-y-2"></div>
+                </section>
+            </div>
+
+            <div id="tab-analytics" class="tab-panel">
+                <section class="dash-card">
+                    <h2>Activité du site</h2>
+                    <div id="analytics-summary" class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3"></div>
+                    <ul id="analytics-list" class="mt-4 text-sm space-y-1 max-h-64 overflow-y-auto"></ul>
+                </section>
+            </div>
+
+            <div id="tab-exports" class="tab-panel">
+                <section class="dash-card">
+                    <h2>Exports</h2>
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        <button id="export-links-btn" type="button" class="dash-btn">Export liens CSV</button>
+                        <button id="export-rsvp-btn" type="button" class="dash-btn">Export rapport RSVP</button>
+                        <button id="export-json-btn" type="button" class="dash-btn dash-btn-ghost">Export JSON complet</button>
+                    </div>
+                </section>
+            </div>
         </div>
     </main>
-
     <div id="toast" class="toast"></div>
 
+    <script src="../assets/js/supabase-config.example.js"></script>
     <script src="../assets/js/event-config.js"></script>
+    <script src="../assets/js/cloud-api.js"></script>
+    <script src="../assets/js/auth.js"></script>
     <script src="../assets/js/guest-manager.js"></script>
     <script src="../assets/js/admin.js"></script>
 </body>

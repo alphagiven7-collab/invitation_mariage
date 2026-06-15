@@ -23,6 +23,7 @@
     "countdown": true,
     "dressCode": true
   },
+  "adminCode": "YANICK-CLIENT-2026",
   "links": {
     "donation": "https://www.paypal.com",
     "supportEmail": "contact@example.com",

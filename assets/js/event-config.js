@@ -115,8 +115,23 @@ const EventConfig = (() => {
 
         const metaTitle = document.getElementById("meta-og-title");
         const metaDesc = document.getElementById("meta-og-description");
-        if (metaTitle && config.title) metaTitle.content = config.title;
-        if (metaDesc && config.mainText) metaDesc.content = config.mainText.slice(0, 160);
+        const metaDesc2 = document.getElementById("meta-description");
+        const metaTwitterTitle = document.getElementById("meta-twitter-title");
+        const metaTwitterDesc = document.getElementById("meta-twitter-description");
+        if (metaTitle && config.title) {
+            metaTitle.content = config.title;
+            if (metaTwitterTitle) metaTwitterTitle.content = config.title;
+        }
+        const desc = config.mainText || config.welcomeMessage || "";
+        if (metaDesc && desc) metaDesc.content = desc.slice(0, 160);
+        if (metaDesc2 && desc) metaDesc2.content = desc.slice(0, 160);
+        if (metaTwitterDesc && desc) metaTwitterDesc.content = desc.slice(0, 160);
+        if (config.branding && config.branding.heroImage) {
+            const ogImg = document.getElementById("meta-og-image");
+            const twImg = document.getElementById("meta-twitter-image");
+            if (ogImg) ogImg.content = config.branding.heroImage;
+            if (twImg) twImg.content = config.branding.heroImage;
+        }
     }
 
     function buildInvitationBaseUrl() {

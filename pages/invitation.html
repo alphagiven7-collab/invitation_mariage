@@ -14,6 +14,8 @@
     <meta name="twitter:title" id="meta-twitter-title" content="Mariage de Yanick et Keren">
     <meta name="twitter:description" id="meta-twitter-description" content="Rejoignez-nous pour célébrer notre union.">
     <meta name="twitter:image" id="meta-twitter-image" content="">
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#4caf50">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -60,6 +62,7 @@
     <main id="main-view" class="max-w-md mx-auto bg-[#fafafa] min-h-screen relative shadow-2xl overflow-hidden pb-10 hidden opacity-0 transition-opacity duration-500">
         <div class="hidden md:flex fixed right-4 top-4 z-50 flex-col gap-2">
             <button id="toggle-theme-btn" onclick="toggleTheme()" class="bg-black/70 text-white rounded-xl px-3 py-2 text-xs font-semibold">Dark</button>
+            <button id="lang-toggle-btn" onclick="I18n.toggle()" class="bg-black/70 text-white rounded-xl px-3 py-2 text-xs font-semibold">EN</button>
         </div>
         
         <!-- 1. En-tête -->
@@ -842,8 +845,11 @@
     <div id="toast" class="toast"></div>
 
     <!-- Scripts pour l'interactivité -->
+    <script src="../assets/js/supabase-config.example.js"></script>
     <script src="../assets/js/event-config.js"></script>
+    <script src="../assets/js/cloud-api.js"></script>
     <script src="../assets/js/guest-manager.js"></script>
+    <script src="../assets/js/i18n.js"></script>
     <script src="../assets/js/app.js"></script>
     <script>
         // Fallback robuste si app.js ne se charge pas complètement

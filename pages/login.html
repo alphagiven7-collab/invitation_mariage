@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion administrateur</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body class="pro-page bg-slate-100 text-slate-800 flex items-center justify-center min-h-screen">
+    <div class="dash-card max-w-md w-full mx-4 shadow-2xl">
+        <p class="dash-overline">Administration</p>
+        <h1 class="text-xl font-semibold mb-2">Connexion organisateur</h1>
+        <p class="dash-tip mb-4">Code admin événement ou code plateforme concepteur.</p>
+        <form id="login-form">
+            <label class="block mb-3">
+                <span class="dash-field-label">Code d'accès</span>
+                <input id="login-code" type="password" class="dash-input w-full" placeholder="Votre code admin" required autofocus>
+            </label>
+            <button type="submit" class="dash-btn dash-btn-save w-full">Se connecter</button>
+        </form>
+        <p id="login-error" class="text-red-600 text-sm mt-3 hidden"></p>
+        <a href="./invitation.html" class="dash-field-note mt-4 inline-block">← Retour invitation</a>
+    </div>
+
+    <script src="../assets/js/event-config.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script>
+        window.addEventListener("DOMContentLoaded", async () => {
+            await EventConfig.init();
+            const params = new URLSearchParams(window.location.search);
+            const eventId = params.get("event") || EventConfig.getEventId();
+            const redirect = params.get("redirect") || `./admin.html?event=${eventId}`;
+
+            if (AuthGuard.isEventAdmin(eventId)) {
+                window.location.href = redirect;
+                return;
+            }
+
+            document.getElementById("login-form").addEventListener("submit", (e) => {
+                e.preventDefault();
+                const code = document.getElementById("login-code").value.trim();
+                const result = AuthGuard.login(code, eventId);
+                const err = document.getElementById("login-error");
+                if (result.ok) {
+                    window.location.href = redirect;
+                } else {
+                    err.textContent = "Code incorrect.";
+                    err.classList.remove("hidden");
+                }
+            });
+        });
+    </script>
+</body>
+</html>

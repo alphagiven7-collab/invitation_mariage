@@ -1,0 +1,32 @@
+{
+  "id": "conference-tech-2026",
+  "slug": "conference-tech-2026",
+  "type": "conference",
+  "title": "Conférence Tech Kinshasa 2026",
+  "subtitle": "Innovation & Digital",
+  "welcomeMessage": "Bienvenue à la conférence. Inscrivez-vous pour recevoir votre badge.",
+  "mainText": "Événement le 20 novembre 2026 de 9h à 17h au Centre Kongolais.",
+  "eventDate": "2026-11-20T09:00:00",
+  "venue": "Centre Kongolais, Kinshasa",
+  "rsvpDeadline": "2026-11-01",
+  "adminCode": "CONF-TECH-2026",
+  "branding": {
+    "primaryColor": "#2563eb",
+    "accentColor": "#06b6d4",
+    "welcomeImage": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200",
+    "heroImage": "https://images.unsplash.com/photo-1505377785226-895ea2ebb2f6?w=1200"
+  },
+  "sections": {
+    "quiz": false,
+    "donation": false,
+    "guestbook": false,
+    "gallery": true,
+    "countdown": true,
+    "dressCode": false
+  },
+  "links": {
+    "donation": "",
+    "supportEmail": "info@conference-tech.com",
+    "map": "https://maps.google.com"
+  }
+}

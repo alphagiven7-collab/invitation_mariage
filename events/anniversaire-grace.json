@@ -1,0 +1,32 @@
+{
+  "id": "anniversaire-grace",
+  "slug": "anniversaire-grace",
+  "type": "birthday",
+  "title": "Anniversaire de Grace",
+  "subtitle": "Grace fête ses 30 ans",
+  "welcomeMessage": "Rejoignez-nous pour une soirée mémorable !",
+  "mainText": "La fête aura lieu le samedi 15 août 2026 à partir de 18h00.",
+  "eventDate": "2026-08-15T18:00:00",
+  "venue": "Salle Élégance, Kinshasa",
+  "rsvpDeadline": "2026-08-01",
+  "adminCode": "GRACE-BDAY-2026",
+  "branding": {
+    "primaryColor": "#8b5cf6",
+    "accentColor": "#f59e0b",
+    "welcomeImage": "https://images.unsplash.com/photo-1530103862676-de8c9de5771f?w=1200",
+    "heroImage": "https://images.unsplash.com/photo-1464349153735-7db50ed83c84?w=1200"
+  },
+  "sections": {
+    "quiz": false,
+    "donation": false,
+    "guestbook": true,
+    "gallery": true,
+    "countdown": true,
+    "dressCode": false
+  },
+  "links": {
+    "donation": "",
+    "supportEmail": "contact@example.com",
+    "map": "https://maps.google.com"
+  }
+}
