@@ -58,29 +58,40 @@ const CloudAPI = (() => {
         let cloudGuest = null;
 
         if (isEnabled()) {
-            const existing = await request("guests", {
-                query: `?event_id=eq.${eventId}&slug=eq.${encodeURIComponent(guest.slug)}&select=id`
-            });
-            if (existing && existing.length) {
+            if (guest.id) {
                 cloudGuest = await request("guests", {
                     method: "PATCH",
-                    query: `?id=eq.${existing[0].id}`,
-                    body: payload,
-                    prefer: "return=representation"
-                });
-                if (Array.isArray(cloudGuest) && cloudGuest[0]) cloudGuest = cloudGuest[0];
-            } else {
-                cloudGuest = await request("guests", {
-                    method: "POST",
+                    query: `?id=eq.${guest.id}`,
                     body: payload,
                     prefer: "return=representation"
                 });
                 if (Array.isArray(cloudGuest) && cloudGuest[0]) cloudGuest = cloudGuest[0];
             }
+            if (!cloudGuest) {
+                const existing = await request("guests", {
+                    query: `?event_id=eq.${eventId}&slug=eq.${encodeURIComponent(guest.slug)}&select=id`
+                });
+                if (existing && existing.length) {
+                    cloudGuest = await request("guests", {
+                        method: "PATCH",
+                        query: `?id=eq.${existing[0].id}`,
+                        body: payload,
+                        prefer: "return=representation"
+                    });
+                    if (Array.isArray(cloudGuest) && cloudGuest[0]) cloudGuest = cloudGuest[0];
+                } else {
+                    cloudGuest = await request("guests", {
+                        method: "POST",
+                        body: payload,
+                        prefer: "return=representation"
+                    });
+                    if (Array.isArray(cloudGuest) && cloudGuest[0]) cloudGuest = cloudGuest[0];
+                }
+            }
         }
 
         const merged = cloudGuest ? mapGuestFromCloud(cloudGuest) : guest;
-        const guests = (await getGuests(eventId)).filter((g) => g.slug !== guest.slug);
+        const guests = (await getGuests(eventId)).filter((g) => g.id !== merged.id && g.slug !== guest.slug);
         guests.unshift(merged);
         await saveGuestsLocal(eventId, guests);
         return merged;

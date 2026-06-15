@@ -126,9 +126,22 @@ const GuestManager = (() => {
         const guests = await loadGuests();
         const idx = guests.findIndex((g) => g.id === id);
         if (idx === -1) return null;
-        guests[idx] = { ...guests[idx], ...patch };
+
+        const next = { ...guests[idx], ...patch };
+        if (patch.fullName && patch.fullName.trim() !== guests[idx].fullName) {
+            next.fullName = patch.fullName.trim();
+            next.slug = slugify(next.fullName);
+            const conflict = guests.find((g) => g.id !== id && g.slug === next.slug);
+            if (conflict) return null;
+        }
+        if (patch.phone !== undefined) next.phone = (patch.phone || "").trim();
+        if (patch.email !== undefined) next.email = (patch.email || "").trim();
+        if (patch.group !== undefined) next.group = (patch.group || "").trim();
+
+        guests[idx] = next;
         await persistGuests(guests);
         if (window.CloudAPI) await CloudAPI.upsertGuest(getEventId(), guests[idx]);
+        cache = null;
         return guests[idx];
     }
 

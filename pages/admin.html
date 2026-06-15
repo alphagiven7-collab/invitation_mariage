@@ -6,151 +6,199 @@
     <title>Administration invités</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../assets/css/app.css">
-    <style>
-        .admin-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-        .admin-table th, .admin-table td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
-        .admin-table th { background: #f8fafc; font-weight: 600; color: #475569; }
-        .badge { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px; font-size: 0.7rem; font-weight: 600; }
-        .badge-yes { background: #dcfce7; color: #166534; }
-        .badge-no { background: #fee2e2; color: #991b1b; }
-        .badge-pending { background: #fef3c7; color: #92400e; }
-        .stat-card { background: white; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1rem; }
-        .stat-card strong { font-size: 1.6rem; display: block; color: #0f172a; }
-        .stat-card span { font-size: 0.75rem; color: #64748b; text-transform: uppercase; }
-        .admin-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
-        .admin-tab { padding: 0.4rem 0.9rem; border-radius: 999px; font-size: 0.8rem; border: 1px solid #e2e8f0; background: #fff; cursor: pointer; }
-        .admin-tab.active { background: #0f172a; color: #fff; border-color: #0f172a; }
-        .tab-panel { display: none; }
-        .tab-panel.active { display: block; }
-    </style>
+    <link rel="stylesheet" href="../assets/css/admin.css">
 </head>
-<body class="pro-page bg-slate-100 text-slate-800">
+<body class="admin-shell text-slate-800">
     <main class="dash-wrap">
-        <header class="dash-top ring-1 ring-white/10">
-            <p class="dash-overline">Administration événement</p>
+        <header class="admin-header">
+            <p class="admin-overline">Administration événement</p>
             <h1 id="admin-event-title">Gestion des invités</h1>
-            <p class="dash-sub">
-                Import CSV · liens uniques · WhatsApp · relances · exports
-                <span id="cloud-status" class="ml-2 text-xs opacity-80"></span>
-            </p>
-            <div class="dash-head-actions pt-1">
-                <button type="button" id="refresh-btn" class="dash-head-btn">Actualiser</button>
-                <a id="back-invitation-link" href="./invitation.html" class="dash-head-btn">Voir invitation</a>
-                <a id="back-custom-link" href="./personnalisation.html" class="dash-head-btn">Personnaliser</a>
-                <button type="button" id="logout-btn" class="dash-head-btn">Déconnexion</button>
+            <p class="admin-subtitle">Import CSV · liens uniques · édition · WhatsApp · relances · exports</p>
+            <span id="cloud-status" class="admin-cloud-pill offline">Chargement…</span>
+            <div class="admin-head-actions">
+                <button type="button" id="refresh-btn" class="admin-head-btn primary">↻ Actualiser</button>
+                <a id="back-invitation-link" href="./invitation.html" class="admin-head-btn">Voir invitation</a>
+                <a id="back-custom-link" href="./personnalisation.html" class="admin-head-btn">Personnaliser</a>
+                <button type="button" id="logout-btn" class="admin-head-btn">Déconnexion</button>
             </div>
         </header>
 
-        <div class="admin-tabs px-1">
-            <button type="button" class="admin-tab active" data-tab="overview">Vue d'ensemble</button>
-            <button type="button" class="admin-tab" data-tab="guests">Invités</button>
-            <button type="button" class="admin-tab" data-tab="relances">Relances</button>
-            <button type="button" class="admin-tab" data-tab="rsvps">Confirmations RSVP</button>
-            <button type="button" class="admin-tab" data-tab="analytics">Analytics</button>
-            <button type="button" class="admin-tab" data-tab="exports">Exports</button>
-        </div>
+        <div class="admin-layout">
+            <nav class="admin-sidebar">
+                <p class="admin-nav-label">Navigation</p>
+                <button type="button" class="admin-tab active" data-tab="overview"><span class="admin-tab-icon">📊</span> Vue d'ensemble</button>
+                <button type="button" class="admin-tab" data-tab="guests"><span class="admin-tab-icon">👥</span> Invités</button>
+                <button type="button" class="admin-tab" data-tab="relances"><span class="admin-tab-icon">💬</span> Relances</button>
+                <button type="button" class="admin-tab" data-tab="rsvps"><span class="admin-tab-icon">✓</span> Confirmations</button>
+                <button type="button" class="admin-tab" data-tab="analytics"><span class="admin-tab-icon">📈</span> Analytics</button>
+                <button type="button" class="admin-tab" data-tab="exports"><span class="admin-tab-icon">📥</span> Exports</button>
+            </nav>
 
-        <div class="dash-main">
-            <div id="tab-overview" class="tab-panel active">
-                <section class="dash-card">
-                    <div class="grid grid-cols-2 md:grid-cols-6 gap-3">
-                        <div class="stat-card"><strong id="stat-total">0</strong><span>Total</span></div>
-                        <div class="stat-card"><strong id="stat-yes">0</strong><span>Confirmés</span></div>
-                        <div class="stat-card"><strong id="stat-no">0</strong><span>Refus</span></div>
-                        <div class="stat-card"><strong id="stat-pending">0</strong><span>En attente</span></div>
-                        <div class="stat-card"><strong id="stat-adults">0</strong><span>Adultes</span></div>
-                        <div class="stat-card"><strong id="stat-children">0</strong><span>Enfants</span></div>
+            <div class="admin-content">
+                <div id="tab-overview" class="tab-panel active">
+                    <div class="admin-stats">
+                        <div class="admin-stat total"><div class="admin-stat-value" id="stat-total">0</div><div class="admin-stat-label">Total invités</div></div>
+                        <div class="admin-stat yes"><div class="admin-stat-value" id="stat-yes">0</div><div class="admin-stat-label">Confirmés</div></div>
+                        <div class="admin-stat no"><div class="admin-stat-value" id="stat-no">0</div><div class="admin-stat-label">Refus</div></div>
+                        <div class="admin-stat pending"><div class="admin-stat-value" id="stat-pending">0</div><div class="admin-stat-label">En attente</div></div>
+                        <div class="admin-stat adults"><div class="admin-stat-value" id="stat-adults">0</div><div class="admin-stat-label">Adultes</div></div>
+                        <div class="admin-stat children"><div class="admin-stat-value" id="stat-children">0</div><div class="admin-stat-label">Enfants</div></div>
                     </div>
-                </section>
-            </div>
+                </div>
 
-            <div id="tab-guests" class="tab-panel">
-                <section class="dash-card mb-4">
-                    <h2>Importer CSV</h2>
-                    <p class="dash-tip">Format : <code>nom,telephone,groupe,email</code></p>
-                    <div class="flex flex-wrap gap-2 mt-2">
-                        <input id="csv-file-input" type="file" accept=".csv" class="dash-input max-w-xs">
-                        <button id="import-csv-btn" type="button" class="dash-btn">Importer</button>
-                        <a href="../data/guests-exemple.csv" download class="dash-btn dash-btn-ghost">Exemple CSV</a>
-                    </div>
-                    <p id="import-result" class="dash-field-note mt-2"></p>
-                </section>
-                <section class="dash-card mb-4">
-                    <h2>Message WhatsApp</h2>
-                    <textarea id="wa-template" class="dash-textarea" rows="2" placeholder="Bonjour {nom}, voici votre invitation : {lien}"></textarea>
-                    <button id="save-wa-template" type="button" class="dash-btn dash-btn-ghost mt-2">Enregistrer message</button>
-                </section>
-                <section class="dash-card mb-4">
-                    <h2>Ajouter un invité</h2>
-                    <form id="add-guest-form" class="dash-grid-2 mt-2">
-                        <input id="guest-name" class="dash-input" placeholder="Nom complet" required>
-                        <input id="guest-phone" class="dash-input" placeholder="Téléphone WhatsApp">
-                        <input id="guest-group" class="dash-input" placeholder="Groupe">
-                        <button type="submit" class="dash-btn">Ajouter</button>
-                    </form>
-                </section>
-                <section class="dash-card">
-                    <div class="flex flex-wrap gap-2 mb-3">
-                        <input id="guest-search" class="dash-input" placeholder="Rechercher…" style="max-width:200px">
-                        <select id="guest-filter" class="dash-select" style="max-width:160px">
-                            <option value="all">Tous</option>
-                            <option value="pending">En attente</option>
-                            <option value="yes">Confirmés</option>
-                            <option value="no">Refus</option>
-                        </select>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="admin-table">
-                            <thead><tr><th>Nom</th><th>Tél.</th><th>Groupe</th><th>Statut</th><th>Actions</th></tr></thead>
-                            <tbody id="guests-table-body"></tbody>
-                        </table>
-                    </div>
-                    <p id="guests-empty" class="dash-tip mt-3 hidden">Aucun invité.</p>
-                </section>
-            </div>
+                <div id="tab-guests" class="tab-panel">
+                    <section class="admin-card">
+                        <h2 class="admin-card-title">Importer des invités</h2>
+                        <p class="admin-card-desc">Format CSV : <code>nom,telephone,groupe,email</code></p>
+                        <div class="flex flex-wrap gap-2">
+                            <input id="csv-file-input" type="file" accept=".csv" class="admin-input" style="max-width:260px">
+                            <button id="import-csv-btn" type="button" class="admin-btn admin-btn-primary">Importer</button>
+                            <a href="../data/guests-exemple.csv" download class="admin-btn admin-btn-ghost">Télécharger exemple</a>
+                        </div>
+                        <p id="import-result" class="admin-card-desc mt-2 mb-0"></p>
+                    </section>
 
-            <div id="tab-relances" class="tab-panel">
-                <section class="dash-card">
-                    <h2>Invités sans réponse</h2>
-                    <p class="dash-tip">Relancez via WhatsApp les invités en attente.</p>
-                    <div id="relances-list" class="mt-3 space-y-2"></div>
-                </section>
-            </div>
+                    <section class="admin-card">
+                        <h2 class="admin-card-title">Message WhatsApp</h2>
+                        <p class="admin-card-desc">Variables : <strong>{nom}</strong> et <strong>{lien}</strong></p>
+                        <textarea id="wa-template" class="admin-textarea" rows="2" placeholder="Bonjour {nom}, voici votre invitation : {lien}"></textarea>
+                        <button id="save-wa-template" type="button" class="admin-btn admin-btn-ghost mt-2">Enregistrer le message</button>
+                    </section>
 
-            <div id="tab-rsvps" class="tab-panel">
-                <section class="dash-card">
-                    <h2>Confirmations RSVP reçues</h2>
-                    <p class="dash-tip">Liste en temps réel depuis Supabase. Cliquez Actualiser après chaque réponse invité.</p>
-                    <div class="overflow-x-auto mt-3">
-                        <table class="admin-table">
-                            <thead><tr><th>Nom</th><th>Tél.</th><th>Statut</th><th>Adultes</th><th>Enfants</th><th>Date</th></tr></thead>
-                            <tbody id="rsvps-table-body"></tbody>
-                        </table>
-                    </div>
-                    <p id="rsvps-empty" class="dash-tip mt-3 hidden">Aucune confirmation reçue pour l'instant.</p>
-                </section>
-            </div>
+                    <section class="admin-card">
+                        <h2 class="admin-card-title">Ajouter un invité</h2>
+                        <form id="add-guest-form" class="admin-form-grid mt-2">
+                            <div class="admin-field"><label for="guest-name">Nom complet *</label><input id="guest-name" class="admin-input" placeholder="Marie Kasongo" required></div>
+                            <div class="admin-field"><label for="guest-phone">Téléphone</label><input id="guest-phone" class="admin-input" placeholder="+243…"></div>
+                            <div class="admin-field"><label for="guest-email">Email</label><input id="guest-email" class="admin-input" placeholder="email@…"></div>
+                            <div class="admin-field"><label for="guest-group">Groupe</label><input id="guest-group" class="admin-input" placeholder="Famille, Amis…"></div>
+                            <div class="admin-field" style="grid-column:1/-1"><button type="submit" class="admin-btn admin-btn-success">+ Ajouter l'invité</button></div>
+                        </form>
+                    </section>
 
-            <div id="tab-analytics" class="tab-panel">
-                <section class="dash-card">
-                    <h2>Activité du site</h2>
-                    <div id="analytics-summary" class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3"></div>
-                    <ul id="analytics-list" class="mt-4 text-sm space-y-1 max-h-64 overflow-y-auto"></ul>
-                </section>
-            </div>
+                    <section class="admin-card">
+                        <h2 class="admin-card-title">Liste des invités</h2>
+                        <div class="admin-toolbar">
+                            <input id="guest-search" class="admin-input" placeholder="Rechercher nom ou téléphone…" style="max-width:220px">
+                            <select id="guest-filter" class="admin-select" style="max-width:150px">
+                                <option value="all">Tous</option>
+                                <option value="pending">En attente</option>
+                                <option value="yes">Confirmés</option>
+                                <option value="no">Refus</option>
+                            </select>
+                        </div>
+                        <div class="admin-table-wrap">
+                            <table class="admin-table">
+                                <thead><tr><th>Invité</th><th>Contact</th><th>Groupe</th><th>Statut</th><th>Actions</th></tr></thead>
+                                <tbody id="guests-table-body"></tbody>
+                            </table>
+                        </div>
+                        <div id="guests-empty" class="admin-empty hidden">
+                            <div class="admin-empty-icon">👥</div>
+                            <p>Aucun invité pour l'instant. Importez un CSV ou ajoutez manuellement.</p>
+                        </div>
+                    </section>
+                </div>
 
-            <div id="tab-exports" class="tab-panel">
-                <section class="dash-card">
-                    <h2>Exports</h2>
-                    <div class="flex flex-wrap gap-2 mt-3">
-                        <button id="export-links-btn" type="button" class="dash-btn">Export liens CSV</button>
-                        <button id="export-rsvp-btn" type="button" class="dash-btn">Export rapport RSVP</button>
-                        <button id="export-json-btn" type="button" class="dash-btn dash-btn-ghost">Export JSON complet</button>
-                    </div>
-                </section>
+                <div id="tab-relances" class="tab-panel">
+                    <section class="admin-card">
+                        <h2 class="admin-card-title">Relances WhatsApp</h2>
+                        <p class="admin-card-desc">Invités n'ayant pas encore confirmé leur présence.</p>
+                        <div id="relances-list"></div>
+                    </section>
+                </div>
+
+                <div id="tab-rsvps" class="tab-panel">
+                    <section class="admin-card">
+                        <h2 class="admin-card-title">Confirmations RSVP</h2>
+                        <p class="admin-card-desc">Synchronisé avec Supabase en temps réel.</p>
+                        <div class="admin-table-wrap mt-2">
+                            <table class="admin-table">
+                                <thead><tr><th>Nom</th><th>Tél.</th><th>Statut</th><th>Adultes</th><th>Enfants</th><th>Date</th></tr></thead>
+                                <tbody id="rsvps-table-body"></tbody>
+                            </table>
+                        </div>
+                        <div id="rsvps-empty" class="admin-empty hidden">
+                            <div class="admin-empty-icon">✉️</div>
+                            <p>Aucune confirmation reçue pour l'instant.</p>
+                        </div>
+                    </section>
+                </div>
+
+                <div id="tab-analytics" class="tab-panel">
+                    <section class="admin-card">
+                        <h2 class="admin-card-title">Activité du site</h2>
+                        <div id="analytics-summary" class="admin-stats mt-2"></div>
+                        <ul id="analytics-list" class="mt-4 text-sm space-y-1 max-h-64 overflow-y-auto text-slate-600"></ul>
+                    </section>
+                </div>
+
+                <div id="tab-exports" class="tab-panel">
+                    <section class="admin-card">
+                        <h2 class="admin-card-title">Exporter les données</h2>
+                        <p class="admin-card-desc">Téléchargez vos listes pour archivage ou impression.</p>
+                        <div class="flex flex-wrap gap-2 mt-2">
+                            <button id="export-links-btn" type="button" class="admin-btn admin-btn-primary">Export liens CSV</button>
+                            <button id="export-rsvp-btn" type="button" class="admin-btn admin-btn-success">Export rapport RSVP</button>
+                            <button id="export-json-btn" type="button" class="admin-btn admin-btn-ghost">Export JSON complet</button>
+                        </div>
+                    </section>
+                </div>
             </div>
         </div>
     </main>
+
+    <!-- Modal édition invité -->
+    <div id="edit-guest-modal" class="admin-modal-backdrop" aria-hidden="true">
+        <div class="admin-modal" role="dialog" aria-labelledby="edit-modal-title">
+            <div class="admin-modal-header">
+                <h3 id="edit-modal-title">Modifier l'invité</h3>
+                <p id="edit-modal-subtitle">Corrigez les informations avant envoi du lien</p>
+            </div>
+            <form id="edit-guest-form" class="admin-modal-body">
+                <input type="hidden" id="edit-guest-id">
+                <div class="admin-form-grid">
+                    <div class="admin-field" style="grid-column:1/-1">
+                        <label for="edit-guest-name">Nom complet *</label>
+                        <input id="edit-guest-name" class="admin-input" required>
+                    </div>
+                    <div class="admin-field">
+                        <label for="edit-guest-phone">Téléphone</label>
+                        <input id="edit-guest-phone" class="admin-input">
+                    </div>
+                    <div class="admin-field">
+                        <label for="edit-guest-email">Email</label>
+                        <input id="edit-guest-email" class="admin-input">
+                    </div>
+                    <div class="admin-field">
+                        <label for="edit-guest-group">Groupe</label>
+                        <input id="edit-guest-group" class="admin-input">
+                    </div>
+                    <div class="admin-field">
+                        <label for="edit-guest-status">Statut RSVP</label>
+                        <select id="edit-guest-status" class="admin-select">
+                            <option value="pending">En attente</option>
+                            <option value="yes">Confirmé</option>
+                            <option value="no">Refus</option>
+                        </select>
+                    </div>
+                    <div class="admin-field">
+                        <label for="edit-guest-adults">Adultes</label>
+                        <input id="edit-guest-adults" type="number" min="0" class="admin-input" value="1">
+                    </div>
+                    <div class="admin-field">
+                        <label for="edit-guest-children">Enfants</label>
+                        <input id="edit-guest-children" type="number" min="0" class="admin-input" value="0">
+                    </div>
+                </div>
+            </form>
+            <div class="admin-modal-footer">
+                <button type="button" id="edit-cancel-btn" class="admin-btn admin-btn-ghost">Annuler</button>
+                <button type="submit" form="edit-guest-form" class="admin-btn admin-btn-success">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast" class="toast"></div>
 
     <script src="../assets/js/supabase-config.js"></script>
