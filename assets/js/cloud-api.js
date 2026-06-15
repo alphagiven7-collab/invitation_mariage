@@ -96,11 +96,25 @@ const CloudAPI = (() => {
     }
 
     async function removeGuestCloud(eventId, guestId) {
-        const guests = (await getGuests(eventId)).filter((g) => g.id !== guestId);
+        const allGuests = await getGuests(eventId);
+        const target = allGuests.find((g) => g.id === guestId);
+        const guests = allGuests.filter((g) => g.id !== guestId);
         await saveGuestsLocal(eventId, guests);
-        if (isEnabled()) {
-            await request("guests", { method: "DELETE", query: `?id=eq.${guestId}` });
+
+        if (!isEnabled()) return true;
+
+        let deleted = await request("guests", { method: "DELETE", query: `?id=eq.${guestId}` });
+        if (deleted !== true && target && target.slug) {
+            deleted = await request("guests", {
+                method: "DELETE",
+                query: `?event_id=eq.${eventId}&slug=eq.${encodeURIComponent(target.slug)}`
+            });
         }
+        if (deleted !== true) {
+            console.warn("CloudAPI removeGuestCloud: suppression refusée (vérifiez la politique RLS DELETE sur guests)");
+            return false;
+        }
+        return true;
     }
 
     // --- RSVP ---

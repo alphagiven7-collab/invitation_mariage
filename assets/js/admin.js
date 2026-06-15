@@ -87,11 +87,10 @@ async function renderGuestsTable() {
     });
     tbody.querySelectorAll("[data-remove]").forEach((btn) => {
         btn.addEventListener("click", async () => {
-            if (confirm("Supprimer ?")) {
-                await GuestManager.removeGuest(btn.dataset.remove);
-                await refreshAll();
-                showToast("Supprimé");
-            }
+            if (!confirm("Supprimer cet invité ?")) return;
+            const ok = await GuestManager.removeGuest(btn.dataset.remove);
+            await refreshAll();
+            showToast(ok ? "Invité supprimé" : "Suppression refusée par Supabase — exécutez docs/SUPABASE-FIX-DELETE.sql");
         });
     });
 }

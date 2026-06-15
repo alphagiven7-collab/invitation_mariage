@@ -71,6 +71,7 @@ ALTER TABLE analytics_events ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "guests_read" ON guests FOR SELECT USING (true);
 CREATE POLICY "guests_insert" ON guests FOR INSERT WITH CHECK (true);
 CREATE POLICY "guests_update" ON guests FOR UPDATE USING (true);
+CREATE POLICY "guests_delete" ON guests FOR DELETE USING (true);
 
 CREATE POLICY "rsvps_insert" ON rsvps FOR INSERT WITH CHECK (true);
 CREATE POLICY "rsvps_read" ON rsvps FOR SELECT USING (true);
