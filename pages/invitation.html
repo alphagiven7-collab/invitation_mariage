@@ -106,8 +106,7 @@
                 </p>
 
                 <button id="reserve-deadline-btn" onclick="confirmPresence()" class="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white rounded-xl p-4 shadow-lg transition transform hover:scale-[1.02]">
-                    <p id="reserve-deadline-text" class="text-[11px] font-bold uppercase tracking-widest text-white/90">Confirmer ma présence</p>
-                    <p class="text-[10px] text-white/80 mt-1">Réservez avant le 25 Avril</p>
+                    <span id="reserve-deadline-text" class="text-sm font-bold uppercase tracking-widest">Confirmer ma présence</span>
                 </button>
             </div>
         </section>
@@ -881,6 +880,8 @@
     <script src="../assets/js/event-config.js"></script>
     <script src="../assets/js/cloud-api.js"></script>
     <script src="../assets/js/guest-manager.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="../assets/js/guest-experience.js"></script>
     <script src="../assets/js/i18n.js"></script>
     <script src="../assets/js/app.js"></script>
     <script>
@@ -1002,6 +1003,11 @@
             }
 
             function fallbackInitFromStorage() {
+                const params = new URLSearchParams(window.location.search);
+                if (params.get("t") || params.get("guest") || params.get("nom")) return;
+                const personalGate = document.getElementById("gate-personal-container");
+                if (personalGate && !personalGate.classList.contains("hidden")) return;
+
                 const savedName = (localStorage.getItem("wedding_guest_name_simple") || "").trim();
                 if (savedName) {
                     const inputWrap = document.getElementById("gate-name-input-container");
@@ -1029,20 +1035,24 @@
                 if (accessBtn) accessBtn.textContent = designerOn ? "Concepteur actif" : "Mode concepteur";
             }
 
-            // Forçage robuste: ces actions doivent toujours fonctionner
-            window.enterExperience = function () {
-                const input = document.getElementById("gate-guest-name-input");
-                const name = (input?.value || "").trim();
-                if (name.length < 2) {
-                    safeToast("Entrez votre nom");
-                    return;
-                }
-                fallbackOpenMain(name);
-            };
+            // Ne pas écraser les fonctions de app.js / guest-experience.js
+            if (typeof window.enterExperience !== "function") {
+                window.enterExperience = function () {
+                    const input = document.getElementById("gate-guest-name-input");
+                    const name = (input?.value || "").trim();
+                    if (name.length < 2) {
+                        safeToast("Entrez votre nom");
+                        return;
+                    }
+                    fallbackOpenMain(name);
+                };
+            }
 
-            window.openMainSite = function () {
-                fallbackOpenMain();
-            };
+            if (typeof window.openMainSite !== "function") {
+                window.openMainSite = function () {
+                    fallbackOpenMain();
+                };
+            }
 
             window.requestDesignerAccess = function () {
                 const code = window.prompt("Code concepteur");
@@ -1191,17 +1201,24 @@
             const darkBtn = document.getElementById("toggle-theme-btn");
             if (darkBtn) darkBtn.onclick = window.toggleTheme;
 
-            const confirmBtn = document.getElementById("confirm-presence-btn");
-            if (confirmBtn) {
-                confirmBtn.onclick = function () {
-                    const hasModal = !!document.getElementById("rsvp-modal");
-                    if (hasModal) {
-                        window.openModal("rsvp-modal");
-                    } else {
-                        window.location.href = "./formulaires.html#rsvp";
-                    }
-                };
+            function openRsvpFlow() {
+                if (typeof window.confirmPresence === "function") {
+                    window.confirmPresence();
+                    return;
+                }
+                const hasModal = !!document.getElementById("rsvp-modal");
+                if (hasModal && typeof window.openModal === "function") {
+                    window.openModal("rsvp-modal");
+                } else {
+                    window.location.href = "./formulaires.html#rsvp";
+                }
             }
+
+            const confirmBtn = document.getElementById("confirm-presence-btn");
+            if (confirmBtn) confirmBtn.onclick = openRsvpFlow;
+
+            const reserveBtn = document.getElementById("reserve-deadline-btn");
+            if (reserveBtn) reserveBtn.onclick = openRsvpFlow;
 
             const quizCard = document.getElementById("quiz-card");
             if (quizCard) quizCard.onclick = window.startQuiz;
@@ -1210,7 +1227,7 @@
             if (bestPhotosShell) bestPhotosShell.onclick = window.openBestPhotosGallery;
 
             ensureLucideIconsVisible();
-            fallbackInitFromStorage();
+            setTimeout(fallbackInitFromStorage, 1200);
         })();
     </script>
 </body>

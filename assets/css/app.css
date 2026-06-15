@@ -610,6 +610,17 @@
     color: #be185d;
     font-weight: 600;
 }
+.gate-personal-visible {
+    animation: personalFadeIn 0.8s ease-out;
+}
+@keyframes personalFadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 .rsvp-prefilled {
     background-color: #f0fdf4 !important;
     border-color: #86efac !important;

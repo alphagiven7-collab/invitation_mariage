@@ -37,7 +37,11 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
             if (!guestName) {
                 guestName = (localStorage.getItem('wedding_guest_name_simple') || '').trim();
             }
-            if (currentGuestProfile) applyGuestProfile(currentGuestProfile);
+            if (window.GuestExperience && GuestExperience.getProfile()) {
+                applyGuestProfile(GuestExperience.getProfile());
+            } else if (currentGuestProfile) {
+                applyGuestProfile(currentGuestProfile);
+            }
             applyGuestName(guestName);
             const gate = document.getElementById('welcome-gate');
             const main = document.getElementById('main-view');
@@ -157,6 +161,14 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
         }
 
         async function initEntryFlow() {
+            if (window.GuestExperience) {
+                const personalized = await GuestExperience.init();
+                if (personalized) {
+                    currentGuestProfile = GuestExperience.getProfile();
+                    return;
+                }
+            }
+
             const urlParams = new URLSearchParams(window.location.search);
             const token = (urlParams.get('t') || '').trim();
             const guestParam = (urlParams.get('guest') || urlParams.get('nom') || '').trim();
@@ -612,6 +624,10 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
         }
 
         function confirmPresence() {
+            if (window.GuestExperience) {
+                GuestExperience.openRsvp();
+                return;
+            }
             prefillRsvpForm();
             openModal('rsvp-modal');
         }
@@ -668,14 +684,20 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
             const externalRsvpLink = (document.getElementById('rsvp-form').dataset.externalLink || '').trim();
             closeModal('rsvp-modal');
 
-            const confirmCode = buildConfirmationCode(currentGuestProfile, payload);
+            const confirmCode = window.GuestExperience
+                ? GuestExperience.buildConfirmCode(currentGuestProfile, payload)
+                : buildConfirmationCode(currentGuestProfile, payload);
             const urlParams = new URLSearchParams(window.location.search);
             const token = urlParams.get('t');
             if (token) {
                 localStorage.setItem(`wedding_confirm_${token}`, JSON.stringify({ payload, code: confirmCode }));
             }
 
-            showRsvpConfirmation(payload, confirmCode);
+            if (window.GuestExperience) {
+                GuestExperience.showConfirmation(payload, confirmCode);
+            } else {
+                showRsvpConfirmation(payload, confirmCode);
+            }
 
             if (externalRsvpLink) {
                 setTimeout(() => window.open(externalRsvpLink, '_blank'), 400);
@@ -988,6 +1010,18 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
         const gateBackBtn = document.querySelector('#gate-welcome-back-container button');
         if (gateBackBtn) {
             gateBackBtn.addEventListener('click', openMainSite);
+        }
+        const personalGateBtn = document.querySelector('#gate-personal-container button');
+        if (personalGateBtn) {
+            personalGateBtn.addEventListener('click', openMainSite);
+        }
+        const reserveBtn = document.getElementById('reserve-deadline-btn');
+        if (reserveBtn) {
+            reserveBtn.addEventListener('click', confirmPresence);
+        }
+        const confirmPresenceBtn = document.getElementById('confirm-presence-btn');
+        if (confirmPresenceBtn) {
+            confirmPresenceBtn.addEventListener('click', confirmPresence);
         }
 
         // Garantit l'accès depuis les attributs onclick du HTML
