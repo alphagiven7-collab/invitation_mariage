@@ -266,17 +266,17 @@ const GuestManager = (() => {
     }
 
     async function removeGuest(guestId) {
-        if (!guestId) return false;
-        let ok = true;
+        if (!guestId) return { removed: false, cloudSynced: false };
+        let result = { removed: true, cloudSynced: true };
         if (window.CloudAPI) {
-            ok = await CloudAPI.removeGuestCloud(getEventId(), guestId);
+            result = await CloudAPI.removeGuestCloud(getEventId(), guestId);
         } else {
             const guests = (await loadGuests()).filter((g) => g.id !== guestId);
             await persistGuests(guests);
         }
         cache = null;
         await loadGuests(true);
-        return ok;
+        return result;
     }
 
     return {

@@ -20,17 +20,71 @@ const CloudAPI = (() => {
             "Content-Type": "application/json"
         };
         if (prefer) headers.Prefer = prefer;
+        if (method === "DELETE") headers.Prefer = prefer || "return=minimal";
         const res = await fetch(`${cfg().url}/rest/v1/${table}${query}`, {
             method,
             headers,
             body: body ? JSON.stringify(body) : undefined
         });
+        if (method === "DELETE") {
+            if (res.ok) return true;
+            const errText = await res.text().catch(() => "");
+            console.warn("CloudAPI DELETE", table, res.status, errText);
+            return false;
+        }
         if (!res.ok) {
-            console.warn("CloudAPI", table, res.status);
+            console.warn("CloudAPI", table, method, res.status);
             return null;
         }
         if (res.status === 204) return true;
-        return res.json();
+        const text = await res.text();
+        if (!text) return true;
+        try {
+            return JSON.parse(text);
+        } catch {
+            return null;
+        }
+    }
+
+    function deletedGuestsKey(eventId) {
+        return localKey(eventId, "deleted_guests");
+    }
+
+    function getDeletedGuestsMeta(eventId) {
+        try {
+            return JSON.parse(localStorage.getItem(deletedGuestsKey(eventId)) || "[]");
+        } catch {
+            return [];
+        }
+    }
+
+    function markGuestDeleted(eventId, guest) {
+        if (!guest) return;
+        const list = getDeletedGuestsMeta(eventId);
+        const entry = {
+            id: guest.id,
+            slug: guest.slug || "",
+            token: guest.token || "",
+            at: new Date().toISOString()
+        };
+        const exists = list.some((d) =>
+            (entry.id && d.id === entry.id) ||
+            (entry.slug && d.slug === entry.slug) ||
+            (entry.token && d.token === entry.token)
+        );
+        if (!exists) list.push(entry);
+        localStorage.setItem(deletedGuestsKey(eventId), JSON.stringify(list));
+    }
+
+    function filterDeletedGuests(eventId, guests) {
+        const deleted = getDeletedGuestsMeta(eventId);
+        if (!deleted.length) return guests;
+        const ids = new Set(deleted.map((d) => d.id).filter(Boolean));
+        const slugs = new Set(deleted.map((d) => d.slug).filter(Boolean));
+        const tokens = new Set(deleted.map((d) => d.token).filter(Boolean));
+        return guests.filter((g) =>
+            !ids.has(g.id) && !slugs.has(g.slug) && !(g.token && tokens.has(g.token))
+        );
     }
 
     function localKey(eventId, suffix) {
@@ -39,14 +93,17 @@ const CloudAPI = (() => {
 
     // --- Invités ---
     async function getGuests(eventId) {
+        let guests = [];
         const cloud = await request("guests", {
             query: `?event_id=eq.${eventId}&order=created_at.desc`
         });
-        if (cloud) {
-            return cloud.map(mapGuestFromCloud);
+        if (Array.isArray(cloud)) {
+            guests = cloud.map(mapGuestFromCloud);
+        } else {
+            const raw = localStorage.getItem(localKey(eventId, "guests"));
+            guests = raw ? JSON.parse(raw) : [];
         }
-        const raw = localStorage.getItem(localKey(eventId, "guests"));
-        return raw ? JSON.parse(raw) : [];
+        return filterDeletedGuests(eventId, guests);
     }
 
     async function saveGuestsLocal(eventId, guests) {
@@ -109,23 +166,42 @@ const CloudAPI = (() => {
     async function removeGuestCloud(eventId, guestId) {
         const allGuests = await getGuests(eventId);
         const target = allGuests.find((g) => g.id === guestId);
+        if (!target) {
+            markGuestDeleted(eventId, { id: guestId });
+            return { removed: true, cloudSynced: false, reason: "not_found" };
+        }
+
+        markGuestDeleted(eventId, target);
         const guests = allGuests.filter((g) => g.id !== guestId);
         await saveGuestsLocal(eventId, guests);
 
-        if (!isEnabled()) return true;
+        if (!isEnabled()) {
+            return { removed: true, cloudSynced: true, reason: "local_only" };
+        }
 
-        let deleted = await request("guests", { method: "DELETE", query: `?id=eq.${guestId}` });
-        if (deleted !== true && target && target.slug) {
-            deleted = await request("guests", {
-                method: "DELETE",
-                query: `?event_id=eq.${eventId}&slug=eq.${encodeURIComponent(target.slug)}`
-            });
+        let cloudSynced = false;
+        const tries = [
+            `?id=eq.${guestId}`,
+            target.slug ? `?event_id=eq.${eventId}&slug=eq.${encodeURIComponent(target.slug)}` : null,
+            target.token ? `?event_id=eq.${eventId}&token=eq.${encodeURIComponent(target.token)}` : null
+        ].filter(Boolean);
+
+        for (const query of tries) {
+            const deleted = await request("guests", { method: "DELETE", query });
+            if (deleted === true) {
+                cloudSynced = true;
+                break;
+            }
         }
-        if (deleted !== true) {
-            console.warn("CloudAPI removeGuestCloud: suppression refusée (vérifiez la politique RLS DELETE sur guests)");
-            return false;
+
+        if (!cloudSynced) {
+            console.warn(
+                "CloudAPI: invité masqué localement mais Supabase DELETE a échoué. " +
+                "Exécutez docs/SUPABASE-FIX-DELETE.sql et vérifiez la clé anon (eyJ…)."
+            );
         }
-        return true;
+
+        return { removed: true, cloudSynced, reason: cloudSynced ? "ok" : "cloud_delete_failed" };
     }
 
     // --- RSVP ---

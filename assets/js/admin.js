@@ -141,9 +141,15 @@ async function renderGuestsTable() {
             const guest = guestsCache.find((g) => g.id === btn.dataset.remove);
             const name = guest ? guest.fullName : "cet invité";
             if (!confirm(`Supprimer ${name} ? Cette action est irréversible.`)) return;
-            const ok = await GuestManager.removeGuest(btn.dataset.remove);
+            const result = await GuestManager.removeGuest(btn.dataset.remove);
             await refreshAll();
-            showToast(ok ? `${name} supprimé(e)` : "Suppression refusée — vérifiez Supabase (politique DELETE)");
+            if (result.removed && result.cloudSynced) {
+                showToast(`${name} supprimé(e) définitivement`);
+            } else if (result.removed) {
+                showToast(`${name} supprimé(e) — si l'invité revient, exécutez SUPABASE-FIX-DELETE.sql dans Supabase`);
+            } else {
+                showToast("Suppression impossible");
+            }
         });
     });
 }
