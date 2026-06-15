@@ -23,6 +23,12 @@
 </head>
 <body class="antialiased text-gray-800 overflow-hidden">
 
+    <!-- Outils flottants — visible mobile + desktop (thème dès l'écran d'accueil) -->
+    <div id="app-floating-tools" class="app-floating-tools">
+        <button id="toggle-theme-btn" type="button" onclick="toggleTheme()" aria-label="Basculer mode sombre" title="Mode sombre / clair">🌙</button>
+        <button id="lang-toggle-btn" type="button" onclick="I18n.toggle()" aria-label="Changer de langue" title="Français / English">EN</button>
+    </div>
+
     <div id="welcome-gate" class="fixed inset-0 z-[100] welcome-gate-bg backdrop-blur-sm flex items-center justify-center px-5 transition-opacity duration-500">
         <div class="w-full max-w-sm welcome-envelope-shell rounded-3xl p-6 text-center">
             <div class="relative z-10">
@@ -70,10 +76,6 @@
 
     <!-- CONTENEUR PRINCIPAL (Style Mobile) -->
     <main id="main-view" class="max-w-md mx-auto bg-[#fafafa] min-h-screen relative shadow-2xl overflow-hidden pb-10 hidden opacity-0 transition-opacity duration-500">
-        <div class="hidden md:flex fixed right-4 top-4 z-50 flex-col gap-2">
-            <button id="toggle-theme-btn" onclick="toggleTheme()" class="bg-black/70 text-white rounded-xl px-3 py-2 text-xs font-semibold">Dark</button>
-            <button id="lang-toggle-btn" onclick="I18n.toggle()" class="bg-black/70 text-white rounded-xl px-3 py-2 text-xs font-semibold">EN</button>
-        </div>
         
         <!-- 1. En-tête -->
         <header class="hero-bg h-[60vh] flex flex-col justify-center items-center text-center text-white px-4">
@@ -1025,13 +1027,11 @@
                 }
 
                 const isDark = localStorage.getItem("wedding_theme_mode") === "dark";
-                const toggleBtn = document.getElementById("toggle-theme-btn");
                 if (isDark) {
                     document.body.classList.add("dark-mode");
-                    if (toggleBtn) toggleBtn.textContent = "Light";
-                } else if (toggleBtn) {
-                    toggleBtn.textContent = "Dark";
                 }
+                const toggleBtn = document.getElementById("toggle-theme-btn");
+                if (toggleBtn) toggleBtn.textContent = isDark ? "☀️" : "🌙";
 
                 const designerOn = localStorage.getItem("wedding_designer_mode") === "1";
                 const customBtn = document.getElementById("designer-customize-btn");
@@ -1075,13 +1075,15 @@
                 }
             };
 
-            window.toggleTheme = function () {
-                document.body.classList.toggle("dark-mode");
-                const dark = document.body.classList.contains("dark-mode");
-                localStorage.setItem("wedding_theme_mode", dark ? "dark" : "light");
-                const btn = document.getElementById("toggle-theme-btn");
-                if (btn) btn.textContent = dark ? "Light" : "Dark";
-            };
+            if (typeof window.toggleTheme !== "function") {
+                window.toggleTheme = function () {
+                    document.body.classList.toggle("dark-mode");
+                    const dark = document.body.classList.contains("dark-mode");
+                    localStorage.setItem("wedding_theme_mode", dark ? "dark" : "light");
+                    const btn = document.getElementById("toggle-theme-btn");
+                    if (btn) btn.textContent = dark ? "☀️" : "🌙";
+                };
+            }
 
             if (typeof window.openModal !== "function") {
                 window.openModal = function (id) {

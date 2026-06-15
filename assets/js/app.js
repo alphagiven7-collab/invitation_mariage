@@ -612,11 +612,19 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
             showToast('Configuration reinitialisee');
         }
 
+        function updateThemeButtonLabel() {
+            const btn = document.getElementById('toggle-theme-btn');
+            if (!btn) return;
+            const dark = document.body.classList.contains('dark-mode');
+            btn.textContent = dark ? '☀️' : '🌙';
+            btn.setAttribute('aria-label', dark ? 'Passer en mode clair' : 'Passer en mode sombre');
+        }
+
         function toggleTheme() {
             document.body.classList.toggle('dark-mode');
             const dark = document.body.classList.contains('dark-mode');
             localStorage.setItem('wedding_theme_mode', dark ? 'dark' : 'light');
-            document.getElementById('toggle-theme-btn').textContent = dark ? 'Light' : 'Dark';
+            updateThemeButtonLabel();
         }
 
         function confirmPresence() {
@@ -932,8 +940,8 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
         const savedTheme = localStorage.getItem('wedding_theme_mode');
         if (savedTheme === 'dark') {
             document.body.classList.add('dark-mode');
-            document.getElementById('toggle-theme-btn').textContent = 'Light';
         }
+        updateThemeButtonLabel();
         if (!document.getElementById('meta-og-url').content) {
             document.getElementById('meta-og-url').content = window.location.href;
         }
