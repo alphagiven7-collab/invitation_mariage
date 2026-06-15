@@ -10,6 +10,7 @@
 let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
         let countDownDate = new Date("Apr 30, 2026 19:30:00").getTime();
         let guestName = '';
+        let currentGuestProfile = null;
         let defaultCustomizationState = null;
         let bestGalleryImages = [];
         let bestGalleryIndex = 0;
@@ -36,6 +37,7 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
             if (!guestName) {
                 guestName = (localStorage.getItem('wedding_guest_name_simple') || '').trim();
             }
+            if (currentGuestProfile) applyGuestProfile(currentGuestProfile);
             applyGuestName(guestName);
             const gate = document.getElementById('welcome-gate');
             const main = document.getElementById('main-view');
@@ -48,6 +50,112 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
             }, 450);
         }
 
+        function slugToDisplayName(slug) {
+            return (slug || '')
+                .split('-')
+                .filter(Boolean)
+                .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                .join(' ');
+        }
+
+        function applyGuestProfile(guest) {
+            if (!guest) return;
+            currentGuestProfile = guest;
+            guestName = guest.fullName || guestName;
+            applyGuestName(guestName);
+            localStorage.setItem('wedding_guest_name_simple', guestName);
+
+            const setVal = (id, val, markPrefilled = true) => {
+                const el = document.getElementById(id);
+                if (!el || val === undefined || val === null || val === '') return;
+                el.value = val;
+                if (markPrefilled) el.classList.add('rsvp-prefilled');
+            };
+
+            setVal('rsvp-name', guest.fullName);
+            setVal('rsvp-phone', guest.phone);
+            if (guest.adults) setVal('rsvp-adults', guest.adults, false);
+            if (guest.children !== undefined) setVal('rsvp-children', guest.children, false);
+            if (guest.status === 'yes' || guest.status === 'no') {
+                setVal('rsvp-status', guest.status, false);
+            }
+            if (guest.rsvpMessage) setVal('rsvp-message', guest.rsvpMessage);
+
+            const guestbookArea = document.getElementById('guestbook-textarea');
+            if (guestbookArea && guestName) {
+                guestbookArea.placeholder = `Votre message pour ${guestName.split(' ')[0]} et le couple...`;
+            }
+        }
+
+        function showPersonalizedWelcome(guest) {
+            const genericIntro = document.querySelector('#welcome-gate .text-gray-500.mb-5');
+            if (genericIntro) genericIntro.classList.add('hidden');
+
+            document.getElementById('gate-name-input-container').classList.add('hidden');
+            document.getElementById('gate-welcome-back-container').classList.add('hidden');
+            document.getElementById('gate-personal-container').classList.remove('hidden');
+
+            const cfg = EventConfig.getConfig && EventConfig.getConfig();
+            const couple = (cfg && cfg.subtitle) ? cfg.subtitle : 'Yanick & Keren';
+            const firstName = (guest.fullName || '').split(' ')[0];
+
+            document.getElementById('gate-personal-greeting').textContent = `Cher/Chère ${guest.fullName}`;
+            document.getElementById('gate-personal-message').innerHTML =
+                `<strong>${couple}</strong> ont le bonheur de vous inviter <strong>personnellement</strong> à célébrer leur union.<br><br>` +
+                `Cette enveloppe a été préparée uniquement pour vous, <strong>${firstName}</strong>. ` +
+                `Votre présence serait pour eux un immense bonheur.`;
+        }
+
+        function buildConfirmationCode(guest, payload) {
+            const token = (guest && guest.token) ? guest.token.slice(0, 8).toUpperCase() : 'GUEST';
+            const stamp = Date.now().toString(36).slice(-4).toUpperCase();
+            return `YK26-${token}-${stamp}`;
+        }
+
+        function showRsvpConfirmation(payload, confirmCode) {
+            const cfg = EventConfig.getConfig && EventConfig.getConfig();
+            const eventTitle = (cfg && cfg.title) ? cfg.title : 'Mariage de Yanick et Keren';
+            const isYes = payload.status === 'yes';
+
+            document.getElementById('confirm-title').textContent = isYes
+                ? 'Présence confirmée avec joie'
+                : 'Réponse enregistrée';
+            document.getElementById('confirm-subtitle').textContent = isYes
+                ? 'Nous avons hâte de vous accueillir'
+                : 'Merci d\'avoir pris le temps de répondre';
+            document.getElementById('confirm-guest-line').textContent = payload.name;
+            document.getElementById('confirm-detail-line').textContent = isYes
+                ? `${eventTitle} · ${payload.adults} adulte(s) · ${payload.children} enfant(s)`
+                : `Vous avez indiqué ne pas pouvoir être présent(e).`;
+            document.getElementById('confirm-code-line').textContent = confirmCode;
+
+            const qrPayload = JSON.stringify({
+                code: confirmCode,
+                event: EventConfig.getEventId ? EventConfig.getEventId() : 'yanick-keren',
+                name: payload.name,
+                phone: payload.phone,
+                status: payload.status,
+                adults: payload.adults,
+                children: payload.children,
+                confirmedAt: payload.sentAt
+            });
+            document.getElementById('rsvp-qr-image').src =
+                `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrPayload)}`;
+
+            openModal('rsvp-confirmation-modal');
+        }
+
+        function prefillRsvpForm() {
+            if (currentGuestProfile) {
+                applyGuestProfile(currentGuestProfile);
+                return;
+            }
+            if (guestName) {
+                const rsvpName = document.getElementById('rsvp-name');
+                if (rsvpName && !rsvpName.value) rsvpName.value = guestName;
+            }
+        }
+
         async function initEntryFlow() {
             const urlParams = new URLSearchParams(window.location.search);
             const token = (urlParams.get('t') || '').trim();
@@ -56,39 +164,52 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
             if (window.GuestManager && token) {
                 const guestByToken = await GuestManager.findByToken(token);
                 if (guestByToken) {
-                    guestName = guestByToken.fullName;
-                    document.getElementById('gate-name-input-container').classList.add('hidden');
-                    document.getElementById('gate-welcome-back-container').classList.remove('hidden');
-                    document.getElementById('gate-welcome-back-name').textContent = guestName;
-                    applyGuestName(guestName);
-                    localStorage.setItem('wedding_guest_name_simple', guestName);
-                    const rsvpName = document.getElementById('rsvp-name');
-                    if (rsvpName) rsvpName.value = guestName;
-                    const rsvpPhone = document.getElementById('rsvp-phone');
-                    if (rsvpPhone && guestByToken.phone) rsvpPhone.value = guestByToken.phone;
+                    applyGuestProfile(guestByToken);
+                    showPersonalizedWelcome(guestByToken);
                     if (window.CloudAPI && EventConfig.isReady()) {
                         CloudAPI.track(EventConfig.getEventId(), 'guest_link_open', { guestToken: token });
+                    }
+                    if (guestByToken.status === 'yes' || guestByToken.status === 'no') {
+                        const saved = localStorage.getItem(`wedding_confirm_${token}`);
+                        if (saved) {
+                            try {
+                                const data = JSON.parse(saved);
+                                setTimeout(() => showRsvpConfirmation(data.payload, data.code), 800);
+                            } catch (e) {}
+                        }
                     }
                     return;
                 }
             }
 
             let resolvedName = guestParam;
+            let guestFromSlug = null;
             if (window.GuestManager && guestParam && !guestParam.includes(' ')) {
-                const guestBySlug = await GuestManager.findBySlug(guestParam);
-                if (guestBySlug) resolvedName = guestBySlug.fullName;
+                guestFromSlug = await GuestManager.findBySlug(guestParam);
+                if (guestFromSlug) resolvedName = guestFromSlug.fullName;
+            }
+
+            if (guestFromSlug || (token && guestParam)) {
+                const pseudoGuest = guestFromSlug || {
+                    fullName: slugToDisplayName(guestParam) || decodeURIComponent(guestParam),
+                    phone: '',
+                    token: token || '',
+                    status: 'pending'
+                };
+                applyGuestProfile(pseudoGuest);
+                showPersonalizedWelcome(pseudoGuest);
+                return;
             }
 
             const savedName = (localStorage.getItem('wedding_guest_name_simple') || '').trim();
-            const startName = resolvedName || savedName;
+            const startName = resolvedName ? decodeURIComponent(resolvedName.replace(/\+/g, ' ')) : savedName;
             if (startName) {
-                guestName = decodeURIComponent(startName.replace(/\+/g, ' '));
+                guestName = startName;
                 document.getElementById('gate-name-input-container').classList.add('hidden');
                 document.getElementById('gate-welcome-back-container').classList.remove('hidden');
                 document.getElementById('gate-welcome-back-name').textContent = guestName;
                 applyGuestName(guestName);
-                const rsvpName = document.getElementById('rsvp-name');
-                if (rsvpName) rsvpName.value = guestName;
+                prefillRsvpForm();
             }
         }
 
@@ -491,6 +612,7 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
         }
 
         function confirmPresence() {
+            prefillRsvpForm();
             openModal('rsvp-modal');
         }
 
@@ -545,10 +667,16 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
 
             const externalRsvpLink = (document.getElementById('rsvp-form').dataset.externalLink || '').trim();
             closeModal('rsvp-modal');
-            const msg = payload.status === 'yes'
-                ? (window.I18n ? I18n.t('rsvpConfirmed') : 'RSVP envoyé. Merci, votre présence est confirmée !')
-                : (window.I18n ? I18n.t('rsvpSent') : 'RSVP envoyé. Merci pour votre réponse.');
-            showToast(msg);
+
+            const confirmCode = buildConfirmationCode(currentGuestProfile, payload);
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('t');
+            if (token) {
+                localStorage.setItem(`wedding_confirm_${token}`, JSON.stringify({ payload, code: confirmCode }));
+            }
+
+            showRsvpConfirmation(payload, confirmCode);
+
             if (externalRsvpLink) {
                 setTimeout(() => window.open(externalRsvpLink, '_blank'), 400);
             }
@@ -738,11 +866,12 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
 
         // Système de modales (Pages)
         function openModal(id) {
+            if (id === 'rsvp-modal') prefillRsvpForm();
             const modal = document.getElementById(id);
             modal.classList.remove('hidden');
             modal.classList.remove('modal-leave');
             modal.classList.add('modal-enter');
-            document.body.style.overflow = 'hidden'; // Empêche de scroller la page du dessous
+            document.body.style.overflow = 'hidden';
         }
 
         function closeModal(id) {
@@ -878,6 +1007,7 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
         window.publishGuestMessage = publishGuestMessage;
         window.openDonationLink = openDonationLink;
         window.startQuiz = startQuiz;
+        window.confirmPresence = confirmPresence;
         window.openQueueInfo = openQueueInfo;
         window.submitRsvp = submitRsvp;
         window.toggleTheme = toggleTheme;

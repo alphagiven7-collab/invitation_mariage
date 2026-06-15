@@ -34,6 +34,14 @@
                 <p class="text-[12px] text-gray-600 mb-1">Avec amour, nous vous ouvrons cette enveloppe de bonheur.</p>
                 <p class="text-[12px] text-gray-500 mb-5">Veuillez saisir votre nom pour découvrir votre invitation personnelle.</p>
             </div>
+            <div id="gate-personal-container" class="hidden">
+                <p class="text-[11px] uppercase tracking-[0.25em] text-rose-400 mb-2">Invitation personnelle</p>
+                <p id="gate-personal-greeting" class="font-serif text-2xl text-gray-800 mb-2"></p>
+                <p id="gate-personal-message" class="text-[13px] text-gray-600 leading-relaxed mb-5 px-1"></p>
+                <button onclick="openMainSite()" class="w-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white rounded-xl p-3 text-xs font-semibold tracking-wide transition">
+                    Découvrir mon invitation
+                </button>
+            </div>
             <div id="gate-name-input-container">
                 <input id="gate-guest-name-input" type="text" placeholder="Votre nom et prénom" class="w-full bg-white/95 border border-rose-100 rounded-xl p-3 text-sm text-gray-700 text-center focus:ring-2 focus:ring-pink-200 focus:border-pink-300 outline-none transition mb-3">
                 <button onclick="enterExperience()" class="w-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white rounded-xl p-3 text-xs font-semibold tracking-wide transition">
@@ -97,8 +105,9 @@
                     La cérémonie, suivie d'une réception, se tiendra le <strong class="text-gray-800">jeudi 30 avril 2026 à partir de 19h30</strong> au <strong class="text-gray-800">Sultani River</strong>. <span id="invitation-main-text">Votre présence à leurs côtés, dans ce cadre mémorable au bord du fleuve, témoignera de l'affection que vous leur portez et rendra cette journée inoubliable.</span>
                 </p>
 
-                <button id="reserve-deadline-btn" onclick="openModal('rsvp-modal')" class="bg-gray-50 border border-gray-100 rounded-lg p-3 inline-block hover:bg-gray-100 transition">
-                    <p id="reserve-deadline-text" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Réservez avant le 25 Avril</p>
+                <button id="reserve-deadline-btn" onclick="confirmPresence()" class="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white rounded-xl p-4 shadow-lg transition transform hover:scale-[1.02]">
+                    <p id="reserve-deadline-text" class="text-[11px] font-bold uppercase tracking-widest text-white/90">Confirmer ma présence</p>
+                    <p class="text-[10px] text-white/80 mt-1">Réservez avant le 25 Avril</p>
                 </button>
             </div>
         </section>
@@ -348,7 +357,7 @@
         <section class="px-4 mt-6 space-y-3">
             
             <!-- Confirmer ma présence -->
-            <button id="confirm-presence-btn" onclick="openModal('rsvp-modal')" class="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white rounded-xl shadow p-4 flex items-center justify-center space-x-2 transition">
+            <button id="confirm-presence-btn" onclick="confirmPresence()" class="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white rounded-xl shadow p-4 flex items-center justify-center space-x-2 transition">
                 <span class="w-7 h-7 rounded-full bg-white/95 text-emerald-700 flex items-center justify-center">
                     <i data-lucide="check-circle-2" class="w-4 h-4"></i>
                 </span>
@@ -837,6 +846,29 @@
                         <button onclick="exportGuestbookData()" class="bg-fuchsia-600 hover:bg-fuchsia-700 text-white rounded-xl py-3 text-xs font-semibold">Exporter livre d'or</button>
                         <button onclick="copyGuestInvitationLink()" class="bg-amber-500 hover:bg-amber-600 text-white rounded-xl py-3 text-xs font-semibold">Copier lien invité</button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation RSVP avec QR code -->
+    <div id="rsvp-confirmation-modal" class="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm overflow-y-auto hidden">
+        <div class="max-w-md mx-auto min-h-screen px-4 py-8 flex items-center">
+            <div class="w-full confirmation-card rounded-3xl shadow-2xl overflow-hidden">
+                <div class="confirmation-header p-6 text-center text-white">
+                    <div class="confirmation-seal mx-auto mb-3">✓</div>
+                    <h3 id="confirm-title" class="font-serif text-2xl mb-1">Confirmation enregistrée</h3>
+                    <p id="confirm-subtitle" class="text-sm text-white/90">Merci pour votre réponse</p>
+                </div>
+                <div class="p-6 text-center bg-white">
+                    <p id="confirm-guest-line" class="font-serif text-lg text-gray-800 mb-2"></p>
+                    <p id="confirm-detail-line" class="text-sm text-gray-600 mb-4"></p>
+                    <div class="confirmation-qr-wrap mx-auto mb-4">
+                        <img id="rsvp-qr-image" alt="QR code confirmation" class="mx-auto rounded-xl border border-gray-100 shadow-sm">
+                    </div>
+                    <p id="confirm-code-line" class="text-xs font-mono tracking-wider text-emerald-700 bg-emerald-50 inline-block px-4 py-2 rounded-full mb-4"></p>
+                    <p class="text-[11px] text-gray-500 mb-4">Présentez ce QR code le jour J pour un accueil rapide.</p>
+                    <button onclick="closeModal('rsvp-confirmation-modal')" class="w-full bg-gray-900 hover:bg-black text-white rounded-xl py-3 text-sm font-semibold transition">Fermer</button>
                 </div>
             </div>
         </div>

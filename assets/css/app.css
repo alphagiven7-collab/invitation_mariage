@@ -577,3 +577,40 @@
     .dash-grid-2, .dash-media-grid, .dash-actionbar { grid-template-columns: 1fr; }
     .dash-multi-preview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* Invitation personnalisée + confirmation QR */
+.confirmation-card {
+    border: 1px solid rgba(255,255,255,0.2);
+    animation: slideUp 0.5s ease-out;
+}
+.confirmation-header {
+    background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
+}
+.confirmation-seal {
+    width: 52px;
+    height: 52px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.2);
+    border: 2px solid rgba(255,255,255,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+.confirmation-qr-wrap {
+    width: 220px;
+    height: 220px;
+    padding: 10px;
+    background: #f8fafc;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+}
+#gate-personal-container #gate-personal-message strong {
+    color: #be185d;
+    font-weight: 600;
+}
+.rsvp-prefilled {
+    background-color: #f0fdf4 !important;
+    border-color: #86efac !important;
+}
