@@ -3,8 +3,7 @@
         const dashboardStateKey = 'wedding_dashboard_state';
         const rsvpListKey = 'wedding_rsvp_list';
         const guestbookListKey = 'wedding_guestbook_messages';
-let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
-        let countDownDate = new Date("Apr 30, 2026 19:30:00").getTime();
+        let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
         let guestName = '';
         let currentGuestProfile = null;
         let defaultCustomizationState = null;
@@ -398,7 +397,7 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
                 day: document.getElementById('event-day').textContent.trim(),
                 monthYear: document.getElementById('event-month-year').textContent.trim(),
                 timeRange: document.getElementById('event-time-range').textContent.trim(),
-                countdownDate: toDateTimeLocal(countDownDate),
+                countdownDate: toDateTimeLocal(window.EventCountdown ? EventCountdown.getTarget() : Date.now()),
                 welcomeImage: getCssUrlVariable('--welcome-image-url'),
                 heroImage: getCssUrlVariable('--hero-image-url'),
                 aboutImage: document.getElementById('about-cover-image').src,
@@ -489,7 +488,11 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
 
             if (state.countdownDate) {
                 const parsedDate = new Date(state.countdownDate).getTime();
-                if (!Number.isNaN(parsedDate)) countDownDate = parsedDate;
+                if (!Number.isNaN(parsedDate) && window.EventCountdown) {
+                    EventCountdown.setTarget(parsedDate);
+                    EventCountdown.applyDateToUI(state.countdownDate);
+                    EventCountdown.tick();
+                }
             }
 
             if (Array.isArray(state.dressImages)) {
@@ -612,19 +615,20 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
             showToast('Configuration reinitialisee');
         }
 
-        function updateThemeButtonLabel() {
-            const btn = document.getElementById('toggle-theme-btn');
-            if (!btn) return;
-            const dark = document.body.classList.contains('dark-mode');
-            btn.textContent = dark ? '☀️' : '🌙';
-            btn.setAttribute('aria-label', dark ? 'Passer en mode clair' : 'Passer en mode sombre');
+        function applyTheme(dark) {
+            document.body.classList.toggle('dark-mode', dark);
+            localStorage.setItem('wedding_theme_mode', dark ? 'dark' : 'light');
+            const input = document.getElementById('theme-toggle-input');
+            if (input) input.checked = dark;
+        }
+
+        function syncThemeFromStorage() {
+            applyTheme(localStorage.getItem('wedding_theme_mode') === 'dark');
         }
 
         function toggleTheme() {
-            document.body.classList.toggle('dark-mode');
-            const dark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('wedding_theme_mode', dark ? 'dark' : 'light');
-            updateThemeButtonLabel();
+            const input = document.getElementById('theme-toggle-input');
+            applyTheme(input ? !input.checked : !document.body.classList.contains('dark-mode'));
         }
 
         function confirmPresence() {
@@ -913,35 +917,11 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
             }, 300);
         }
 
-        // Compte à rebours
-        const x = setInterval(function() {
-            const now = new Date().getTime();
-            const distance = countDownDate - now;
-
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-            document.getElementById("days").innerHTML = days < 10 ? '0'+days : days;
-            document.getElementById("hours").innerHTML = hours < 10 ? '0'+hours : hours;
-            document.getElementById("minutes").innerHTML = minutes < 10 ? '0'+minutes : minutes;
-            document.getElementById("seconds").innerHTML = seconds < 10 ? '0'+seconds : seconds;
-
-            if (distance < 0) {
-                clearInterval(x);
-                document.getElementById("days").innerHTML = "00";
-                document.getElementById("hours").innerHTML = "00";
-                document.getElementById("minutes").innerHTML = "00";
-                document.getElementById("seconds").innerHTML = "00";
-            }
-        }, 1000);
-
-        const savedTheme = localStorage.getItem('wedding_theme_mode');
-        if (savedTheme === 'dark') {
-            document.body.classList.add('dark-mode');
+        syncThemeFromStorage();
+        const themeInput = document.getElementById('theme-toggle-input');
+        if (themeInput) {
+            themeInput.addEventListener('change', () => applyTheme(themeInput.checked));
         }
-        updateThemeButtonLabel();
         if (!document.getElementById('meta-og-url').content) {
             document.getElementById('meta-og-url').content = window.location.href;
         }
@@ -964,10 +944,6 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
                 try {
                     await EventConfig.init();
                     EventConfig.applyToPage();
-                    const cfg = EventConfig.getConfig();
-                    if (cfg && cfg.eventDate) {
-                        countDownDate = new Date(cfg.eventDate).getTime();
-                    }
                 } catch (e) {}
             }
 
@@ -984,25 +960,34 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
             }
 
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('../sw.js?v=3').catch(() => {});
+                navigator.serviceWorker.register('../sw.js?v=5').catch(() => {});
             }
 
             defaultCustomizationState = getCurrentCustomizationState();
             const scopedDashboardKey = window.EventConfig && EventConfig.isReady()
                 ? EventConfig.storageKey('dashboard_state')
                 : dashboardStateKey;
+            let dashboardState = null;
             const savedState = localStorage.getItem(scopedDashboardKey) || localStorage.getItem(dashboardStateKey);
             if (savedState) {
                 try {
-                    const state = JSON.parse(savedState);
-                    const hasLocalCursorImages = JSON.stringify(state).includes('file:///C:/Users/AL/.cursor');
+                    dashboardState = JSON.parse(savedState);
+                    const hasLocalCursorImages = JSON.stringify(dashboardState).includes('file:///C:/Users/AL/.cursor');
                     if (hasLocalCursorImages) {
                         localStorage.removeItem(scopedDashboardKey);
                         localStorage.removeItem(dashboardStateKey);
+                        dashboardState = null;
                     } else {
-                        applyCustomizationState(state);
+                        applyCustomizationState(dashboardState);
                     }
                 } catch (e) {}
+            }
+
+            if (window.EventCountdown) {
+                EventCountdown.initFromConfig(
+                    EventConfig.getConfig && EventConfig.getConfig(),
+                    dashboardState
+                );
             }
 
             await initEntryFlow();
@@ -1051,5 +1036,6 @@ let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
         window.confirmPresence = confirmPresence;
         window.openQueueInfo = openQueueInfo;
         window.submitRsvp = submitRsvp;
-        window.toggleTheme = toggleTheme;
+            window.applyTheme = applyTheme;
+            window.toggleTheme = toggleTheme;
         if (window.I18n) window.I18n = I18n;

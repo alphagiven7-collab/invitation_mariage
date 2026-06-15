@@ -1,5 +1,13 @@
 const DASHBOARD_KEY = "wedding_dashboard_state";
 
+function toDateTimeLocalValue(iso) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "";
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 const DEFAULT_STATE = {
     title: "Mariage de Yanick et Keren",
     subtitle: "Yanick et Keren",
@@ -11,7 +19,8 @@ const DEFAULT_STATE = {
     bestPhotos: [
         "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=700&q=80",
         "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=700&q=80"
-    ]
+    ],
+    countdownDate: "2026-04-30T19:30"
 };
 
 function filesToDataUrls(files) {
@@ -51,7 +60,8 @@ function readFormState() {
         welcomeImage: document.getElementById("welcomeImage").value.trim(),
         primaryColor: document.getElementById("primaryColor").value,
         accentColor: document.getElementById("accentColor").value,
-        bestPhotos: parseList(document.getElementById("bestPhotos").value, 12)
+        bestPhotos: parseList(document.getElementById("bestPhotos").value, 12),
+        countdownDate: document.getElementById("eventDate")?.value || ""
     };
 }
 
@@ -71,7 +81,8 @@ function toDashboardPayload(formState) {
         ].filter(Boolean),
         galleryPreviewImages: [photos[0], photos[1], photos[2]].filter(Boolean),
         galleryModalImages: [photos[0], photos[1], photos[2], photos[3]].filter(Boolean),
-        shareImage: photos[0] || formState.heroImage
+        shareImage: photos[0] || formState.heroImage,
+        countdownDate: formState.countdownDate || ""
     };
 }
 
@@ -102,6 +113,12 @@ function hydrateForm(state) {
     document.getElementById("welcomeImage").value = state.welcomeImage || "";
     const photos = state.bestPhotos || state.bestGridImages || [];
     document.getElementById("bestPhotos").value = photos.join(", ");
+    const eventDateField = document.getElementById("eventDate");
+    if (eventDateField) {
+        eventDateField.value = state.countdownDate
+            ? toDateTimeLocalValue(state.countdownDate)
+            : "";
+    }
     renderPreview(photos);
     renderSinglePreview("heroImage", "preview-heroImage");
     renderSinglePreview("welcomeImage", "preview-welcomeImage");
@@ -161,7 +178,13 @@ function resetDashboard() {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
-    hydrateForm(loadState());
+    await EventConfig.init();
+    const cfg = EventConfig.getConfig();
+    const state = loadState();
+    if (!state.countdownDate && cfg && cfg.eventDate) {
+        state.countdownDate = toDateTimeLocalValue(cfg.eventDate);
+    }
+    hydrateForm(state);
     document.getElementById("settings-form").addEventListener("submit", saveSettings);
     document.getElementById("apply-preview-btn").addEventListener("click", applyPreview);
     document.getElementById("reset-btn").addEventListener("click", resetDashboard);

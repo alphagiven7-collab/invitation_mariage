@@ -644,7 +644,7 @@
     gap: 8px;
     pointer-events: none;
 }
-.app-floating-tools button {
+.app-floating-tools #lang-toggle-btn {
     pointer-events: auto;
     min-width: 44px;
     min-height: 44px;
@@ -653,23 +653,93 @@
     border: 1px solid rgba(255, 255, 255, 0.25);
     background: rgba(15, 23, 42, 0.82);
     color: #fff;
-    font-size: 18px;
-    line-height: 1;
+    font-size: 11px;
+    letter-spacing: 0.05em;
     font-weight: 700;
     backdrop-filter: blur(8px);
     box-shadow: 0 4px 16px rgba(15, 23, 42, 0.25);
     cursor: pointer;
-    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+/* Bascule thème clair / sombre */
+.theme-switch {
+    pointer-events: auto;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+.theme-switch-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.theme-switch-track {
+    position: relative;
     display: flex;
     align-items: center;
-    justify-content: center;
+    width: 56px;
+    height: 30px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #fde68a 0%, #fbbf24 100%);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.12), 0 4px 14px rgba(251, 191, 36, 0.35);
+    transition: background 0.35s ease, box-shadow 0.35s ease;
 }
-.app-floating-tools button:active {
-    transform: scale(0.94);
+.theme-switch-input:checked + .theme-switch-track {
+    background: linear-gradient(135deg, #312e81 0%, #1e1b4b 100%);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 14px rgba(49, 46, 129, 0.45);
 }
-.app-floating-tools #lang-toggle-btn {
-    font-size: 11px;
-    letter-spacing: 0.05em;
+.theme-switch-thumb {
+    position: absolute;
+    left: 3px;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.theme-switch-input:checked + .theme-switch-track .theme-switch-thumb {
+    transform: translateX(26px);
+}
+.theme-switch-icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    line-height: 1;
+    transition: opacity 0.25s ease;
+}
+.theme-switch-sun {
+    left: 8px;
+    opacity: 1;
+}
+.theme-switch-moon {
+    right: 8px;
+    opacity: 0.35;
+    color: #e0e7ff;
+}
+.theme-switch-input:checked + .theme-switch-track .theme-switch-sun {
+    opacity: 0.35;
+}
+.theme-switch-input:checked + .theme-switch-track .theme-switch-moon {
+    opacity: 1;
+}
+
+.countdown-status-celebrate {
+    color: #db2777 !important;
+    font-family: "Playfair Display", serif;
+    animation: personalFadeIn 0.6s ease;
+}
+.countdown-status-past {
+    color: #64748b !important;
+    font-style: italic;
+}
+body.dark-mode .countdown-status-celebrate {
+    color: #f9a8d4 !important;
 }
 @media (min-width: 768px) {
     .app-floating-tools {

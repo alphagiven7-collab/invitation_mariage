@@ -109,8 +109,9 @@ const EventConfig = (() => {
             }
         }
 
-        if (config.eventDate && window.countDownDate !== undefined) {
-            window.countDownDate = new Date(config.eventDate).getTime();
+        if (config.eventDate && window.EventCountdown) {
+            EventCountdown.setTarget(config.eventDate);
+            EventCountdown.applyDateToUI(config.eventDate);
         }
 
         const metaTitle = document.getElementById("meta-og-title");
