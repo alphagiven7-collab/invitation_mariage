@@ -1,0 +1,125 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personnalisation - Invitation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body class="pro-page bg-slate-100 text-slate-800">
+    <main class="dash-wrap">
+        <header class="dash-top ring-1 ring-white/10">
+            <p class="dash-overline">Dashboard concepteur</p>
+            <h1>Personnalisation avancée de l'invitation</h1>
+            <p class="dash-sub">Chaque champ indique précisément la zone impactée. Imports visuels premium + sauvegarde instantanée.</p>
+            <div class="dash-head-actions pt-1">
+                <a href="./invitation.html" class="dash-head-btn">Retour invitation</a>
+                <a href="./formulaires.html" class="dash-head-btn">Ouvrir formulaires</a>
+            </div>
+        </header>
+
+        <div class="dash-layout">
+            <aside class="dash-nav border-slate-200">
+                <p>Navigation</p>
+                <a href="#sec-textes">Textes & identité</a>
+                <a href="#sec-photos-principales">Photos principales</a>
+                <a href="#sec-galerie">Galerie du couple</a>
+                <a href="#sec-couleurs">Palette visuelle</a>
+                <a href="#sec-aide">Aide de modification</a>
+            </aside>
+
+            <form id="settings-form" class="dash-main">
+                <section class="dash-card backdrop-blur-sm" id="sec-textes">
+                    <h2>Textes & identité</h2>
+                    <p class="dash-tip">Modifie les textes affichés dans l’en-tête et la carte d’invitation principale.</p>
+                    <div class="dash-grid-2">
+                        <label>
+                            <span class="dash-field-label">Titre principal</span>
+                            <input id="title" class="dash-input" placeholder="Ex: Mariage de Yanick et Keren">
+                            <span class="dash-field-note">Zone: bannière d’ouverture de l’invitation.</span>
+                        </label>
+                        <label>
+                            <span class="dash-field-label">Sous-titre</span>
+                            <input id="subtitle" class="dash-input" placeholder="Ex: Yanick et Keren">
+                            <span class="dash-field-note">Zone: sous le titre principal.</span>
+                        </label>
+                    </div>
+                    <label class="mt-2 block">
+                        <span class="dash-field-label">Message d’invitation</span>
+                        <textarea id="message" rows="3" class="dash-textarea" placeholder="Texte affiché à vos invités"></textarea>
+                        <span class="dash-field-note">Zone: carte “Invitation”.</span>
+                    </label>
+                </section>
+
+                <section class="dash-card" id="sec-photos-principales">
+                    <h2>Photos principales</h2>
+                    <p class="dash-tip">Importe directement les images les plus importantes sans toucher aux URLs.</p>
+                    <div class="dash-media-grid">
+                        <article class="dash-media-item">
+                            <h4>Fond accueil</h4>
+                            <img id="preview-welcomeImage" class="dash-media-preview" alt="Aperçu fond accueil">
+                            <label class="dash-upload-btn">
+                                Importer fond accueil
+                                <input id="upload-welcome" type="file" accept="image/*" class="hidden">
+                            </label>
+                            <input id="welcomeImage" class="dash-input mt-2" placeholder="URL image accueil">
+                        </article>
+                        <article class="dash-media-item">
+                            <h4>Fond titre invitation</h4>
+                            <img id="preview-heroImage" class="dash-media-preview" alt="Aperçu fond titre">
+                            <label class="dash-upload-btn">
+                                Importer image en-tête
+                                <input id="upload-hero" type="file" accept="image/*" class="hidden">
+                            </label>
+                            <input id="heroImage" class="dash-input mt-2" placeholder="URL image en-tête">
+                        </article>
+                    </div>
+                </section>
+
+                <section class="dash-card" id="sec-galerie">
+                    <h2>Galerie du couple</h2>
+                    <p class="dash-tip">Ajoute jusqu’à 12 photos (affichage dans “Moments d’exception” + modale galerie).</p>
+                    <label class="dash-upload-btn mb-2">
+                        Importer photos galerie (multi)
+                        <input id="upload-best" type="file" accept="image/*" multiple class="hidden">
+                    </label>
+                    <textarea id="bestPhotos" rows="3" class="dash-textarea" placeholder="URLs séparées par des virgules"></textarea>
+                    <div id="best-photos-preview" class="dash-multi-preview"></div>
+                </section>
+
+                <section class="dash-card" id="sec-couleurs">
+                    <h2>Palette visuelle</h2>
+                    <p class="dash-tip">Pilote les couleurs dominantes des boutons et accents du thème.</p>
+                    <div class="dash-grid-2">
+                        <label>
+                            <span class="dash-field-label">Couleur principale</span>
+                            <input id="primaryColor" type="color" class="dash-input">
+                        </label>
+                        <label>
+                            <span class="dash-field-label">Couleur accent</span>
+                            <input id="accentColor" type="color" class="dash-input">
+                        </label>
+                    </div>
+                </section>
+
+                <section class="dash-card" id="sec-aide">
+                    <h2>Aide de modification</h2>
+                    <p class="dash-tip">Flux recommandé: 1) importer photos 2) modifier textes 3) ajuster couleurs 4) sauvegarder 5) ouvrir l’invitation.</p>
+                    <p class="dash-tip">Tous les réglages sont stockés localement et réappliqués automatiquement sur la page invitation.</p>
+                </section>
+
+                <div class="dash-actionbar">
+                    <button type="button" id="apply-preview-btn" class="dash-btn dash-btn-apply">Appliquer aperçu</button>
+                    <button type="submit" class="dash-btn dash-btn-save">Sauvegarder</button>
+                    <button type="button" id="reset-btn" class="dash-btn dash-btn-reset">Réinitialiser</button>
+                    <a href="./invitation.html" class="dash-btn dash-btn-open">Ouvrir invitation</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="../assets/js/db.js"></script>
+    <script src="../assets/js/personnalisation.js"></script>
+</body>
+</html>

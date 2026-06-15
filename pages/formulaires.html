@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulaires - Invitation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body class="pro-page bg-slate-100 text-slate-800">
+    <main class="pro-shell">
+        <header class="pro-header ring-1 ring-white/10">
+            <p class="pro-overline">Gestion invités</p>
+            <h1>Formulaires de l'événement</h1>
+            <div class="pro-actions">
+                <a href="./invitation.html" class="pro-link-btn">Retour invitation</a>
+            </div>
+        </header>
+
+        <div class="pro-card shadow-2xl">
+            <section id="rsvp" class="mb-6">
+                <h2>RSVP</h2>
+                <form id="rsvp-form" class="space-y-2">
+                    <input id="rsvp-name" class="pro-input" placeholder="Nom complet" required>
+                    <input id="rsvp-phone" class="pro-input" placeholder="Téléphone" required>
+                    <select id="rsvp-status" class="pro-select">
+                        <option value="yes">Je serai présent(e)</option>
+                        <option value="no">Je ne pourrai pas être présent(e)</option>
+                    </select>
+                    <input id="rsvp-guests" type="number" min="1" value="1" class="pro-input" placeholder="Nombre de personnes">
+                    <textarea id="rsvp-message" rows="3" class="pro-textarea" placeholder="Message"></textarea>
+                    <button class="pro-btn pro-btn-primary w-full" type="submit">Envoyer RSVP</button>
+                </form>
+            </section>
+
+            <section id="quiz" class="mb-6">
+                <h2>Quiz rapide</h2>
+                <p class="pro-muted">Quiz intégré à l'invitation. Cette section sert de destination de secours.</p>
+            </section>
+
+            <section>
+                <h2>Livre d'or</h2>
+                <form id="guestbook-form" class="space-y-2">
+                    <input id="book-author" class="pro-input" placeholder="Votre nom">
+                    <textarea id="book-message" rows="3" class="pro-textarea" placeholder="Votre message" required></textarea>
+                    <button class="pro-btn pro-btn-secondary w-full" type="submit">Publier</button>
+                </form>
+                <div id="guestbook-list" class="space-y-2 mt-3 max-h-80 overflow-auto pr-1"></div>
+            </section>
+        </div>
+    </main>
+
+    <script src="../assets/js/db.js"></script>
+    <script src="../assets/js/formulaires.js"></script>
+</body>
+</html>

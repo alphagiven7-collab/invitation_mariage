@@ -1,0 +1,1177 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mariage de Yanick et Keren</title>
+    <meta name="description" id="meta-description" content="Invitation officielle au mariage de Yanick et Keren.">
+    <meta property="og:title" id="meta-og-title" content="Mariage de Yanick et Keren">
+    <meta property="og:description" id="meta-og-description" content="Rejoignez-nous pour célébrer notre union.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" id="meta-og-url" content="">
+    <meta property="og:image" id="meta-og-image" content="">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" id="meta-twitter-title" content="Mariage de Yanick et Keren">
+    <meta name="twitter:description" id="meta-twitter-description" content="Rejoignez-nous pour célébrer notre union.">
+    <meta name="twitter:image" id="meta-twitter-image" content="">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body class="antialiased text-gray-800 overflow-hidden">
+
+    <div id="welcome-gate" class="fixed inset-0 z-[100] welcome-gate-bg backdrop-blur-sm flex items-center justify-center px-5 transition-opacity duration-500">
+        <div class="w-full max-w-sm welcome-envelope-shell rounded-3xl p-6 text-center">
+            <div class="relative z-10">
+                <div class="envelope-seal mx-auto mb-4">
+                    <i data-lucide="heart" class="w-5 h-5" fill="currentColor"></i>
+                </div>
+                <p class="text-[11px] uppercase tracking-[0.25em] text-rose-400 mb-2">Invitation du coeur</p>
+                <h1 class="font-serif text-2xl text-gray-800 mb-1">Yanick &amp; Keren</h1>
+                <p class="text-[12px] text-gray-600 mb-1">Avec amour, nous vous ouvrons cette enveloppe de bonheur.</p>
+                <p class="text-[12px] text-gray-500 mb-5">Veuillez saisir votre nom pour découvrir votre invitation personnelle.</p>
+            </div>
+            <div id="gate-name-input-container">
+                <input id="gate-guest-name-input" type="text" placeholder="Votre nom et prénom" class="w-full bg-white/95 border border-rose-100 rounded-xl p-3 text-sm text-gray-700 text-center focus:ring-2 focus:ring-pink-200 focus:border-pink-300 outline-none transition mb-3">
+                <button onclick="enterExperience()" class="w-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white rounded-xl p-3 text-xs font-semibold tracking-wide transition">
+                    Ouvrir mon invitation
+                </button>
+            </div>
+            <div id="gate-welcome-back-container" class="hidden">
+                <p class="text-sm text-gray-500 mb-1">Quel bonheur de vous revoir,</p>
+                <p id="gate-welcome-back-name" class="font-serif text-2xl text-gray-800 mb-4"></p>
+                <button onclick="openMainSite()" class="w-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white rounded-xl p-3 text-xs font-semibold tracking-wide transition">
+                    Accéder à la plateforme
+                </button>
+            </div>
+            <div id="gate-desktop-tools" class="hidden md:flex flex-col gap-2 fixed right-5 top-5">
+                <button id="designer-access-btn" onclick="requestDesignerAccess()" class="border border-white/30 bg-black/50 text-white rounded-xl px-4 py-2 text-xs font-semibold backdrop-blur">
+                    Mode concepteur
+                </button>
+                <button id="designer-customize-btn" onclick="openCustomizer()" class="hidden border border-indigo-300/40 bg-indigo-600 text-white rounded-xl px-4 py-2 text-xs font-semibold">
+                    Personnaliser
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENEUR PRINCIPAL (Style Mobile) -->
+    <main id="main-view" class="max-w-md mx-auto bg-[#fafafa] min-h-screen relative shadow-2xl overflow-hidden pb-10 hidden opacity-0 transition-opacity duration-500">
+        <div class="hidden md:flex fixed right-4 top-4 z-50 flex-col gap-2">
+            <button id="toggle-theme-btn" onclick="toggleTheme()" class="bg-black/70 text-white rounded-xl px-3 py-2 text-xs font-semibold">Dark</button>
+        </div>
+        
+        <!-- 1. En-tête -->
+        <header class="hero-bg h-[60vh] flex flex-col justify-center items-center text-center text-white px-4">
+            <h1 id="hero-title" class="font-serif text-2xl md:text-3xl mb-3 tracking-wide">Mariage de Yanick et Keren</h1>
+            <i data-lucide="heart" class="w-6 h-6 text-pink-300 mx-auto mb-3 animate-pulse" fill="currentColor"></i>
+            <p id="hero-subtitle" class="text-sm font-light tracking-widest">Yanick et Keren</p>
+        </header>
+
+        <!-- 2. Invitation -->
+        <section class="px-4 -mt-12 relative z-10">
+            <div class="glass-card invitation-card rounded-2xl p-6 text-center">
+                <h2 class="font-cursive text-5xl text-gray-800 mb-4">Invitation</h2>
+                
+                <div class="flex items-center justify-center space-x-2 mb-6">
+                    <span id="couple-name-left" class="font-cursive text-3xl text-pink-600">Keren</span>
+                    <span class="text-[10px] uppercase tracking-widest bg-gray-100 px-2 py-1 rounded-full text-gray-400">et</span>
+                    <span id="couple-name-right" class="font-cursive text-3xl text-blue-600">Yanick</span>
+                </div>
+
+                <p class="font-serif text-base text-gray-700 mb-3">
+                    Cher/Chere <span id="display-guest-name" class="text-gray-800 font-semibold">Invite(e)</span>,
+                </p>
+
+                <p class="text-[13px] leading-relaxed mb-4 text-gray-600">
+                    C'est avec une grande joie que les familles Kasongo et Pamua vous font part du mariage de leurs enfants, <strong class="text-gray-800">Yanick et Keren</strong>.
+                </p>
+                <p class="text-[13px] leading-relaxed mb-4 text-gray-600">
+                    Ils seraient honorés de vous compter parmi leurs invités pour célébrer cette union sacrée et partager le bonheur de leur engagement.
+                </p>
+                <p id="invite-main-text" class="text-[13px] leading-relaxed mb-6 text-gray-600">
+                    La cérémonie, suivie d'une réception, se tiendra le <strong class="text-gray-800">jeudi 30 avril 2026 à partir de 19h30</strong> au <strong class="text-gray-800">Sultani River</strong>. Votre présence à leurs côtés, dans ce cadre mémorable au bord du fleuve, témoignera de l'affection que vous leur portez et rendra cette journée inoubliable.
+                </p>
+
+                <button id="reserve-deadline-btn" onclick="openModal('rsvp-modal')" class="bg-gray-50 border border-gray-100 rounded-lg p-3 inline-block hover:bg-gray-100 transition">
+                    <p id="reserve-deadline-text" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Réservez avant le 25 Avril</p>
+                </button>
+            </div>
+        </section>
+
+        <!-- 3. À propos de nous (Bouton d'ouverture modale) -->
+        <section class="px-4 mt-6">
+            <div onclick="openModal('about-modal')" class="relative rounded-2xl overflow-hidden h-28 shadow-sm group cursor-pointer bg-gray-900">
+                <img id="about-cover-image" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Couple" class="w-full h-full object-cover opacity-60">
+                <div class="absolute inset-0 flex items-center px-6">
+                    <div class="text-white">
+                        <h3 class="font-serif text-xl mb-1">À propos de nous</h3>
+                        <p class="text-[11px] text-gray-200 font-light flex items-center bg-black/30 w-fit px-2 py-1 rounded-full backdrop-blur-sm">
+                            Découvrir notre histoire <i data-lucide="chevron-right" class="w-3 h-3 ml-1"></i>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="px-4 mt-6">
+            <div onclick="openBestPhotosGallery()" class="best-photos-shell p-4 text-white cursor-pointer">
+                <p class="text-[10px] tracking-[0.3em] uppercase text-pink-200 text-center">Moments d'exception</p>
+                <h3 id="best-photos-title" class="font-serif text-2xl text-center mb-3">Les plus belles photos du couple</h3>
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <img id="best-photo-1" src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=700&q=80" class="h-40 w-full object-cover rounded-xl" alt="Couple 1">
+                    <img id="best-photo-2" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=700&q=80" class="h-40 w-full object-cover rounded-xl" alt="Couple 2">
+                </div>
+                <div class="premium-marquee">
+                    <div class="premium-marquee-track">
+                        <img id="best-marquee-1" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=500&q=80" alt="Souvenir 1">
+                        <img id="best-marquee-2" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=500&q=80" alt="Souvenir 2">
+                        <img id="best-marquee-3" src="https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=500&q=80" alt="Souvenir 3">
+                        <img id="best-marquee-4" src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=500&q=80" alt="Souvenir 4">
+                        <img id="best-marquee-5" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=500&q=80" alt="Souvenir 1b">
+                        <img id="best-marquee-6" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=500&q=80" alt="Souvenir 2b">
+                    </div>
+                </div>
+                <p class="text-[10px] text-indigo-100 text-center mt-3">Touchez ici pour ouvrir la galerie complète</p>
+            </div>
+        </section>
+
+        <!-- 4. Dress Code -->
+        <section class="px-4 mt-6">
+            <div class="bg-white rounded-2xl shadow-sm p-6 text-center border border-gray-50">
+                <div class="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i data-lucide="shirt" class="w-5 h-5 text-gray-600"></i>
+                </div>
+                <h3 class="font-serif text-lg mb-1">Tenue élégante</h3>
+                <p class="text-[10px] text-gray-400 mb-4 uppercase tracking-widest">Couleurs</p>
+                
+                <div class="flex justify-center space-x-4 mb-6">
+                    <div class="w-8 h-8 rounded-full bg-[#f4e1e1] shadow-inner border border-gray-100"></div>
+                    <div class="w-8 h-8 rounded-full bg-[#5a2a35] shadow-inner border border-gray-100"></div>
+                    <div class="w-8 h-8 rounded-full bg-[#2d3748] shadow-inner border border-gray-100"></div>
+                </div>
+
+                <div class="dress-marquee-wrapper">
+                    <div class="dress-marquee-track">
+                        <img id="dress-photo-1" src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 1">
+                        <img id="dress-photo-2" src="https://images.unsplash.com/photo-1591369822096-ffd140ec948f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 2">
+                        <img id="dress-photo-3" src="https://images.unsplash.com/photo-1617137968427-85924c800a22?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 3">
+                        <img id="dress-photo-4" src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 4">
+                        <img id="dress-photo-5" src="https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 5">
+                        <img id="dress-photo-6" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 6">
+                        <img id="dress-photo-7" src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 1 bis">
+                        <img id="dress-photo-8" src="https://images.unsplash.com/photo-1591369822096-ffd140ec948f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 2 bis">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Date & Programme -->
+        <section class="px-4 mt-6">
+            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-50">
+                
+                <!-- En-tête Date -->
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <p id="event-day" class="text-3xl font-light text-gray-800">30</p>
+                        <p id="event-month-year" class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Avril 2026</p>
+                    </div>
+                    <div class="bg-gray-50 px-3 py-2 rounded-xl text-center border border-gray-100">
+                        <i data-lucide="clock" class="w-4 h-4 mx-auto mb-1 text-gray-400"></i>
+                        <p id="event-time-range" class="text-[11px] font-medium text-gray-600">19h30 - 23h30</p>
+                    </div>
+                </div>
+
+                <!-- Calendrier -->
+                <div class="mb-8 bg-gray-50 rounded-xl p-4 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4">
+                        <i data-lucide="chevron-left" class="w-4 h-4 text-gray-300"></i>
+                        <span class="font-semibold text-[11px] text-gray-600 uppercase tracking-widest">Avril 2026</span>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 text-center text-[9px] text-gray-400 mb-2 font-semibold">
+                        <div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div><div>D</div>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 text-center text-[11px] text-gray-500">
+                        <div></div><div></div>
+                        <div class="py-1">1</div><div class="py-1">2</div><div class="py-1">3</div><div class="py-1">4</div><div class="py-1">5</div>
+                        <div class="py-1">6</div><div class="py-1">7</div><div class="py-1">8</div><div class="py-1">9</div><div class="py-1">10</div><div class="py-1">11</div><div class="py-1">12</div>
+                        <div class="py-1">13</div><div class="py-1">14</div><div class="py-1">15</div><div class="py-1">16</div><div class="py-1">17</div><div class="py-1">18</div><div class="py-1">19</div>
+                        <div class="py-1">20</div><div class="py-1">21</div><div class="py-1">22</div><div class="py-1">23</div><div class="py-1">24</div><div class="py-1">25</div><div class="py-1">26</div>
+                        <div class="py-1">27</div><div class="py-1">28</div><div class="py-1">29</div>
+                        <div class="py-1 bg-gray-800 text-white rounded font-bold shadow-sm relative">
+                            30
+                            <div class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-pink-500 rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Programme de la journée (Icônes réalistes) -->
+                <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-5 text-center">Programme de la journée</p>
+                <div class="space-y-6 relative before:absolute before:inset-0 before:ml-[1.1rem] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 before:to-transparent">
+                    
+                    <!-- Etape 1 -->
+                    <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                        <div class="flex items-center justify-center w-9 h-9 rounded-full border-2 border-white bg-blue-50 text-blue-500 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="8.5" cy="7" r="3"></circle>
+                                <path d="M20 8v6"></path>
+                                <path d="M23 11h-6"></path>
+                            </svg>
+                        </div>
+                        <div class="w-[calc(100%-3rem)] md:w-[calc(50%-2.5rem)] pl-4 md:pl-0 font-medium">
+                            <p class="text-[10px] text-gray-400">19h30 - 20h00</p>
+                            <p class="text-sm text-gray-800">Arrivée des invités</p>
+                        </div>
+                    </div>
+
+                    <!-- Etape 2 -->
+                    <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                        <div class="flex items-center justify-center w-9 h-9 rounded-full border-2 border-white bg-green-50 text-green-500 shadow shrink-0 md:order-1 z-10">
+                            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"></path>
+                                <circle cx="12" cy="10" r="2.5"></circle>
+                            </svg>
+                        </div>
+                        <div class="w-[calc(100%-3rem)] pl-4 font-medium">
+                            <p class="text-[10px] text-gray-400">20h00 - 20h30</p>
+                            <p class="text-sm text-gray-800">Emplacements</p>
+                        </div>
+                    </div>
+
+                    <!-- Etape 3 -->
+                    <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                        <div class="flex items-center justify-center w-9 h-9 rounded-full border-2 border-white bg-pink-50 text-pink-500 shadow shrink-0 md:order-1 z-10">
+                            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12 3l1.7 3.8L17.5 8l-3.8 1.2L12 13l-1.7-3.8L6.5 8l3.8-1.2L12 3z"></path>
+                                <path d="M18.5 14l1 2.2L22 17l-2.5.8-1 2.2-1-2.2L15 17l2.5-.8 1-2.2z"></path>
+                            </svg>
+                        </div>
+                        <div class="w-[calc(100%-3rem)] pl-4 font-medium">
+                            <p class="text-[10px] text-gray-400">20h30 - 21h00</p>
+                            <p class="text-sm text-gray-800">Entrée des mariés</p>
+                        </div>
+                    </div>
+
+                    <!-- Etape 4 -->
+                    <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                        <div class="flex items-center justify-center w-9 h-9 rounded-full border-2 border-white bg-purple-50 text-purple-500 shadow shrink-0 md:order-1 z-10">
+                            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M9 18V5l12-2v13"></path>
+                                <circle cx="6" cy="18" r="3"></circle>
+                                <circle cx="18" cy="16" r="3"></circle>
+                            </svg>
+                        </div>
+                        <div class="w-[calc(100%-3rem)] pl-4 font-medium">
+                            <p class="text-[10px] text-gray-400">21h00 - 23h30</p>
+                            <p class="text-sm text-gray-800">Danses et spectacles</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. Lieu / Carte Google -->
+        <section class="px-4 mt-6">
+            <div class="bg-white rounded-2xl shadow-sm p-1 border border-gray-50 overflow-hidden relative">
+                <div class="h-32 bg-gray-200 relative">
+                    <!-- Image de carte simulée -->
+                    <img id="map-image" src="https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover opacity-50" alt="Map">
+                    <div class="absolute inset-0 flex justify-center items-center">
+                        <div class="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center animate-bounce">
+                            <i data-lucide="map-pin" class="w-6 h-6 text-gray-800"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-5 text-center">
+                    <h3 id="venue-title" class="font-serif text-lg mb-1 text-gray-800">Sultani River</h3>
+                    <p id="venue-address" class="text-[11px] text-gray-500 mb-4 px-4">32, avenue de la Justice (Gombe), Kinshasa, RDC</p>
+                    <a id="venue-map-link" href="https://maps.google.com/?q=Sultani+River+Kinshasa" target="_blank" class="inline-flex w-full justify-center items-center space-x-2 bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-3 rounded-xl text-xs font-semibold transition">
+                        <i data-lucide="navigation" class="w-4 h-4"></i>
+                        <span>Obtenir l'itinéraire</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. Compte à rebours -->
+        <section class="px-4 mt-6">
+            <div class="bg-white rounded-2xl shadow-sm p-6 text-center border border-gray-50">
+                <i data-lucide="alarm-clock" class="w-6 h-6 text-gray-300 mx-auto mb-3"></i>
+                <div class="flex justify-center space-x-3 mb-6">
+                    <div class="text-center w-14">
+                        <div class="w-full h-14 bg-gray-50 rounded-xl flex items-center justify-center text-xl font-light text-gray-800 border border-gray-100" id="days">00</div>
+                        <p class="text-[9px] text-gray-400 mt-2 uppercase">Jours</p>
+                    </div>
+                    <div class="text-center w-14">
+                        <div class="w-full h-14 bg-gray-50 rounded-xl flex items-center justify-center text-xl font-light text-gray-800 border border-gray-100" id="hours">00</div>
+                        <p class="text-[9px] text-gray-400 mt-2 uppercase">H</p>
+                    </div>
+                    <div class="text-center w-14">
+                        <div class="w-full h-14 bg-gray-50 rounded-xl flex items-center justify-center text-xl font-light text-gray-800 border border-gray-100" id="minutes">00</div>
+                        <p class="text-[9px] text-gray-400 mt-2 uppercase">Min</p>
+                    </div>
+                    <div class="text-center w-14">
+                        <div class="w-full h-14 bg-pink-50 text-pink-600 rounded-xl flex items-center justify-center text-xl font-light border border-pink-100" id="seconds">00</div>
+                        <p class="text-[9px] text-gray-400 mt-2 uppercase">Sec</p>
+                    </div>
+                </div>
+                <div class="flex justify-center text-4xl">
+                    🫶
+                </div>
+            </div>
+        </section>
+
+        <!-- 8. Les Cadeaux (Urne) -->
+        <section class="px-4 mt-6">
+            <div class="bg-gradient-to-b from-[#fdfbf7] to-white rounded-2xl shadow-sm p-6 text-center border border-gray-100">
+                <h3 class="font-serif text-lg text-gray-800 mb-4">Les cadeaux ?</h3>
+                <div class="text-6xl mb-4">📦</div>
+                <p class="text-[11px] text-gray-500 mb-2 leading-relaxed">
+                    Pour le moment spécial, la création d'une urne d'honneur est prévue.
+                </p>
+                <p class="text-[11px] text-gray-500 mb-2 leading-relaxed">
+                    Le jour J, une urne sera disposée dans la salle afin que vous puissiez y déposer vos enveloppes en toute discrétion.
+                </p>
+                <p class="text-[11px] text-gray-500 font-medium">
+                    Merci pour votre générosité et votre présence précieuse.
+                </p>
+            </div>
+        </section>
+
+        <!-- 9. Actions Principales (Boutons interactifs de la vidéo) -->
+        <section class="px-4 mt-6 space-y-3">
+            
+            <!-- Confirmer ma présence -->
+            <button id="confirm-presence-btn" onclick="openModal('rsvp-modal')" class="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white rounded-xl shadow p-4 flex items-center justify-center space-x-2 transition">
+                <span class="w-7 h-7 rounded-full bg-white/95 text-emerald-700 flex items-center justify-center">
+                    <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                </span>
+                <span class="font-semibold text-sm">Confirmer ma présence</span>
+            </button>
+
+            <!-- Galerie / Livre d'Or -->
+            <div class="grid grid-cols-2 gap-3 mt-3">
+                <div onclick="openModal('guestbook-modal')" class="bg-gray-800 text-white rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-900 transition h-28 relative overflow-hidden group">
+                    <img id="guestbook-cover-image" src="https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" class="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-20 transition" alt="Livre d'or">
+                    <i data-lucide="book-open" class="w-6 h-6 mb-2 relative z-10"></i>
+                    <span class="font-medium text-[11px] relative z-10">Ouvrir le livre d'or</span>
+                </div>
+                <div onclick="openModal('gallery-modal')" class="bg-white rounded-xl p-1 flex flex-col items-center justify-center cursor-pointer border border-gray-100 h-28 overflow-hidden">
+                    <div class="grid grid-cols-2 gap-1 w-full h-full">
+                        <img id="gallery-preview-image-1" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=200" class="w-full h-full object-cover rounded-tl-lg" alt="Photo 1">
+                        <img id="gallery-preview-image-2" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=200" class="w-full h-full object-cover rounded-tr-lg" alt="Photo 2">
+                        <img id="gallery-preview-image-3" src="https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?w=200" class="w-full h-full object-cover rounded-bl-lg" alt="Photo 3">
+                        <div class="bg-gray-100 flex items-center justify-center rounded-br-lg text-xs font-semibold text-gray-500">+12</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz -->
+            <div id="quiz-card" onclick="startQuiz()" class="bg-[#2d3748] rounded-xl p-4 text-center text-white mt-3 relative overflow-hidden cursor-pointer h-24 flex flex-col justify-center">
+                <div class="absolute -right-4 -top-4 w-16 h-16 bg-white/10 rounded-full"></div>
+                <h3 class="font-bold text-lg flex justify-center items-center space-x-2">
+                    <span class="w-7 h-7 rounded-full bg-white/95 text-slate-700 flex items-center justify-center">
+                        <i data-lucide="help-circle" class="w-4 h-4"></i>
+                    </span>
+                    <span>Quiz</span>
+                </h3>
+                <p class="text-[10px] text-gray-300 mt-1">Testez vos connaissances sur le couple</p>
+            </div>
+
+            <!-- Offrir un don financier -->
+            <div class="bg-gradient-to-r from-pink-50 to-pink-100 border border-pink-200 rounded-xl p-5 text-center mt-3">
+                <div class="flex items-center justify-center space-x-2 mb-2 text-pink-500">
+                    <i data-lucide="gift" class="w-5 h-5"></i>
+                    <h3 class="font-bold text-sm">Offrir un don financier</h3>
+                </div>
+                <p class="text-[10px] text-gray-600 mb-4 px-2">Vous souhaitez soutenir Yanick & Keren ? Offrez le montant que vous choisissez ! (100% gratuit, chèque posté sans compte)</p>
+                
+                <button id="donation-btn" onclick="openDonationLink()" class="w-full bg-pink-500 text-white py-3 rounded-xl text-xs font-bold shadow hover:bg-pink-600 transition mb-4">
+                    Offrir votre don
+                </button>
+                
+                <!-- Logos paiements -->
+                <div class="flex justify-center items-center space-x-3 opacity-60">
+                    <span class="text-xs font-bold text-red-600">Airtel</span>
+                    <span class="text-xs font-bold text-green-600">M-Pesa</span>
+                    <span class="text-xs font-bold text-orange-500">Orange</span>
+                    <i data-lucide="credit-card" class="w-5 h-5 text-gray-600"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10. Informations Pratiques -->
+        <section class="px-4 mt-6">
+            <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-50">
+                <h3 class="font-semibold text-xs text-gray-800 mb-4 px-2 flex justify-between items-center">
+                    Informations pratiques <span class="text-gray-400 text-[10px] font-normal">3 infos</span>
+                </h3>
+                
+                <div class="space-y-4">
+                    <div class="flex items-start space-x-3 px-2">
+                        <div class="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center shrink-0">
+                            <i data-lucide="car" class="w-4 h-4 text-gray-500"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-gray-700">PARKING</p>
+                            <p class="text-[11px] text-gray-500">Le parking est disponible, disposant de 200 places.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3 px-2">
+                        <div class="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center shrink-0">
+                            <i data-lucide="bed" class="w-4 h-4 text-gray-500"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-gray-700">HÉBERGEMENT</p>
+                            <p class="text-[11px] text-gray-500">Hôtel le Pullman à 5min.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3 px-2">
+                        <div class="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center shrink-0">
+                            <i data-lucide="wine" class="w-4 h-4 text-gray-500"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-gray-700">BOÎTE À BOISSON</p>
+                            <p class="text-[11px] text-gray-500">Merci de ne pas apporter de boisson de l'extérieur.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 11. Remise des cadeaux & Activité -->
+        <section class="px-4 mt-6">
+            <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-50 text-center">
+                <div class="w-10 h-10 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i data-lucide="users" class="w-5 h-5"></i>
+                </div>
+                <h3 class="font-serif text-lg mb-2">Remise des cadeaux</h3>
+                <p class="text-[10px] text-gray-500 mb-4 px-2">
+                    Enregistrez-vous à l'avance pour passer remettre votre cadeau avec votre groupe et votre chanson d'accompagnement.
+                </p>
+                <div class="flex justify-center space-x-8 mb-4 border-t border-b border-gray-50 py-3">
+                    <div>
+                        <p class="text-xs font-bold text-gray-800">2</p>
+                        <p class="text-[9px] text-gray-400 uppercase">Groupes</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-gray-800">3</p>
+                        <p class="text-[9px] text-gray-400 uppercase">Personnes</p>
+                    </div>
+                </div>
+                <button id="queue-btn" onclick="openQueueInfo()" class="w-full bg-indigo-600 text-white py-2.5 rounded-xl text-xs font-bold hover:bg-indigo-700 transition">
+                    Voir la file
+                </button>
+            </div>
+            
+            <!-- Activité (Barres de progression) -->
+            <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-50 mt-4">
+                <h3 class="font-semibold text-xs text-gray-800 mb-4 flex items-center">
+                    <i data-lucide="activity" class="w-4 h-4 text-blue-500 mr-2"></i> Activité de l'événement
+                </h3>
+                
+                <div class="space-y-4">
+                    <!-- Confirmés -->
+                    <div>
+                        <div class="flex justify-between text-[10px] mb-1">
+                            <span class="text-gray-600 font-medium flex items-center"><i data-lucide="check" class="w-3 h-3 mr-1 text-green-500"></i> Confirmés</span>
+                            <span class="font-bold">92%</span>
+                        </div>
+                        <div class="w-full bg-gray-100 rounded-full h-1.5">
+                            <div class="bg-green-500 h-1.5 rounded-full" style="width: 92%"></div>
+                        </div>
+                    </div>
+                    <!-- Arrivés -->
+                    <div>
+                        <div class="flex justify-between text-[10px] mb-1">
+                            <span class="text-gray-600 font-medium flex items-center"><i data-lucide="user-check" class="w-3 h-3 mr-1 text-blue-500"></i> Arrivés</span>
+                            <span class="font-bold">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-100 rounded-full h-1.5">
+                            <div class="bg-blue-500 h-1.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <!-- Livre d'or -->
+                    <div>
+                        <div class="flex justify-between text-[10px] mb-1">
+                            <span class="text-gray-600 font-medium flex items-center"><i data-lucide="book" class="w-3 h-3 mr-1 text-purple-500"></i> Livre d'or</span>
+                            <span class="font-bold">4%</span>
+                        </div>
+                        <div class="w-full bg-gray-100 rounded-full h-1.5">
+                            <div class="bg-purple-500 h-1.5 rounded-full" style="width: 4%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 12. Besoin d'aide -->
+        <section class="px-4 mt-6 mb-12">
+            <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 text-center">
+                <div class="bg-white w-12 h-12 rounded-xl shadow-sm flex items-center justify-center mx-auto mb-3">
+                    <i data-lucide="life-buoy" class="w-6 h-6 text-indigo-400"></i>
+                </div>
+                <h3 class="font-bold text-sm text-gray-800 mb-1">Besoin d'aide ?</h3>
+                <p class="text-[10px] text-gray-500 mb-4">Notre équipe Wedding Planner est là pour vous assister.</p>
+                <div class="text-4xl">🫶</div>
+            </div>
+            
+            <div class="text-center mt-6 pb-6">
+                <p class="text-[10px] text-gray-400">Vous avez aimé cet espace ? <a id="support-email-link" href="mailto:weddingplanner@yanick-keren.com?subject=Contact%20Mariage%20Yanick%20Keren" class="font-bold text-gray-600 underline">Contactez-nous</a></p>
+            </div>
+        </section>
+    </main>
+
+    <!-- ============================================== -->
+    <!-- MODALES (Pages cachées qui s'ouvrent au clic)  -->
+    <!-- ============================================== -->
+
+    <!-- Modale "À propos de nous" -->
+    <div id="about-modal" class="fixed inset-0 z-50 bg-white overflow-y-auto hidden">
+        <div class="max-w-md mx-auto bg-white min-h-screen relative pb-10">
+            <div class="relative h-64">
+                <img id="about-modal-image" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Couple" class="w-full h-full object-cover">
+                <button onclick="closeModal('about-modal')" class="absolute top-4 left-4 bg-white/80 backdrop-blur p-2 rounded-full shadow-sm text-gray-800">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 text-center">
+                <h2 id="about-story-title" class="font-cursive text-4xl text-gray-800 mb-2">Notre Histoire</h2>
+                <div class="w-10 h-1 bg-pink-300 mx-auto mb-6 rounded-full"></div>
+                <p id="about-story-paragraph-1" class="text-sm text-gray-600 leading-relaxed mb-4 text-justify">
+                    Tout a commencé par un simple regard, une rencontre inattendue qui a doucement transformé nos vies. De simples amis, nous sommes devenus des confidents, puis l'évidence s'est imposée à nous.
+                </p>
+                <p id="about-story-paragraph-2" class="text-sm text-gray-600 leading-relaxed text-justify">
+                    Aujourd's hui, après des années de rires, de soutien mutuel et de projets construits à deux, nous avons décidé de lier nos destins pour l'éternité. Nous avons hâte de célébrer ce nouveau chapitre entourés de ceux que nous aimons le plus.
+                </p>
+                <div class="mt-8 text-4xl">💍</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale "Livre d'or" -->
+    <div id="guestbook-modal" class="fixed inset-0 z-50 bg-gray-50 overflow-y-auto hidden">
+        <div class="max-w-md mx-auto bg-gray-50 min-h-screen relative pb-10">
+            <div class="bg-white p-4 flex items-center shadow-sm sticky top-0 z-10">
+                <button onclick="closeModal('guestbook-modal')" class="p-2 -ml-2 text-gray-600">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                </button>
+                <h2 class="font-bold text-gray-800 ml-2">Livre d'or</h2>
+            </div>
+            
+            <div class="p-4">
+                <div class="bg-white rounded-xl shadow-sm p-4 text-center mb-6 border border-gray-100">
+                    <h3 class="font-serif text-lg mb-2">Laissez un mot aux mariés</h3>
+                    <p class="text-[11px] text-gray-500 mb-4">Vos vœux de bonheur et vos conseils pour cette nouvelle vie à deux.</p>
+                    <textarea id="guestbook-textarea" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm mb-3 focus:ring-2 focus:ring-pink-300 outline-none" rows="3" placeholder="Écrivez votre message ici..."></textarea>
+                    <button onclick="publishGuestMessage()" class="bg-gray-800 text-white w-full py-2.5 rounded-lg text-xs font-bold">Publier le message</button>
+                </div>
+
+                <!-- Messages existants -->
+                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">Derniers messages</h4>
+                <div id="guestbook-messages" class="space-y-3">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-50">
+                        <div class="flex items-center space-x-2 mb-2">
+                        <div class="w-8 h-8 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center font-bold text-xs">MK</div>
+                            <div>
+                                <p class="text-xs font-bold">Marie Kasongo</p>
+                                <p class="text-[9px] text-gray-400">Il y a 2 heures</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-600">Félicitations mes amours ! Que Dieu bénisse votre union. J'ai trop hâte de célébrer ça avec vous ! ❤️</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="gallery-modal" class="fixed inset-0 z-50 bg-black/80 overflow-y-auto hidden">
+        <div class="max-w-md mx-auto min-h-screen py-6 px-4">
+            <div class="flex justify-end mb-3">
+                <button onclick="closeModal('gallery-modal')" class="bg-white/90 rounded-full px-3 py-1 text-xs font-semibold">Fermer</button>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <img id="gallery-modal-image-1" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=500" class="rounded-xl w-full h-40 object-cover" alt="galerie 1">
+                <img id="gallery-modal-image-2" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=500" class="rounded-xl w-full h-40 object-cover" alt="galerie 2">
+                <img id="gallery-modal-image-3" src="https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?w=500" class="rounded-xl w-full h-40 object-cover" alt="galerie 3">
+                <img id="gallery-modal-image-4" src="https://images.unsplash.com/photo-1519741497674-611481863552?w=500" class="rounded-xl w-full h-40 object-cover" alt="galerie 4">
+            </div>
+        </div>
+    </div>
+
+    <div id="best-photos-modal" class="fixed inset-0 z-[115] bg-black/90 backdrop-blur-sm hidden">
+        <div class="max-w-3xl mx-auto min-h-screen px-4 py-6 flex flex-col">
+            <div class="flex justify-between items-center mb-4 text-white">
+                <p class="text-xs tracking-widest uppercase text-indigo-200">Galerie du couple</p>
+                <button onclick="closeBestPhotosGallery()" class="bg-white/20 hover:bg-white/30 rounded-full px-4 py-1 text-xs font-semibold transition">Fermer</button>
+            </div>
+            <div class="relative flex-1 flex items-center justify-center">
+                <button onclick="changeBestGallerySlide(-1)" class="absolute left-2 z-10 bg-white/15 hover:bg-white/30 text-white rounded-full w-10 h-10 flex items-center justify-center transition">
+                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                </button>
+                <img id="best-gallery-main-image" src="" alt="Photo du couple" class="w-full max-h-[72vh] object-contain rounded-2xl shadow-2xl border border-white/20">
+                <button onclick="changeBestGallerySlide(1)" class="absolute right-2 z-10 bg-white/15 hover:bg-white/30 text-white rounded-full w-10 h-10 flex items-center justify-center transition">
+                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="mt-4">
+                <p id="best-gallery-caption" class="text-center text-white text-xs mb-2"></p>
+                <div id="best-gallery-dots" class="flex justify-center gap-2 flex-wrap"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="rsvp-modal" class="fixed inset-0 z-[105] bg-black/55 backdrop-blur-sm overflow-y-auto hidden">
+        <div class="max-w-md mx-auto min-h-screen px-4 py-8 flex items-start">
+            <div class="w-full bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+                <div class="bg-gradient-to-r from-emerald-500 to-green-600 p-4 text-white">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-serif text-xl">Formulaire RSVP</h3>
+                        <button onclick="closeModal('rsvp-modal')" class="text-xs bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full transition">Fermer</button>
+                    </div>
+                    <p class="text-[11px] text-white/90 mt-1">Merci de confirmer votre présence avant le 25 Avril.</p>
+                </div>
+                <form id="rsvp-form" class="p-4 space-y-3" onsubmit="submitRsvp(event)">
+                    <div>
+                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Nom complet</label>
+                        <input id="rsvp-name" type="text" required class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-emerald-300" placeholder="Votre nom">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Téléphone</label>
+                        <input id="rsvp-phone" type="tel" required class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-emerald-300" placeholder="+243 ...">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Présence</label>
+                        <select id="rsvp-status" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-emerald-300">
+                            <option value="yes">Je serai présent(e)</option>
+                            <option value="no">Je ne pourrai pas être présent(e)</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Adultes</label>
+                            <input id="rsvp-adults" type="number" min="1" max="10" value="1" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-emerald-300">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Enfants</label>
+                            <input id="rsvp-children" type="number" min="0" max="10" value="0" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-emerald-300">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Message</label>
+                        <textarea id="rsvp-message" rows="3" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-emerald-300" placeholder="Votre message aux mariés..."></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-3 text-sm font-semibold transition">
+                        Envoyer ma réponse RSVP
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="customizer-page" class="fixed inset-0 z-[130] bg-slate-950/85 backdrop-blur-sm hidden overflow-y-auto">
+        <div class="max-w-5xl mx-auto min-h-screen px-4 py-6">
+            <div class="bg-white rounded-3xl border border-gray-200 shadow-2xl overflow-hidden">
+                <div class="bg-gradient-to-r from-slate-900 to-indigo-700 px-6 py-5 text-white">
+                    <div class="flex flex-wrap gap-3 items-center justify-between">
+                        <div>
+                            <p class="text-[11px] uppercase tracking-[0.2em] text-indigo-200">Mode concepteur</p>
+                            <h3 class="font-serif text-2xl">Page de personnalisation avancée</h3>
+                        </div>
+                        <button onclick="closeCustomizer()" class="text-xs bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition">Fermer</button>
+                    </div>
+                </div>
+                <div class="p-5 md:p-6 space-y-6">
+                    <section class="border border-gray-100 rounded-2xl p-4 bg-gray-50">
+                        <h4 class="font-semibold text-sm text-gray-800 mb-3">Textes principaux</h4>
+                        <div class="grid md:grid-cols-2 gap-3">
+                            <input id="custom-title" class="w-full border border-gray-200 rounded-xl p-3 text-sm" placeholder="Titre principal">
+                            <input id="custom-subtitle" class="w-full border border-gray-200 rounded-xl p-3 text-sm" placeholder="Sous-titre">
+                            <input id="custom-couple-left" class="w-full border border-gray-200 rounded-xl p-3 text-sm" placeholder="Prénom gauche (ex: Keren)">
+                            <input id="custom-couple-right" class="w-full border border-gray-200 rounded-xl p-3 text-sm" placeholder="Prénom droite (ex: Yanick)">
+                            <input id="custom-reserve-text" class="md:col-span-2 w-full border border-gray-200 rounded-xl p-3 text-sm" placeholder="Texte du bouton: Réservez avant...">
+                            <textarea id="custom-main-text" class="md:col-span-2 w-full border border-gray-200 rounded-xl p-3 text-sm" rows="4" placeholder="Texte principal d'invitation"></textarea>
+                        </div>
+                    </section>
+
+                    <section class="border border-gray-100 rounded-2xl p-4 bg-gray-50">
+                        <h4 class="font-semibold text-sm text-gray-800 mb-3">Date, heure et lieu</h4>
+                        <div class="grid md:grid-cols-2 gap-3">
+                            <div class="grid grid-cols-3 gap-2">
+                                <input id="custom-day" class="border border-gray-200 rounded-xl p-3 text-sm" placeholder="Jour">
+                                <input id="custom-month-year" class="col-span-2 border border-gray-200 rounded-xl p-3 text-sm" placeholder="Mois / Année">
+                            </div>
+                            <input id="custom-time-range" class="w-full border border-gray-200 rounded-xl p-3 text-sm" placeholder="Horaire">
+                            <input id="custom-countdown-date" type="datetime-local" class="w-full border border-gray-200 rounded-xl p-3 text-sm">
+                            <div class="text-[11px] text-gray-500 flex items-center">Date exacte du compte à rebours</div>
+                            <input id="custom-venue-title" class="w-full border border-gray-200 rounded-xl p-3 text-sm" placeholder="Nom du lieu">
+                            <input id="custom-venue-address" class="w-full border border-gray-200 rounded-xl p-3 text-sm" placeholder="Adresse complète">
+                        </div>
+                    </section>
+
+                    <section class="border border-gray-100 rounded-2xl p-4 bg-gray-50">
+                        <h4 class="font-semibold text-sm text-gray-800 mb-3">Images et histoire</h4>
+                        <p class="text-[11px] text-gray-500 mb-3">Champs <strong>obligatoires</strong> pour une invitation complète : fond accueil, image en-tête, image à propos.</p>
+                        <div class="grid md:grid-cols-2 gap-3">
+                            <input id="custom-welcome-image" class="w-full border border-gray-200 rounded-xl p-3 text-sm" placeholder="URL fond ecran d'accueil (Obligatoire - ecran de debut)">
+                            <input id="custom-hero-image" class="w-full border border-gray-200 rounded-xl p-3 text-sm" placeholder="URL photo derriere 'Mariage de Yanick et Keren' (Obligatoire)">
+                            <input id="custom-about-image" class="w-full border border-gray-200 rounded-xl p-3 text-sm" placeholder="URL image section à propos (Obligatoire - bloc histoire)">
+                            <input id="custom-map-image" class="w-full border border-gray-200 rounded-xl p-3 text-sm" placeholder="URL image carte (Optionnel - bloc localisation)">
+                            <input id="custom-about-title" class="w-full border border-gray-200 rounded-xl p-3 text-sm" placeholder="Titre histoire (Optionnel)">
+                            <textarea id="custom-about-story-1" class="md:col-span-2 w-full border border-gray-200 rounded-xl p-3 text-sm" rows="3" placeholder="Paragraphe histoire 1 (Optionnel)"></textarea>
+                            <textarea id="custom-about-story-2" class="md:col-span-2 w-full border border-gray-200 rounded-xl p-3 text-sm" rows="3" placeholder="Paragraphe histoire 2 (Optionnel)"></textarea>
+                        </div>
+                        <div class="mt-3 bg-white border border-indigo-100 rounded-xl p-3 text-[11px] text-gray-600 space-y-2">
+                            <p class="font-semibold text-indigo-700">Import simple depuis votre appareil</p>
+                            <p>Choisissez une photo, elle sera convertie automatiquement en format local (base64) puis placée dans le champ correspondant.</p>
+                            <p>Conseil: restez sous 1.5 MB par image pour eviter de saturer le stockage du navigateur.</p>
+                            <div class="grid md:grid-cols-3 gap-2">
+                                <label class="bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-lg p-2 text-center cursor-pointer">
+                                    Importer fond accueil
+                                    <input id="upload-welcome-image" type="file" accept="image/*" class="hidden" onchange="handleImageUploadToField(event, 'custom-welcome-image')">
+                                </label>
+                                <label class="bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-lg p-2 text-center cursor-pointer">
+                                    Importer photo derriere le titre
+                                    <input id="upload-hero-image" type="file" accept="image/*" class="hidden" onchange="handleImageUploadToField(event, 'custom-hero-image')">
+                                </label>
+                                <label class="bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-lg p-2 text-center cursor-pointer">
+                                    Importer image a propos
+                                    <input id="upload-about-image" type="file" accept="image/*" class="hidden" onchange="handleImageUploadToField(event, 'custom-about-image')">
+                                </label>
+                                <label class="bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-lg p-2 text-center cursor-pointer">
+                                    Importer image carte
+                                    <input id="upload-map-image" type="file" accept="image/*" class="hidden" onchange="handleImageUploadToField(event, 'custom-map-image')">
+                                </label>
+                            </div>
+                            <p class="text-[11px] text-indigo-700">Ce champ modifie le fond derrière: "Mariage de Yanick et Keren" et "Yanick et Keren".</p>
+                        </div>
+                    </section>
+
+                    <section class="border border-gray-100 rounded-2xl p-4 bg-gray-50">
+                        <h4 class="font-semibold text-sm text-gray-800 mb-3">Images additionnelles de la plateforme</h4>
+                        <p class="text-[11px] text-gray-500 mb-3">Section <strong>optionnelle</strong> : personnalise les visuels secondaires (livre d'or + galerie).</p>
+                        <div class="space-y-3">
+                            <input id="custom-guestbook-cover-image" class="w-full border border-gray-200 rounded-xl p-3 text-sm" placeholder="URL image couverture livre d'or (Optionnel)">
+                            <textarea id="custom-gallery-preview-images" class="w-full border border-gray-200 rounded-xl p-3 text-sm" rows="2" placeholder="Miniatures galerie accueil (3 URLs - Optionnel)"></textarea>
+                            <textarea id="custom-gallery-modal-images" class="w-full border border-gray-200 rounded-xl p-3 text-sm" rows="2" placeholder="Photos modale galerie (4 URLs - Optionnel)"></textarea>
+                            <div class="grid md:grid-cols-3 gap-2 text-[11px]">
+                                <label class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 rounded-lg p-2 text-center cursor-pointer text-gray-700">
+                                    Importer couverture livre d'or
+                                    <input id="upload-guestbook-cover-image" type="file" accept="image/*" class="hidden" onchange="handleImageUploadToField(event, 'custom-guestbook-cover-image')">
+                                </label>
+                                <label class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 rounded-lg p-2 text-center cursor-pointer text-gray-700">
+                                    Importer miniatures galerie
+                                    <input id="upload-gallery-preview-images" type="file" accept="image/*" multiple class="hidden" onchange="appendImagesToListField(event, 'custom-gallery-preview-images', 3)">
+                                </label>
+                                <label class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 rounded-lg p-2 text-center cursor-pointer text-gray-700">
+                                    Importer photos modale galerie
+                                    <input id="upload-gallery-modal-images" type="file" accept="image/*" multiple class="hidden" onchange="appendImagesToListField(event, 'custom-gallery-modal-images', 4)">
+                                </label>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="border border-gray-100 rounded-2xl p-4 bg-gray-50">
+                        <h4 class="font-semibold text-sm text-gray-800 mb-3">Photos défilantes (URLs séparées par des virgules)</h4>
+                        <p class="text-[11px] text-gray-500 mb-3">Tenue et photos du couple : <strong>optionnel</strong>, mais recommandé pour un rendu premium.</p>
+                        <div class="space-y-3">
+                            <textarea id="custom-dress-images" class="w-full border border-gray-200 rounded-xl p-3 text-sm" rows="3" placeholder="Photos Tenue (8 URLs - Optionnel)"></textarea>
+                            <textarea id="custom-best-grid-images" class="w-full border border-gray-200 rounded-xl p-3 text-sm" rows="2" placeholder="Photos principales du couple (2 URLs - Optionnel)"></textarea>
+                            <textarea id="custom-best-marquee-images" class="w-full border border-gray-200 rounded-xl p-3 text-sm" rows="3" placeholder="Marquee meilleure photos (6 URLs - Optionnel)"></textarea>
+                            <div class="grid md:grid-cols-3 gap-2 text-[11px]">
+                                <label class="bg-pink-50 hover:bg-pink-100 border border-pink-100 rounded-lg p-2 text-center cursor-pointer text-gray-700">
+                                    Ajouter photos tenue
+                                    <input id="upload-dress-images" type="file" accept="image/*" multiple class="hidden" onchange="appendImagesToListField(event, 'custom-dress-images', 8)">
+                                </label>
+                                <label class="bg-pink-50 hover:bg-pink-100 border border-pink-100 rounded-lg p-2 text-center cursor-pointer text-gray-700">
+                                    Ajouter photos grille couple
+                                    <input id="upload-best-grid-images" type="file" accept="image/*" multiple class="hidden" onchange="appendImagesToListField(event, 'custom-best-grid-images', 2)">
+                                </label>
+                                <label class="bg-pink-50 hover:bg-pink-100 border border-pink-100 rounded-lg p-2 text-center cursor-pointer text-gray-700">
+                                    Ajouter photos marquee
+                                    <input id="upload-best-marquee-images" type="file" accept="image/*" multiple class="hidden" onchange="appendImagesToListField(event, 'custom-best-marquee-images', 6)">
+                                </label>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="border border-gray-100 rounded-2xl p-4 bg-gray-50">
+                        <h4 class="font-semibold text-sm text-gray-800 mb-3">Couleurs</h4>
+                        <div class="grid md:grid-cols-2 gap-3">
+                            <label class="text-sm text-gray-600">Couleur principale
+                                <input id="custom-primary-color" type="color" class="mt-1 w-full h-11 border border-gray-200 rounded-xl p-1">
+                            </label>
+                            <label class="text-sm text-gray-600">Couleur accent
+                                <input id="custom-accent-color" type="color" class="mt-1 w-full h-11 border border-gray-200 rounded-xl p-1">
+                            </label>
+                        </div>
+                    </section>
+
+                    <section class="border border-gray-100 rounded-2xl p-4 bg-gray-50">
+                        <h4 class="font-semibold text-sm text-gray-800 mb-3">Liens, SEO et publication</h4>
+                        <div class="grid md:grid-cols-2 gap-3">
+                            <input id="custom-rsvp-link" class="w-full border border-gray-200 rounded-xl p-3 text-sm" placeholder="Lien RSVP externe (Google Form / WhatsApp)">
+                            <input id="custom-donation-link" class="w-full border border-gray-200 rounded-xl p-3 text-sm" placeholder="Lien donation">
+                            <input id="custom-map-link" class="w-full border border-gray-200 rounded-xl p-3 text-sm" placeholder="Lien itinéraire Google Maps">
+                            <input id="custom-support-email" class="w-full border border-gray-200 rounded-xl p-3 text-sm" placeholder="Email support (ex: contact@...)">
+                            <input id="custom-site-url" class="md:col-span-2 w-full border border-gray-200 rounded-xl p-3 text-sm" placeholder="URL publique du site (pour partage OG)">
+                            <input id="custom-share-image" class="md:col-span-2 w-full border border-gray-200 rounded-xl p-3 text-sm" placeholder="Image de partage (Open Graph)">
+                            <textarea id="custom-meta-description" class="md:col-span-2 w-full border border-gray-200 rounded-xl p-3 text-sm" rows="2" placeholder="Description de partage"></textarea>
+                        </div>
+                    </section>
+
+                    <div class="grid md:grid-cols-4 gap-2">
+                        <button onclick="applyCustomization()" class="bg-slate-800 hover:bg-slate-900 text-white rounded-xl py-3 text-xs font-semibold">Appliquer</button>
+                        <button onclick="saveCustomization()" class="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-3 text-xs font-semibold">Sauvegarder</button>
+                        <button onclick="resetCustomization()" class="bg-rose-600 hover:bg-rose-700 text-white rounded-xl py-3 text-xs font-semibold">Réinitialiser</button>
+                        <button onclick="closeCustomizer()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl py-3 text-xs font-semibold">Retour</button>
+                    </div>
+                    <div class="grid md:grid-cols-3 gap-2">
+                        <button onclick="exportRsvpData()" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-3 text-xs font-semibold">Exporter RSVP</button>
+                        <button onclick="exportGuestbookData()" class="bg-fuchsia-600 hover:bg-fuchsia-700 text-white rounded-xl py-3 text-xs font-semibold">Exporter livre d'or</button>
+                        <button onclick="copyGuestInvitationLink()" class="bg-amber-500 hover:bg-amber-600 text-white rounded-xl py-3 text-xs font-semibold">Copier lien invité</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <!-- Scripts pour l'interactivité -->
+    <script src="../assets/js/app.js"></script>
+    <script>
+        // Fallback robuste si app.js ne se charge pas complètement
+        (function () {
+            const DESIGNER_CODE = "YANICK-KEREN-ADMIN";
+            let fallbackBestImages = [];
+            let fallbackBestIndex = 0;
+            const lucideFallbackPaths = {
+                heart: ["M12 21s-7-4.35-7-10a4 4 0 0 1 7-2.2A4 4 0 0 1 19 11c0 5.65-7 10-7 10z"],
+                "chevron-right": ["M9 18l6-6-6-6"],
+                "chevron-left": ["M15 18l-6-6 6-6"],
+                shirt: ["M20 8l-4-3-2 2h-4l-2-2-4 3v4l2 1v8h12v-8l2-1z"],
+                clock: ["circle:12:12:9", "M12 7v6l4 2"],
+                "map-pin": ["M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z", "circle:12:10:2.5"],
+                navigation: ["M3 11l18-8-8 18-2-8-8-2z"],
+                "alarm-clock": ["circle:12:13:8", "M12 13v-4", "M12 13l3 2", "M5 4l-2 2", "M19 4l2 2"],
+                "check-circle-2": ["circle:12:12:9", "M8 12l2.5 2.5L16 9"],
+                "book-open": ["M3 6a2 2 0 0 1 2-2h5v16H5a2 2 0 0 0-2 2z", "M21 6a2 2 0 0 0-2-2h-5v16h5a2 2 0 0 1 2 2z"],
+                "help-circle": ["circle:12:12:9", "M9.5 9a2.5 2.5 0 1 1 3.8 2.2c-.8.5-1.3 1-1.3 1.8", "M12 17h.01"],
+                gift: ["M20 12v8H4v-8", "M2 7h20v5H2z", "M12 20V7", "M12 7a2.5 2.5 0 1 1 5 0c0 0-2.5 0-5 0z", "M12 7a2.5 2.5 0 1 0-5 0c0 0 2.5 0 5 0z"],
+                "credit-card": ["rect:3:5:18:14:2", "M3 10h18"],
+                car: ["rect:3:9:18:7:2", "circle:7:17:2", "circle:17:17:2", "M3 12h18", "M6 9l2-3h8l2 3"],
+                bed: ["M3 12v7", "M3 12h18v7", "M7 10h4a2 2 0 0 1 2 2v0", "M3 10h4"],
+                wine: ["path:M8 3h8", "M10 3v6a4 4 0 0 0 8 0V3", "M14 13v8", "M11 21h6"],
+                users: ["circle:9:8:3", "path:M2 20v-1a5 5 0 0 1 5-5h4", "circle:17:9:2.5", "path:M22 20v-1a4 4 0 0 0-4-4"],
+                activity: ["polyline:22,12 18,12 15,21 9,3 6,12 2,12"],
+                check: ["M5 12l4 4L19 6"],
+                "user-check": ["circle:9:7:3", "path:M2 20a7 7 0 0 1 14 0", "path:M16 11l2 2 4-4"],
+                book: ["path:M4 19.5A2.5 2.5 0 0 1 6.5 17H20", "path:M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"],
+                "life-buoy": ["circle:12:12:9", "circle:12:12:3", "path:M4.9 4.9l4.2 4.2", "path:M14.9 14.9l4.2 4.2", "path:M19.1 4.9l-4.2 4.2", "path:M9.1 14.9l-4.2 4.2"],
+                "arrow-left": ["M19 12H5", "M12 19l-7-7 7-7"]
+            };
+
+            function createFallbackIcon(name, classes, fillAttr) {
+                const svgNS = "http://www.w3.org/2000/svg";
+                const svg = document.createElementNS(svgNS, "svg");
+                svg.setAttribute("viewBox", "0 0 24 24");
+                svg.setAttribute("fill", fillAttr || "none");
+                svg.setAttribute("stroke", "currentColor");
+                svg.setAttribute("stroke-width", "2");
+                svg.setAttribute("stroke-linecap", "round");
+                svg.setAttribute("stroke-linejoin", "round");
+                if (classes) svg.setAttribute("class", classes);
+
+                const instructions = lucideFallbackPaths[name] || ["circle:12:12:7"];
+                instructions.forEach((instruction) => {
+                    if (instruction.startsWith("circle:")) {
+                        const [, cx, cy, r] = instruction.split(":");
+                        const el = document.createElementNS(svgNS, "circle");
+                        el.setAttribute("cx", cx); el.setAttribute("cy", cy); el.setAttribute("r", r);
+                        svg.appendChild(el);
+                        return;
+                    }
+                    if (instruction.startsWith("rect:")) {
+                        const [, x, y, w, h, rx] = instruction.split(":");
+                        const el = document.createElementNS(svgNS, "rect");
+                        el.setAttribute("x", x); el.setAttribute("y", y); el.setAttribute("width", w); el.setAttribute("height", h);
+                        if (rx) el.setAttribute("rx", rx);
+                        svg.appendChild(el);
+                        return;
+                    }
+                    if (instruction.startsWith("polyline:")) {
+                        const [, pts] = instruction.split(":");
+                        const el = document.createElementNS(svgNS, "polyline");
+                        el.setAttribute("points", pts);
+                        svg.appendChild(el);
+                        return;
+                    }
+                    const pathValue = instruction.startsWith("path:") ? instruction.slice(5) : instruction;
+                    const el = document.createElementNS(svgNS, "path");
+                    el.setAttribute("d", pathValue);
+                    svg.appendChild(el);
+                });
+                return svg;
+            }
+
+            function ensureLucideIconsVisible() {
+                if (window.lucide && typeof window.lucide.createIcons === "function") {
+                    window.lucide.createIcons();
+                    return;
+                }
+                document.querySelectorAll("i[data-lucide]").forEach((icon) => {
+                    const name = icon.getAttribute("data-lucide");
+                    const svg = createFallbackIcon(name, icon.getAttribute("class") || "", icon.getAttribute("fill") || "none");
+                    icon.replaceWith(svg);
+                });
+            }
+
+            function safeToast(message) {
+                const toast = document.getElementById("toast");
+                if (!toast) return alert(message);
+                toast.textContent = message;
+                toast.classList.add("show");
+                setTimeout(() => toast.classList.remove("show"), 1800);
+            }
+
+            function fallbackApplyGuestName(name) {
+                const display = (name || "").trim() || "Invite(e)";
+                const el = document.getElementById("display-guest-name");
+                if (el) el.textContent = display;
+            }
+
+            function fallbackOpenMain(nameFromInput) {
+                const name = (nameFromInput || localStorage.getItem("wedding_guest_name_simple") || "").trim();
+                if (name) localStorage.setItem("wedding_guest_name_simple", name);
+                fallbackApplyGuestName(name);
+                const gate = document.getElementById("welcome-gate");
+                const main = document.getElementById("main-view");
+                if (gate) {
+                    gate.classList.add("hidden");
+                    gate.classList.add("pointer-events-none");
+                }
+                if (main) {
+                    main.classList.remove("hidden");
+                    main.classList.remove("opacity-0");
+                }
+                document.body.style.overflow = "auto";
+            }
+
+            function fallbackInitFromStorage() {
+                const savedName = (localStorage.getItem("wedding_guest_name_simple") || "").trim();
+                if (savedName) {
+                    const inputWrap = document.getElementById("gate-name-input-container");
+                    const backWrap = document.getElementById("gate-welcome-back-container");
+                    const backName = document.getElementById("gate-welcome-back-name");
+                    if (inputWrap) inputWrap.classList.add("hidden");
+                    if (backWrap) backWrap.classList.remove("hidden");
+                    if (backName) backName.textContent = savedName;
+                    fallbackApplyGuestName(savedName);
+                }
+
+                const isDark = localStorage.getItem("wedding_theme_mode") === "dark";
+                const toggleBtn = document.getElementById("toggle-theme-btn");
+                if (isDark) {
+                    document.body.classList.add("dark-mode");
+                    if (toggleBtn) toggleBtn.textContent = "Light";
+                } else if (toggleBtn) {
+                    toggleBtn.textContent = "Dark";
+                }
+
+                const designerOn = localStorage.getItem("wedding_designer_mode") === "1";
+                const customBtn = document.getElementById("designer-customize-btn");
+                const accessBtn = document.getElementById("designer-access-btn");
+                if (designerOn && customBtn) customBtn.classList.remove("hidden");
+                if (accessBtn) accessBtn.textContent = designerOn ? "Concepteur actif" : "Mode concepteur";
+            }
+
+            // Forçage robuste: ces actions doivent toujours fonctionner
+            window.enterExperience = function () {
+                const input = document.getElementById("gate-guest-name-input");
+                const name = (input?.value || "").trim();
+                if (name.length < 2) {
+                    safeToast("Entrez votre nom");
+                    return;
+                }
+                fallbackOpenMain(name);
+            };
+
+            window.openMainSite = function () {
+                fallbackOpenMain();
+            };
+
+            window.requestDesignerAccess = function () {
+                const code = window.prompt("Code concepteur");
+                if (!code) return;
+                if (code === DESIGNER_CODE) {
+                    localStorage.setItem("wedding_designer_mode", "1");
+                    const btn = document.getElementById("designer-customize-btn");
+                    if (btn) btn.classList.remove("hidden");
+                    const accessBtn = document.getElementById("designer-access-btn");
+                    if (accessBtn) accessBtn.textContent = "Concepteur actif";
+                    safeToast("Mode concepteur activé");
+                    window.location.href = "./personnalisation.html";
+                } else {
+                    safeToast("Code incorrect");
+                }
+            };
+
+            window.toggleTheme = function () {
+                document.body.classList.toggle("dark-mode");
+                const dark = document.body.classList.contains("dark-mode");
+                localStorage.setItem("wedding_theme_mode", dark ? "dark" : "light");
+                const btn = document.getElementById("toggle-theme-btn");
+                if (btn) btn.textContent = dark ? "Light" : "Dark";
+            };
+
+            if (typeof window.openModal !== "function") {
+                window.openModal = function (id) {
+                    const modal = document.getElementById(id);
+                    if (!modal) return;
+                    modal.classList.remove("hidden");
+                    document.body.style.overflow = "hidden";
+                };
+            }
+
+            if (typeof window.closeModal !== "function") {
+                window.closeModal = function (id) {
+                    const modal = document.getElementById(id);
+                    if (!modal) return;
+                    modal.classList.add("hidden");
+                    document.body.style.overflow = "auto";
+                };
+            }
+
+            if (typeof window.startQuiz !== "function") {
+                window.startQuiz = function () {
+                    window.location.href = "./formulaires.html#quiz";
+                };
+            }
+
+            function collectFallbackBestImages() {
+                const ids = [
+                    "best-photo-1", "best-photo-2",
+                    "best-marquee-1", "best-marquee-2", "best-marquee-3", "best-marquee-4", "best-marquee-5", "best-marquee-6",
+                    "gallery-modal-image-1", "gallery-modal-image-2", "gallery-modal-image-3", "gallery-modal-image-4"
+                ];
+                const urls = ids
+                    .map((id) => document.getElementById(id))
+                    .filter(Boolean)
+                    .map((el) => el.src)
+                    .filter(Boolean);
+                return Array.from(new Set(urls));
+            }
+
+            function renderFallbackBestGallery() {
+                const main = document.getElementById("best-gallery-main-image");
+                const caption = document.getElementById("best-gallery-caption");
+                const dots = document.getElementById("best-gallery-dots");
+                if (!main || !fallbackBestImages.length) return;
+                if (fallbackBestIndex < 0) fallbackBestIndex = fallbackBestImages.length - 1;
+                if (fallbackBestIndex >= fallbackBestImages.length) fallbackBestIndex = 0;
+                main.src = fallbackBestImages[fallbackBestIndex];
+                if (caption) caption.textContent = `Photo ${fallbackBestIndex + 1} / ${fallbackBestImages.length}`;
+                if (dots) {
+                    dots.innerHTML = "";
+                    fallbackBestImages.forEach((_, i) => {
+                        const dot = document.createElement("button");
+                        dot.className = `w-2.5 h-2.5 rounded-full transition ${i === fallbackBestIndex ? "bg-white" : "bg-white/35"}`;
+                        dot.onclick = () => {
+                            fallbackBestIndex = i;
+                            renderFallbackBestGallery();
+                        };
+                        dots.appendChild(dot);
+                    });
+                }
+            }
+
+            if (typeof window.changeBestGallerySlide !== "function") {
+                window.changeBestGallerySlide = function (step) {
+                    if (!fallbackBestImages.length) return;
+                    fallbackBestIndex += step;
+                    renderFallbackBestGallery();
+                };
+            }
+
+            if (typeof window.openBestPhotosGallery !== "function") {
+                window.openBestPhotosGallery = function () {
+                    const bestModal = document.getElementById("best-photos-modal");
+                    const classicModal = document.getElementById("gallery-modal");
+                    if (bestModal) {
+                        fallbackBestImages = collectFallbackBestImages();
+                        fallbackBestIndex = 0;
+                        bestModal.classList.remove("hidden");
+                        document.body.style.overflow = "hidden";
+                        renderFallbackBestGallery();
+                        return;
+                    }
+                    if (classicModal) {
+                        classicModal.classList.remove("hidden");
+                        document.body.style.overflow = "hidden";
+                    }
+                };
+            }
+
+            if (typeof window.closeBestPhotosGallery !== "function") {
+                window.closeBestPhotosGallery = function () {
+                    const bestModal = document.getElementById("best-photos-modal");
+                    if (bestModal) bestModal.classList.add("hidden");
+                    document.body.style.overflow = "auto";
+                };
+            }
+
+            if (typeof window.openDonationLink !== "function") {
+                window.openDonationLink = function () {
+                    const btn = document.getElementById("donation-btn");
+                    const url = (btn?.dataset?.link || "").trim() || "https://wa.me/";
+                    window.open(url, "_blank");
+                };
+            }
+
+            const openBtn = document.querySelector("#gate-name-input-container button");
+            if (openBtn) openBtn.onclick = window.enterExperience;
+
+            const designerBtn = document.getElementById("designer-access-btn");
+            if (designerBtn) designerBtn.onclick = window.requestDesignerAccess;
+
+            const customizeBtn = document.getElementById("designer-customize-btn");
+            if (customizeBtn) {
+                customizeBtn.onclick = function () {
+                    window.location.href = "./personnalisation.html";
+                };
+            }
+
+            const donationBtn = document.getElementById("donation-btn");
+            if (donationBtn) donationBtn.onclick = window.openDonationLink;
+
+            const darkBtn = document.getElementById("toggle-theme-btn");
+            if (darkBtn) darkBtn.onclick = window.toggleTheme;
+
+            const confirmBtn = document.getElementById("confirm-presence-btn");
+            if (confirmBtn) {
+                confirmBtn.onclick = function () {
+                    const hasModal = !!document.getElementById("rsvp-modal");
+                    if (hasModal) {
+                        window.openModal("rsvp-modal");
+                    } else {
+                        window.location.href = "./formulaires.html#rsvp";
+                    }
+                };
+            }
+
+            const quizCard = document.getElementById("quiz-card");
+            if (quizCard) quizCard.onclick = window.startQuiz;
+
+            const bestPhotosShell = document.querySelector(".best-photos-shell");
+            if (bestPhotosShell) bestPhotosShell.onclick = window.openBestPhotosGallery;
+
+            ensureLucideIconsVisible();
+            fallbackInitFromStorage();
+        })();
+    </script>
+</body>
+</html>
