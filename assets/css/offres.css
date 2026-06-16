@@ -1,0 +1,357 @@
+/* Page commerciale — Offres & tarifs */
+.offres-shell {
+    font-family: 'Inter', system-ui, sans-serif;
+    background:
+        radial-gradient(ellipse 70% 45% at 50% -10%, rgba(236, 72, 153, 0.14), transparent),
+        radial-gradient(ellipse 50% 30% at 100% 20%, rgba(99, 102, 241, 0.12), transparent),
+        linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+    min-height: 100vh;
+    color: #0f172a;
+}
+
+.offres-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.25rem 1rem 3rem;
+}
+
+.offres-hero {
+    border-radius: 28px;
+    padding: clamp(1.75rem, 5vw, 2.75rem);
+    background:
+        radial-gradient(circle at 92% 8%, rgba(244, 114, 182, 0.25), transparent 42%),
+        linear-gradient(135deg, #0f172a 0%, #1e1b4b 48%, #312e81 100%);
+    color: #fff;
+    box-shadow: 0 28px 56px rgba(15, 23, 42, 0.28);
+    text-align: center;
+}
+
+.offres-overline {
+    font-size: 0.65rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: #c7d2fe;
+    margin: 0 0 0.5rem;
+}
+
+.offres-hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.75rem, 5vw, 2.75rem);
+    line-height: 1.15;
+    margin: 0 0 0.75rem;
+    letter-spacing: -0.02em;
+}
+
+.offres-hero-lead {
+    font-size: clamp(0.88rem, 2.5vw, 1rem);
+    color: #cbd5e1;
+    max-width: 36rem;
+    margin: 0 auto 1.5rem;
+    line-height: 1.6;
+}
+
+.offres-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    justify-content: center;
+}
+
+.offres-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.7rem 1.25rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.offres-btn:hover {
+    transform: translateY(-1px);
+}
+
+.offres-btn-primary {
+    background: linear-gradient(135deg, #ec4899, #be185d);
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(236, 72, 153, 0.35);
+}
+
+.offres-btn-secondary {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+.offres-btn-outline {
+    background: #fff;
+    color: #4338ca;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+.offres-btn-whatsapp {
+    background: #22c55e;
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(34, 197, 94, 0.3);
+}
+
+.offres-section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.35rem, 3vw, 1.75rem);
+    text-align: center;
+    margin: 2.5rem 0 0.35rem;
+}
+
+.offres-section-desc {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #64748b;
+    max-width: 32rem;
+    margin: 0 auto 1.5rem;
+    line-height: 1.55;
+}
+
+.offres-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1.75rem;
+}
+
+.offres-feature {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1rem 0.85rem;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.offres-feature-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.35rem;
+}
+
+.offres-feature strong {
+    display: block;
+    font-size: 0.78rem;
+    color: #0f172a;
+    margin-bottom: 0.2rem;
+}
+
+.offres-feature span {
+    font-size: 0.68rem;
+    color: #64748b;
+    line-height: 1.4;
+}
+
+.offres-pricing {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+    align-items: stretch;
+}
+
+.offres-plan {
+    position: relative;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 24px;
+    padding: 1.35rem 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+}
+
+.offres-plan-featured {
+    border-color: #ec4899;
+    box-shadow: 0 16px 40px rgba(236, 72, 153, 0.15);
+}
+
+.offres-plan-badge {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #ec4899, #be185d);
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+}
+
+.offres-plan h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    margin: 0.5rem 0 0.25rem;
+}
+
+.offres-plan-tagline {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin: 0 0 1rem;
+    min-height: 2.4em;
+}
+
+.offres-price {
+    margin-bottom: 1rem;
+}
+
+.offres-price-main {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.1;
+}
+
+.offres-price-alt {
+    font-size: 0.72rem;
+    color: #64748b;
+    margin-top: 0.25rem;
+}
+
+.offres-plan ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.25rem;
+    flex: 1;
+}
+
+.offres-plan li {
+    font-size: 0.78rem;
+    color: #334155;
+    padding: 0.35rem 0 0.35rem 1.35rem;
+    position: relative;
+    line-height: 1.45;
+}
+
+.offres-plan li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #22c55e;
+    font-weight: 700;
+}
+
+.offres-plan li.muted {
+    color: #94a3b8;
+}
+
+.offres-plan li.muted::before {
+    content: "—";
+    color: #cbd5e1;
+}
+
+.offres-plan .offres-btn {
+    width: 100%;
+}
+
+.offres-b2b {
+    margin-top: 2rem;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 24px;
+    padding: 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    align-items: center;
+    box-shadow: 0 8px 28px rgba(15, 23, 42, 0.05);
+}
+
+@media (max-width: 640px) {
+    .offres-b2b {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+}
+
+.offres-b2b h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    margin: 0 0 0.35rem;
+}
+
+.offres-b2b p {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.55;
+}
+
+.offres-faq {
+    display: grid;
+    gap: 0.65rem;
+    margin-top: 1rem;
+}
+
+.offres-faq details {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 0.85rem 1rem;
+}
+
+.offres-faq summary {
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: #0f172a;
+}
+
+.offres-faq p {
+    font-size: 0.78rem;
+    color: #64748b;
+    margin: 0.65rem 0 0;
+    line-height: 1.55;
+}
+
+.offres-footer-cta {
+    margin-top: 2.5rem;
+    text-align: center;
+    padding: 2rem 1.25rem;
+    background: linear-gradient(135deg, #fdf2f8, #eef2ff);
+    border-radius: 24px;
+    border: 1px solid #e2e8f0;
+}
+
+.offres-footer-cta h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    margin: 0 0 0.5rem;
+}
+
+.offres-footer-cta p {
+    font-size: 0.82rem;
+    color: #64748b;
+    margin: 0 0 1rem;
+}
+
+.offres-note {
+    font-size: 0.68rem;
+    color: #94a3b8;
+    text-align: center;
+    margin-top: 1.5rem;
+    line-height: 1.5;
+}
+
+.offres-top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.offres-top-nav a {
+    font-size: 0.78rem;
+    color: #4338ca;
+    text-decoration: none;
+    font-weight: 500;
+}

@@ -123,6 +123,9 @@ draft → pending_review → approved → live → archived
 
 ## Business plan — Synthèse
 
+**Page commerciale live :** `/pages/offres.html`  
+**Docs vente :** `docs/COMMERCIAL-TARIFS.md` · `docs/COMMERCIAL-WHATSAPP.md` · `docs/SAAS-MINIMUM-DEV.md`
+
 ### Est-ce que ça peut rapporter ?
 
 **Oui**, surtout en **B2B planners / agences** et **forfaits par mariage**, pas en freemium mass market face à Zola.
@@ -159,6 +162,10 @@ draft → pending_review → approved → live → archived
 
 | Fichier | Contenu |
 |---------|--------|
+| `pages/offres.html` | Landing commerciale (tarifs + CTA WhatsApp) |
+| `docs/COMMERCIAL-TARIFS.md` | Grille tarifaire détaillée (USD/EUR/CDF) |
+| `docs/COMMERCIAL-WHATSAPP.md` | Scripts prospection couples & planners |
+| `docs/SAAS-MINIMUM-DEV.md` | Checklist dev service → SaaS |
 | `docs/FONCTIONNALITES-MANQUANTES.md` | Analyse fonctionnalités + manques |
 | `docs/ROADMAP.md` | Roadmap technique V1 |
 | `docs/SUPABASE-SETUP.md` | Guide Supabase |
