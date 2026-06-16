@@ -347,12 +347,23 @@
         }
 
         function applyImageList(ids, urls) {
+            const isPreview = new URLSearchParams(window.location.search).get('preview') === '1';
             ids.forEach((id, index) => {
-                if (urls[index]) {
-                    const el = document.getElementById(id);
-                    if (el) el.src = urls[index];
+                if (!urls[index]) return;
+                const el = document.getElementById(id);
+                if (!el) return;
+                let src = urls[index];
+                if (isPreview && /^https?:\/\//i.test(src)) {
+                    src += `${src.includes('?') ? '&' : '?'}_pv=${Date.now()}`;
                 }
+                el.src = src;
             });
+        }
+
+        function setCssImageVar(name, imageUrl) {
+            if (!imageUrl) return;
+            const safe = String(imageUrl).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+            document.documentElement.style.setProperty(name, `url("${safe}")`);
         }
 
         function normalizeUrl(value) {
@@ -589,10 +600,11 @@
         }
 
         async function syncAndApplyDashboardState(dashboardState, eventId, cfg) {
+            const isPreview = new URLSearchParams(window.location.search).get('preview') === '1';
             if (window.DashboardSync && DashboardSync.syncIdentityFromConfig) {
                 const sync = DashboardSync.syncIdentityFromConfig(dashboardState, cfg);
                 dashboardState = sync.state;
-                if (sync.changed && eventId) {
+                if (sync.changed && eventId && !isPreview) {
                     try {
                         await DashboardSync.save(eventId, dashboardState);
                     } catch {
@@ -666,8 +678,8 @@
             if (state.aboutStory1) document.getElementById('about-story-paragraph-1').textContent = state.aboutStory1;
             if (state.aboutStory2) document.getElementById('about-story-paragraph-2').textContent = state.aboutStory2;
 
-            if (state.welcomeImage) document.documentElement.style.setProperty('--welcome-image-url', `url('${state.welcomeImage}')`);
-            if (state.heroImage) document.documentElement.style.setProperty('--hero-image-url', `url('${state.heroImage}')`);
+            if (state.welcomeImage) setCssImageVar('--welcome-image-url', state.welcomeImage);
+            if (state.heroImage) setCssImageVar('--hero-image-url', state.heroImage);
             if (state.aboutImage) {
                 document.getElementById('about-cover-image').src = state.aboutImage;
                 document.getElementById('about-modal-image').src = state.aboutImage;
@@ -1261,11 +1273,27 @@
         });
         loadGuestbookMessages();
 
+        const isPreviewModePage = new URLSearchParams(window.location.search).get('preview') === '1';
+        const previewMessageQueue = [];
+
+        if (isPreviewModePage) {
+            window.addEventListener('message', (event) => {
+                if (event.origin !== window.location.origin) return;
+                if (!event.data || event.data.type !== 'WEDDING_PREVIEW_STATE') return;
+                previewMessageQueue.push(event.data.payload);
+                if (typeof applyPreviewDashboardState === 'function') {
+                    applyPreviewDashboardState(event.data.payload).catch(() => {});
+                }
+            });
+        }
+
         (async function bootstrapApp() {
+            const isPreviewMode = isPreviewModePage;
+
             if (window.EventConfig) {
                 try {
                     await EventConfig.init();
-                    EventConfig.applyToPage();
+                    if (!isPreviewMode) EventConfig.applyToPage();
                 } catch (e) {}
             }
 
@@ -1277,27 +1305,18 @@
                 if (i > 2) img.loading = 'lazy';
             });
 
-            if (window.CloudAPI && EventConfig.isReady()) {
+            if (window.CloudAPI && EventConfig.isReady() && !isPreviewMode) {
                 CloudAPI.track(EventConfig.getEventId(), 'page_view', {});
             }
 
             if ('serviceWorker' in navigator && !isPreviewMode) {
-                navigator.serviceWorker.register('../sw.js?v=16').catch(() => {});
-            }
-
-            if (isPreviewMode) {
-                window.addEventListener('message', (event) => {
-                    if (event.origin !== window.location.origin) return;
-                    if (!event.data || event.data.type !== 'WEDDING_PREVIEW_STATE') return;
-                    applyPreviewDashboardState(event.data.payload).catch(() => {});
-                });
+                navigator.serviceWorker.register('../sw.js?v=17').catch(() => {});
             }
 
             defaultCustomizationState = getCurrentCustomizationState();
             const scopedDashboardKey = window.EventConfig && EventConfig.isReady()
                 ? EventConfig.storageKey('dashboard_state')
                 : dashboardStateKey;
-            const isPreviewMode = new URLSearchParams(window.location.search).get('preview') === '1';
             let dashboardState = null;
 
             if (window.DashboardSync && EventConfig.isReady()) {
@@ -1379,8 +1398,20 @@
 
             if (isPreviewMode) {
                 guestName = guestName || 'Aperçu';
-                openMainSite();
+                openMainSite(null, { skipLoader: true });
                 document.body.classList.add('preview-mode');
+
+                let latestPreview = previewMessageQueue.length
+                    ? previewMessageQueue[previewMessageQueue.length - 1]
+                    : null;
+                if (!latestPreview && window.DashboardSync && EventConfig.isReady()) {
+                    latestPreview = DashboardSync.readPreview(EventConfig.getEventId());
+                }
+                if (latestPreview) {
+                    await applyPreviewDashboardState(latestPreview);
+                } else if (dashboardState) {
+                    await applyPreviewDashboardState(dashboardState);
+                }
             }
 
             if (window.CalendarExport) CalendarExport.init();

@@ -1,4 +1,4 @@
-const CACHE = "invitation-v16";
+const CACHE = "invitation-v17";
 const PRECACHE = [
     "./assets/css/app.css"
 ];

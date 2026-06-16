@@ -640,11 +640,11 @@ async function wireUploader(inputId, targetFieldId, previewId, multiple = false,
             if (window.MediaUpload && MediaUpload.canUpload && MediaUpload.canUpload()) {
                 setTimeout(() => {
                     persistDashboard(toDashboardPayload(readFormState()), { cloudMessage: false })
-                        .then((r) => {
-                            if (r.cloud) showToast("Photo synchronisée sur tous les appareils.");
-                        })
-                        .catch(() => {});
+                        .then(() => refreshLivePreview(true))
+                        .catch(() => refreshLivePreview(true));
                 }, 400);
+            } else {
+                setTimeout(() => refreshLivePreview(true), 200);
             }
         } catch (err) {
             showToast(err.message || "Impossible d'importer cette photo.");
@@ -718,8 +718,7 @@ function refreshLivePreview(forceReload = false) {
 
     iframe.onload = () => {
         iframe.dataset.previewReady = "1";
-        setTimeout(postPreview, 250);
-        setTimeout(postPreview, 800);
+        [150, 500, 1200, 2200].forEach((ms) => setTimeout(postPreview, ms));
     };
     iframe.src = nextSrc;
 }
