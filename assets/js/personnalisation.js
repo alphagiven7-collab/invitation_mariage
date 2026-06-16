@@ -199,7 +199,7 @@ async function loadStateFromSync() {
     const cfg = window.EventConfig && EventConfig.getConfig ? EventConfig.getConfig() : null;
 
     if (window.DashboardSync) {
-        let state = await DashboardSync.load(eventId, base);
+        let state = await DashboardSync.load(eventId, base, { preferCloud: true });
         if (DashboardSync.syncIdentityFromConfig && cfg) {
             const sync = DashboardSync.syncIdentityFromConfig(state, cfg);
             state = sync.state;
@@ -285,7 +285,7 @@ function readFormState() {
 }
 
 function toDashboardPayload(formState) {
-    const photos = formState.bestPhotos;
+    const photos = formState.bestPhotos || [];
     return {
         title: formState.title,
         subtitle: formState.subtitle,
@@ -296,6 +296,7 @@ function toDashboardPayload(formState) {
         heroImage: formState.heroImage,
         primaryColor: formState.primaryColor,
         accentColor: formState.accentColor,
+        bestPhotos: photos,
         bestGridImages: [photos[0], photos[1]].filter(Boolean),
         bestMarqueeImages: [
             photos[0], photos[1], photos[2], photos[3], photos[4], photos[5]
@@ -303,6 +304,7 @@ function toDashboardPayload(formState) {
         galleryPreviewImages: [photos[0], photos[1], photos[2]].filter(Boolean),
         galleryModalImages: [photos[0], photos[1], photos[2], photos[3]].filter(Boolean),
         shareImage: photos[0] || formState.heroImage,
+        message: formState.mainText,
         countdownDate: formState.countdownDate || "",
         venueTitle: formState.venueTitle,
         venueAddress: formState.venueAddress,
@@ -514,8 +516,8 @@ function hydrateForm(state) {
     document.getElementById("backgroundMusicVolume").value = String(volPct);
     document.getElementById("music-volume-label").textContent = String(volPct);
 
-    const photos = state.bestPhotos || state.bestGridImages || [];
-    document.getElementById("bestPhotos").value = photos.join(", ");
+    const photos = state.bestPhotos || state.bestGridImages || state.bestMarqueeImages || [];
+    document.getElementById("bestPhotos").value = Array.isArray(photos) ? photos.join(", ") : "";
     const eventDateField = document.getElementById("eventDate");
     if (eventDateField) {
         eventDateField.value = state.countdownDate
@@ -635,6 +637,15 @@ async function wireUploader(inputId, targetFieldId, previewId, multiple = false,
                 showToast("Photo importée — cliquez Sauvegarder pour sync multi-appareils.");
             }
             schedulePreviewRefresh(300);
+            if (window.MediaUpload && MediaUpload.canUpload && MediaUpload.canUpload()) {
+                setTimeout(() => {
+                    persistDashboard(toDashboardPayload(readFormState()), { cloudMessage: false })
+                        .then((r) => {
+                            if (r.cloud) showToast("Photo synchronisée sur tous les appareils.");
+                        })
+                        .catch(() => {});
+                }, 400);
+            }
         } catch (err) {
             showToast(err.message || "Impossible d'importer cette photo.");
         } finally {
@@ -655,9 +666,11 @@ async function persistDashboard(payload, { cloudMessage = true } = {}) {
             if (result.cloud) {
                 showToast("Sauvegardé et synchronisé — visible sur tous vos appareils.");
             } else if (result.localOk === false) {
-                showToast("Mémoire du navigateur saturée. Réessayez après Sauvegarder (upload cloud).");
+                showToast("Mémoire saturée. Exécutez docs/SUPABASE-STORAGE.sql puis réimportez les photos.");
+            } else if (window.MediaUpload && !MediaUpload.canUpload()) {
+                showToast("Sauvegardé localement — configurez Supabase Storage pour sync multi-appareils.");
             } else {
-                showToast("Sauvegardé localement uniquement — ouvrez sur le même appareil ou vérifiez le cloud.");
+                showToast("Sauvegardé localement — sync cloud échouée. Vérifiez Supabase (event_settings + Storage).");
             }
         }
         return result;
@@ -674,9 +687,7 @@ function refreshLivePreview() {
     const enriched = { ...payload, _savedAt: new Date().toISOString() };
 
     if (window.DashboardSync) {
-        DashboardSync.writeLocal(eventId, enriched);
-    } else {
-        localStorage.setItem(LEGACY_DASHBOARD_KEY, JSON.stringify(enriched));
+        DashboardSync.writePreview(eventId, enriched);
     }
 
     const iframe = document.getElementById("live-preview");

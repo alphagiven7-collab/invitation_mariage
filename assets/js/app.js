@@ -690,20 +690,36 @@
             if (Array.isArray(state.dressImages)) {
                 applyImageList(['dress-photo-1', 'dress-photo-2', 'dress-photo-3', 'dress-photo-4', 'dress-photo-5', 'dress-photo-6', 'dress-photo-7', 'dress-photo-8'], state.dressImages);
             }
-            if (Array.isArray(state.bestGridImages)) {
-                applyImageList(['best-photo-1', 'best-photo-2'], state.bestGridImages);
-            }
-            if (Array.isArray(state.bestMarqueeImages)) {
-                applyImageList(['best-marquee-1', 'best-marquee-2', 'best-marquee-3', 'best-marquee-4', 'best-marquee-5', 'best-marquee-6'], state.bestMarqueeImages);
+            if (Array.isArray(state.bestPhotos) && state.bestPhotos.length) {
+                applyImageList(['best-photo-1', 'best-photo-2'], state.bestPhotos.slice(0, 2));
+                applyImageList(
+                    ['best-marquee-1', 'best-marquee-2', 'best-marquee-3', 'best-marquee-4', 'best-marquee-5', 'best-marquee-6'],
+                    state.bestPhotos.slice(0, 6)
+                );
+                applyImageList(
+                    ['gallery-preview-image-1', 'gallery-preview-image-2', 'gallery-preview-image-3'],
+                    state.bestPhotos.slice(0, 3)
+                );
+                applyImageList(
+                    ['gallery-modal-image-1', 'gallery-modal-image-2', 'gallery-modal-image-3', 'gallery-modal-image-4'],
+                    state.bestPhotos.slice(0, 4)
+                );
+            } else {
+                if (Array.isArray(state.bestGridImages)) {
+                    applyImageList(['best-photo-1', 'best-photo-2'], state.bestGridImages);
+                }
+                if (Array.isArray(state.bestMarqueeImages)) {
+                    applyImageList(['best-marquee-1', 'best-marquee-2', 'best-marquee-3', 'best-marquee-4', 'best-marquee-5', 'best-marquee-6'], state.bestMarqueeImages);
+                }
+                if (Array.isArray(state.galleryPreviewImages)) {
+                    applyImageList(['gallery-preview-image-1', 'gallery-preview-image-2', 'gallery-preview-image-3'], state.galleryPreviewImages);
+                }
+                if (Array.isArray(state.galleryModalImages)) {
+                    applyImageList(['gallery-modal-image-1', 'gallery-modal-image-2', 'gallery-modal-image-3', 'gallery-modal-image-4'], state.galleryModalImages);
+                }
             }
             if (state.guestbookCoverImage) {
                 document.getElementById('guestbook-cover-image').src = state.guestbookCoverImage;
-            }
-            if (Array.isArray(state.galleryPreviewImages)) {
-                applyImageList(['gallery-preview-image-1', 'gallery-preview-image-2', 'gallery-preview-image-3'], state.galleryPreviewImages);
-            }
-            if (Array.isArray(state.galleryModalImages)) {
-                applyImageList(['gallery-modal-image-1', 'gallery-modal-image-2', 'gallery-modal-image-3', 'gallery-modal-image-4'], state.galleryModalImages);
             }
 
             const primaryColor = state.primaryColor || '#4caf50';
@@ -1240,7 +1256,7 @@
             }
 
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('../sw.js?v=14').catch(() => {});
+                navigator.serviceWorker.register('../sw.js?v=15').catch(() => {});
             }
 
             defaultCustomizationState = getCurrentCustomizationState();
@@ -1259,15 +1275,19 @@
                     dashboardState = await DashboardSync.load(
                         EventConfig.getEventId(),
                         defaults,
-                        { preferLocal: isPreviewMode }
+                        { preferLocal: isPreviewMode, preferCloud: !isPreviewMode }
                     );
                     const hasLocalCursorImages = JSON.stringify(dashboardState).includes('file:///C:/Users/AL/.cursor');
                     if (hasLocalCursorImages) {
                         localStorage.removeItem(scopedDashboardKey);
                         localStorage.removeItem(dashboardStateKey);
-                        dashboardState = await DashboardSync.load(EventConfig.getEventId(), defaults);
+                        dashboardState = await DashboardSync.load(
+                            EventConfig.getEventId(),
+                            defaults,
+                            { preferCloud: true }
+                        );
                     }
-                    if (!hasLocalCursorImages && dashboardState) {
+                    if (dashboardState) {
                         dashboardState = await syncAndApplyDashboardState(
                             dashboardState,
                             EventConfig.getEventId(),
