@@ -122,8 +122,12 @@ const CalendarExport = (() => {
 
     function init() {
         const btn = document.getElementById("add-to-calendar-btn");
-        if (!btn) return;
-        btn.addEventListener("click", downloadIcs);
+        if (!btn || btn.dataset.loaderBound === "1") return;
+        if (window.ButtonLoading) {
+            ButtonLoading.bindClick(btn, () => downloadIcs(), "Préparation…");
+        } else {
+            btn.addEventListener("click", downloadIcs);
+        }
     }
 
     return { buildIcs, downloadIcs, getEventMeta, init };

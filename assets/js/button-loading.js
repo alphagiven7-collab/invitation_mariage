@@ -1,5 +1,5 @@
 /**
- * Indicateur de chargement sur boutons (RSVP, sauvegarde, etc.)
+ * Indicateur de chargement sur boutons (RSVP, sauvegarde, porte d'entrée, etc.)
  */
 const ButtonLoading = (() => {
     function setLoading(btn, loading, loadingText = "Chargement…") {
@@ -32,7 +32,42 @@ const ButtonLoading = (() => {
         }
     }
 
-    return { setLoading, whileLoading };
+    function resolveButton(ev, fallbackId) {
+        if (ev && ev.currentTarget instanceof HTMLButtonElement) {
+            return ev.currentTarget;
+        }
+        if (ev && ev.target && typeof ev.target.closest === "function") {
+            const fromTarget = ev.target.closest("button.btn-with-loader, button.is-loading");
+            if (fromTarget) return fromTarget;
+        }
+        if (fallbackId) {
+            return document.getElementById(fallbackId);
+        }
+        return null;
+    }
+
+    function runWithLoader(ev, fallbackId, fn, loadingText = "Chargement…") {
+        const btn = resolveButton(ev, fallbackId);
+        if (!btn || !btn.classList.contains("btn-with-loader")) {
+            return Promise.resolve(fn());
+        }
+        return whileLoading(btn, Promise.resolve().then(fn), loadingText);
+    }
+
+    function bindClick(btn, handler, loadingText = "Chargement…") {
+        if (!btn || btn.dataset.loaderBound === "1") return;
+        btn.dataset.loaderBound = "1";
+        btn.addEventListener("click", (ev) => {
+            if (btn.disabled || btn.classList.contains("is-loading")) {
+                ev.preventDefault();
+                return;
+            }
+            ev.preventDefault();
+            whileLoading(btn, Promise.resolve().then(() => handler(ev)), loadingText);
+        });
+    }
+
+    return { setLoading, whileLoading, resolveButton, runWithLoader, bindClick };
 })();
 
 window.ButtonLoading = ButtonLoading;

@@ -30,11 +30,144 @@
             border: 1px solid rgba(255,255,255,0.8);
         }
         .invitation-card {
+            position: relative;
+            overflow: hidden;
             background:
-                radial-gradient(circle at 90% 10%, rgba(236,72,153,0.16), transparent 35%),
-                radial-gradient(circle at 10% 90%, rgba(14,116,144,0.12), transparent 35%),
-                linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-            box-shadow: 0 18px 40px rgba(17, 24, 39, 0.08);
+                radial-gradient(circle at 88% 8%, rgba(236, 72, 153, 0.08), transparent 42%),
+                radial-gradient(circle at 12% 92%, rgba(15, 23, 42, 0.04), transparent 40%),
+                linear-gradient(168deg, #ffffff 0%, #faf8f6 48%, #f8fafc 100%);
+            box-shadow: 0 20px 44px rgba(17, 24, 39, 0.07);
+            border: 1px solid rgba(15, 23, 42, 0.06);
+        }
+
+        .invitation-card--floral::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0.35) 0%, transparent 28%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .invitation-card-floral {
+            position: absolute;
+            width: clamp(4.5rem, 18vw, 6.5rem);
+            height: clamp(4.5rem, 18vw, 6.5rem);
+            opacity: 0.11;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            pointer-events: none;
+            z-index: 0;
+            filter: contrast(1.05);
+        }
+
+        .invitation-card-floral--tl {
+            top: 0.35rem;
+            left: 0.35rem;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96' fill='none'%3E%3Cpath d='M12 58c8-18 26-22 34-38 3-6 2-12-1-16' stroke='%23111827' stroke-width='1.3' stroke-linecap='round'/%3E%3Cpath d='M18 24c6 4 10 10 10 18 0 8-5 14-12 16' stroke='%23111827' stroke-width='1.1' stroke-linecap='round'/%3E%3Cpath d='M42 14c-2 8 2 16 8 22' stroke='%23111827' stroke-width='1' stroke-linecap='round'/%3E%3Ccircle cx='24' cy='34' r='5' stroke='%23111827' stroke-width='1'/%3E%3Ccircle cx='38' cy='22' r='3.5' fill='%23111827'/%3E%3Ccircle cx='52' cy='30' r='2.5' fill='%23111827'/%3E%3Cpath d='M20 48c4 6 10 8 16 6' stroke='%23111827' stroke-width='0.9' stroke-linecap='round'/%3E%3C/svg%3E");
+        }
+
+        .invitation-card-floral--br {
+            right: 0.35rem;
+            bottom: 0.35rem;
+            transform: rotate(180deg);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96' fill='none'%3E%3Cpath d='M12 58c8-18 26-22 34-38 3-6 2-12-1-16' stroke='%23111827' stroke-width='1.3' stroke-linecap='round'/%3E%3Cpath d='M18 24c6 4 10 10 10 18 0 8-5 14-12 16' stroke='%23111827' stroke-width='1.1' stroke-linecap='round'/%3E%3Cpath d='M42 14c-2 8 2 16 8 22' stroke='%23111827' stroke-width='1' stroke-linecap='round'/%3E%3Ccircle cx='24' cy='34' r='5' stroke='%23111827' stroke-width='1'/%3E%3Ccircle cx='38' cy='22' r='3.5' fill='%23111827'/%3E%3Ccircle cx='52' cy='30' r='2.5' fill='%23111827'/%3E%3Cpath d='M20 48c4 6 10 8 16 6' stroke='%23111827' stroke-width='0.9' stroke-linecap='round'/%3E%3C/svg%3E");
+        }
+
+        .invitation-card-inner {
+            position: relative;
+            z-index: 1;
+            padding: clamp(1.35rem, 5vw, 1.85rem) clamp(1.1rem, 4.5vw, 1.5rem);
+        }
+
+        .invite-card-overline {
+            font-size: clamp(0.5625rem, 2.6vw, 0.6875rem);
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            margin-bottom: 0.35rem;
+        }
+
+        .invite-card-title {
+            font-family: "Great Vibes", cursive;
+            font-size: clamp(2.35rem, 10vw, 3.15rem);
+            line-height: 1.05;
+            color: #1f2937;
+            margin: 0 0 0.85rem;
+        }
+
+        .invite-couple-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem 0.65rem;
+            margin-bottom: 1rem;
+        }
+
+        .invite-couple-name {
+            font-family: "Great Vibes", cursive;
+            font-size: clamp(1.85rem, 7.5vw, 2.35rem);
+            line-height: 1.1;
+        }
+
+        .invite-couple-name--left { color: #db2777; }
+        .invite-couple-name--right { color: #2563eb; }
+
+        .invite-couple-join {
+            font-size: clamp(0.5625rem, 2.4vw, 0.625rem);
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            padding: 0.2rem 0.55rem;
+            border-radius: 999px;
+            background: rgba(243, 244, 246, 0.95);
+            border: 1px solid rgba(229, 231, 235, 0.9);
+        }
+
+        .invite-greeting {
+            font-size: clamp(0.9375rem, 3.8vw, 1.0625rem);
+            color: #374151;
+            margin-bottom: 0.75rem;
+        }
+
+        .invite-guest-name {
+            color: #111827;
+            font-weight: 600;
+        }
+
+        .invite-body-text {
+            font-size: clamp(0.8125rem, 3.45vw, 0.9375rem);
+            line-height: 1.68;
+            color: #4b5563;
+            margin-bottom: 0.85rem;
+            text-wrap: pretty;
+        }
+
+        .invite-body-text--last {
+            margin-bottom: 0;
+        }
+
+        .invite-emphasis {
+            color: #111827;
+            font-weight: 600;
+        }
+
+        .invitation-rsvp-wrap {
+            margin-top: 1rem;
+            padding: 0 0.15rem;
+        }
+
+        .invitation-rsvp-wrap .btn-rsvp {
+            min-height: 3.25rem;
+            transform: none;
+        }
+
+        @media (hover: hover) {
+            .invitation-rsvp-wrap .btn-rsvp:hover {
+                transform: translateY(-1px);
+            }
         }
 
         /* Animations pour les modales */
@@ -141,6 +274,8 @@
             box-shadow: 0 8px 18px rgba(190, 24, 93, 0.35);
         }
         body.dark-mode { background: #0f172a; color: #e5e7eb; }
+        html.dark-mode { color-scheme: dark; }
+        html:not(.dark-mode) { color-scheme: light; }
         body.dark-mode #main-view { background: #111827 !important; }
         body.dark-mode .bg-white { background: #1f2937 !important; }
         body.dark-mode .bg-gray-50 { background: #0f172a !important; }
@@ -149,11 +284,32 @@
         body.dark-mode .glass-card { background: rgba(17, 24, 39, 0.94); border-color: #334155 !important; }
         body.dark-mode .invitation-card {
             background:
-                radial-gradient(circle at 90% 10%, rgba(236,72,153,0.22), transparent 35%),
-                radial-gradient(circle at 10% 90%, rgba(14,116,144,0.2), transparent 35%),
-                linear-gradient(145deg, #111827 0%, #0f172a 100%);
-            border-color: #334155 !important;
+                radial-gradient(circle at 88% 8%, rgba(244, 114, 182, 0.12), transparent 42%),
+                radial-gradient(circle at 12% 92%, rgba(148, 163, 184, 0.08), transparent 40%),
+                linear-gradient(168deg, #1e293b 0%, #111827 55%, #0f172a 100%);
+            border-color: rgba(148, 163, 184, 0.18) !important;
+            box-shadow: 0 22px 48px rgba(0, 0, 0, 0.35);
         }
+        body.dark-mode .invitation-card--floral::before {
+            background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 28%);
+        }
+        body.dark-mode .invitation-card-floral {
+            opacity: 0.16;
+            filter: invert(1) brightness(1.6);
+        }
+        body.dark-mode .invite-card-overline,
+        body.dark-mode .invite-couple-join { color: #94a3b8 !important; }
+        body.dark-mode .invite-couple-join {
+            background: rgba(30, 41, 59, 0.85) !important;
+            border-color: rgba(71, 85, 105, 0.7) !important;
+        }
+        body.dark-mode .invite-card-title,
+        body.dark-mode .invite-guest-name,
+        body.dark-mode .invite-emphasis { color: #f8fafc !important; }
+        body.dark-mode .invite-greeting,
+        body.dark-mode .invite-body-text { color: #cbd5e1 !important; }
+        body.dark-mode .invite-couple-name--left { color: #f9a8d4 !important; }
+        body.dark-mode .invite-couple-name--right { color: #93c5fd !important; }
         body.dark-mode .text-pink-600 { color: #f9a8d4 !important; }
         body.dark-mode .text-blue-600 { color: #93c5fd !important; }
         body.dark-mode .border-gray-50,
@@ -163,18 +319,25 @@
         body.dark-mode .text-gray-700,
         body.dark-mode .text-gray-600,
         body.dark-mode .text-gray-500,
-        body.dark-mode .text-gray-400 { color: #e5e7eb !important; }
-        /* Lisibilité écran d'accueil en dark mode */
-        body.dark-mode #welcome-gate .welcome-envelope-shell .text-gray-800 { color: #1f2937 !important; }
-        body.dark-mode #welcome-gate .welcome-envelope-shell .text-gray-700 { color: #334155 !important; }
-        body.dark-mode #welcome-gate .welcome-envelope-shell .text-gray-600 { color: #475569 !important; }
-        body.dark-mode #welcome-gate .welcome-envelope-shell .text-gray-500 { color: #64748b !important; }
-        body.dark-mode #welcome-gate .welcome-envelope-shell .text-gray-400 { color: #94a3b8 !important; }
-        body.dark-mode #welcome-gate .welcome-envelope-shell .text-rose-400 { color: #e11d48 !important; }
+        body.dark-mode .text-gray-400 { color: #94a3b8 !important; }
+        /* Porte d'entrée en mode sombre */
+        body.dark-mode #welcome-gate .welcome-envelope-shell {
+            background:
+                linear-gradient(140deg, rgba(30, 41, 59, 0.97), rgba(15, 23, 42, 0.98)),
+                repeating-linear-gradient(-35deg, rgba(148, 163, 184, 0.06) 0 10px, rgba(15, 23, 42, 0.06) 10px 20px);
+            border-color: rgba(148, 163, 184, 0.22);
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+        }
+        body.dark-mode #welcome-gate .welcome-envelope-shell .text-gray-800 { color: #f8fafc !important; }
+        body.dark-mode #welcome-gate .welcome-envelope-shell .text-gray-700 { color: #e2e8f0 !important; }
+        body.dark-mode #welcome-gate .welcome-envelope-shell .text-gray-600 { color: #cbd5e1 !important; }
+        body.dark-mode #welcome-gate .welcome-envelope-shell .text-gray-500 { color: #94a3b8 !important; }
+        body.dark-mode #welcome-gate .welcome-envelope-shell .text-gray-400 { color: #64748b !important; }
+        body.dark-mode #welcome-gate .welcome-envelope-shell .text-rose-400 { color: #fb7185 !important; }
         body.dark-mode #welcome-gate .welcome-envelope-shell input {
-            background: #ffffff !important;
-            color: #1f2937 !important;
-            border-color: #fbcfe8 !important;
+            background: #1e293b !important;
+            color: #f8fafc !important;
+            border-color: rgba(244, 114, 182, 0.35) !important;
         }
 
 /* Pages formulaires / personnalisation */
@@ -732,6 +895,8 @@ body.preview-mode #designer-customize-btn {
     align-items: center;
     cursor: pointer;
     user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 .theme-switch-input {
     position: absolute;
@@ -853,6 +1018,16 @@ body.dark-mode .countdown-status-celebrate {
 }
 button.is-loading .btn-spinner {
     margin-right: 0.45rem;
+}
+button.is-loading:not(.btn-rsvp):not([class*="from-rose"]):not([class*="bg-gray-800"]) .btn-spinner {
+    border-color: rgba(55, 65, 81, 0.22);
+    border-top-color: #374151;
+}
+button.is-loading.btn-rsvp .btn-spinner,
+button.is-loading[class*="from-rose"] .btn-spinner,
+button.is-loading[class*="bg-gray-800"] .btn-spinner {
+    border-color: rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
 }
 .dash-btn.is-loading,
 .perso-add-btn.is-loading {

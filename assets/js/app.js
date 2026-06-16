@@ -17,37 +17,56 @@
             if (el) el.textContent = display;
         }
 
-        function enterExperience() {
-            const input = document.getElementById('gate-guest-name-input').value.trim();
-            if (input.length < 2) {
-                showToast('Entrez votre nom');
-                return;
+        function enterExperience(ev) {
+            const run = () => {
+                const input = document.getElementById('gate-guest-name-input').value.trim();
+                if (input.length < 2) {
+                    showToast('Entrez votre nom');
+                    return;
+                }
+                guestName = input;
+                localStorage.setItem('wedding_guest_name_simple', guestName);
+                openMainSite(ev, { skipLoader: true });
+            };
+            if (window.ButtonLoading) {
+                return ButtonLoading.runWithLoader(ev, 'gate-enter-btn', run, 'Ouverture…');
             }
-            guestName = input;
-            localStorage.setItem('wedding_guest_name_simple', guestName);
-            openMainSite();
+            return run();
         }
 
-        function openMainSite() {
-            if (!guestName) {
-                guestName = (localStorage.getItem('wedding_guest_name_simple') || '').trim();
+        function openMainSite(ev, options = {}) {
+            const { skipLoader = false } = options;
+            const run = () => {
+                if (!guestName) {
+                    guestName = (localStorage.getItem('wedding_guest_name_simple') || '').trim();
+                }
+                if (window.GuestExperience && GuestExperience.getProfile()) {
+                    applyGuestProfile(GuestExperience.getProfile());
+                } else if (currentGuestProfile) {
+                    applyGuestProfile(currentGuestProfile);
+                }
+                applyGuestName(guestName);
+                const gate = document.getElementById('welcome-gate');
+                const main = document.getElementById('main-view');
+                gate.classList.add('opacity-0', 'pointer-events-none');
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        gate.classList.add('hidden');
+                        main.classList.remove('hidden');
+                        requestAnimationFrame(() => main.classList.remove('opacity-0'));
+                        document.body.style.overflow = 'auto';
+                        if (window.BackgroundMusic) BackgroundMusic.onGuestEnter();
+                        resolve();
+                    }, 450);
+                });
+            };
+            const fallbackId = ev && ev.currentTarget && ev.currentTarget.id
+                ? ev.currentTarget.id
+                : 'gate-welcome-open-btn';
+            if (!skipLoader && window.ButtonLoading) {
+                return ButtonLoading.runWithLoader(ev, fallbackId, run, 'Chargement…');
             }
-            if (window.GuestExperience && GuestExperience.getProfile()) {
-                applyGuestProfile(GuestExperience.getProfile());
-            } else if (currentGuestProfile) {
-                applyGuestProfile(currentGuestProfile);
-            }
-            applyGuestName(guestName);
-            const gate = document.getElementById('welcome-gate');
-            const main = document.getElementById('main-view');
-            gate.classList.add('opacity-0', 'pointer-events-none');
-            setTimeout(() => {
-                gate.classList.add('hidden');
-                main.classList.remove('hidden');
-                requestAnimationFrame(() => main.classList.remove('opacity-0'));
-                document.body.style.overflow = 'auto';
-                if (window.BackgroundMusic) BackgroundMusic.onGuestEnter();
-            }, 450);
+            return run();
         }
 
         function slugToDisplayName(slug) {
@@ -529,11 +548,11 @@
             if (state.inviteIntro) {
                 el.innerHTML = state.inviteIntro.replace(
                     /\{couple\}/gi,
-                    `<strong id="invite-couple-display" class="text-gray-800">${escapeHtml(couple)}</strong>`
+                    `<strong id="invite-couple-display" class="invite-emphasis">${escapeHtml(couple)}</strong>`
                 );
             } else if (couple) {
                 el.innerHTML =
-                    `C'est avec une grande joie que <strong id="invite-couple-display" class="text-gray-800">${escapeHtml(couple)}</strong> vous invitent à célébrer leur mariage.`;
+                    `C'est avec une grande joie que <strong id="invite-couple-display" class="invite-emphasis">${escapeHtml(couple)}</strong> vous invitent à célébrer leur mariage.`;
             }
         }
 
@@ -777,10 +796,16 @@
         }
 
         function applyTheme(dark) {
+            document.documentElement.classList.toggle('dark-mode', dark);
             document.body.classList.toggle('dark-mode', dark);
+            document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
             localStorage.setItem('wedding_theme_mode', dark ? 'dark' : 'light');
             const input = document.getElementById('theme-toggle-input');
             if (input) input.checked = dark;
+            const themeMeta = document.querySelector('meta[name="theme-color"]');
+            if (themeMeta) {
+                themeMeta.setAttribute('content', dark ? '#0f172a' : '#4caf50');
+            }
         }
 
         function syncThemeFromStorage() {
@@ -792,13 +817,19 @@
             applyTheme(input ? !input.checked : !document.body.classList.contains('dark-mode'));
         }
 
-        function confirmPresence() {
-            if (window.GuestExperience) {
-                GuestExperience.openRsvp();
-                return;
+        function confirmPresence(ev) {
+            const run = () => {
+                if (window.GuestExperience) {
+                    GuestExperience.openRsvp();
+                    return;
+                }
+                prefillRsvpForm();
+                openModal('rsvp-modal');
+            };
+            if (window.ButtonLoading) {
+                return ButtonLoading.runWithLoader(ev, 'reserve-deadline-btn', run, 'Ouverture…');
             }
-            prefillRsvpForm();
-            openModal('rsvp-modal');
+            return run();
         }
 
         function validatePhone(phone) {
@@ -893,10 +924,17 @@
             showToast('Merci pour votre reponse: ' + answer);
         }
 
-        function openDonationLink() {
-            const donationUrl = document.getElementById('donation-btn').dataset.link || 'https://www.paypal.com';
-            window.open(donationUrl, '_blank');
-            showToast('Page de don ouverte.');
+        function openDonationLink(ev) {
+            const run = () => {
+                const donationBtn = document.getElementById('donation-btn');
+                const donationUrl = donationBtn?.dataset.link || 'https://www.paypal.com';
+                window.open(donationUrl, '_blank');
+                showToast('Page de don ouverte.');
+            };
+            if (window.ButtonLoading) {
+                return ButtonLoading.runWithLoader(ev, 'donation-btn', run, 'Ouverture…');
+            }
+            return run();
         }
 
         function openQueueInfo() {
@@ -949,28 +987,43 @@
             }
         }
 
-        async function publishGuestMessage() {
-            const textarea = document.getElementById('guestbook-textarea');
-            const message = textarea.value.trim();
-            if (!message || message.length < 3) return showToast('Message trop court (3 caractères min).');
+        async function publishGuestMessage(ev) {
+            const publishBtn = window.ButtonLoading
+                ? ButtonLoading.resolveButton(ev, 'guestbook-publish-btn')
+                : document.getElementById('guestbook-publish-btn');
 
-            const author = guestName || 'Invité';
-            const newItem = { author, message, sentAt: new Date().toISOString() };
-            const messages = readLocalJson(guestbookListKey, []);
-            messages.unshift(newItem);
-            localStorage.setItem(guestbookListKey, JSON.stringify(messages));
+            const run = async () => {
+                const textarea = document.getElementById('guestbook-textarea');
+                const message = textarea.value.trim();
+                if (!message || message.length < 3) {
+                    showToast('Message trop court (3 caractères min).');
+                    return;
+                }
 
-            if (window.CloudAPI && EventConfig.isReady()) {
-                await CloudAPI.addGuestbookMessage(EventConfig.getEventId(), {
-                    authorName: author,
-                    message
-                });
-                CloudAPI.track(EventConfig.getEventId(), 'guestbook_post', {});
+                const author = guestName || 'Invité';
+                const newItem = { author, message, sentAt: new Date().toISOString() };
+                const messages = readLocalJson(guestbookListKey, []);
+                messages.unshift(newItem);
+                localStorage.setItem(guestbookListKey, JSON.stringify(messages));
+
+                if (window.CloudAPI && EventConfig.isReady()) {
+                    await CloudAPI.addGuestbookMessage(EventConfig.getEventId(), {
+                        authorName: author,
+                        message
+                    });
+                    CloudAPI.track(EventConfig.getEventId(), 'guestbook_post', {});
+                }
+
+                renderGuestbookMessages(messages);
+                textarea.value = '';
+                showToast('Message publié dans le livre d\'or.');
+            };
+
+            if (window.ButtonLoading && publishBtn) {
+                await ButtonLoading.whileLoading(publishBtn, run(), 'Publication…');
+            } else {
+                await run();
             }
-
-            renderGuestbookMessages(messages);
-            textarea.value = '';
-            showToast('Message publié dans le livre d\'or.');
         }
 
         function exportRsvpData() {
@@ -1093,9 +1146,18 @@
         }
 
         syncThemeFromStorage();
-        const themeInput = document.getElementById('theme-toggle-input');
-        if (themeInput) {
-            themeInput.addEventListener('change', () => applyTheme(themeInput.checked));
+        const themeSwitch = document.getElementById('theme-switch');
+        if (themeSwitch) {
+            let lastThemeToggle = 0;
+            const handleThemeToggle = (event) => {
+                event.preventDefault();
+                const now = Date.now();
+                if (now - lastThemeToggle < 400) return;
+                lastThemeToggle = now;
+                toggleTheme();
+            };
+            themeSwitch.addEventListener('click', handleThemeToggle);
+            themeSwitch.addEventListener('touchend', handleThemeToggle, { passive: false });
         }
         if (!document.getElementById('meta-og-url').content) {
             document.getElementById('meta-og-url').content = window.location.href;
@@ -1135,7 +1197,7 @@
             }
 
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('../sw.js?v=12').catch(() => {});
+                navigator.serviceWorker.register('../sw.js?v=13').catch(() => {});
             }
 
             defaultCustomizationState = getCurrentCustomizationState();
@@ -1229,25 +1291,25 @@
             applyDesignerVisibility();
         })();
 
-        // Fallback: si les onclick inline échouent, ces listeners prennent le relais
-        const gateOpenBtn = document.querySelector('#gate-name-input-container button');
-        if (gateOpenBtn) {
+        // Fallback listeners uniquement si pas d'onclick inline (évite double déclenchement)
+        const gateOpenBtn = document.getElementById('gate-enter-btn');
+        if (gateOpenBtn && !gateOpenBtn.getAttribute('onclick')) {
             gateOpenBtn.addEventListener('click', enterExperience);
         }
-        const gateBackBtn = document.querySelector('#gate-welcome-back-container button');
-        if (gateBackBtn) {
+        const gateBackBtn = document.getElementById('gate-welcome-open-btn');
+        if (gateBackBtn && !gateBackBtn.getAttribute('onclick')) {
             gateBackBtn.addEventListener('click', openMainSite);
         }
-        const personalGateBtn = document.querySelector('#gate-personal-container button');
-        if (personalGateBtn) {
+        const personalGateBtn = document.getElementById('gate-personal-open-btn');
+        if (personalGateBtn && !personalGateBtn.getAttribute('onclick')) {
             personalGateBtn.addEventListener('click', openMainSite);
         }
         const reserveBtn = document.getElementById('reserve-deadline-btn');
-        if (reserveBtn) {
+        if (reserveBtn && !reserveBtn.getAttribute('onclick')) {
             reserveBtn.addEventListener('click', confirmPresence);
         }
         const confirmPresenceBtn = document.getElementById('confirm-presence-btn');
-        if (confirmPresenceBtn) {
+        if (confirmPresenceBtn && !confirmPresenceBtn.getAttribute('onclick')) {
             confirmPresenceBtn.addEventListener('click', confirmPresence);
         }
 
