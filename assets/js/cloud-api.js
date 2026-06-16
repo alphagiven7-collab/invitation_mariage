@@ -33,7 +33,8 @@ const CloudAPI = (() => {
             return false;
         }
         if (!res.ok) {
-            console.warn("CloudAPI", table, method, res.status);
+            const errText = await res.text().catch(() => "");
+            console.warn("CloudAPI", table, method, res.status, errText.slice(0, 240));
             return null;
         }
         if (res.status === 204) return true;
@@ -91,19 +92,62 @@ const CloudAPI = (() => {
         return `wedding_event_${eventId}_${suffix}`;
     }
 
+    function readGuestsLocal(eventId) {
+        try {
+            const raw = localStorage.getItem(localKey(eventId, "guests"));
+            return raw ? JSON.parse(raw) : [];
+        } catch {
+            return [];
+        }
+    }
+
+    function mergeGuestLists(cloudGuests, localGuests) {
+        const map = new Map();
+        (cloudGuests || []).forEach((guest) => {
+            if (guest && guest.slug) map.set(guest.slug, guest);
+        });
+        (localGuests || []).forEach((local) => {
+            if (!local || !local.slug) return;
+            const cloud = map.get(local.slug);
+            if (cloud) {
+                map.set(local.slug, {
+                    ...local,
+                    ...cloud,
+                    id: cloud.id || local.id,
+                    accessCode: local.accessCode || cloud.accessCode || "",
+                    tableNumber: local.tableNumber || cloud.tableNumber || "",
+                    drinkChoices: (local.drinkChoices && local.drinkChoices.length)
+                        ? local.drinkChoices
+                        : (cloud.drinkChoices || []),
+                    profilePhotoUrl: local.profilePhotoUrl || cloud.profilePhotoUrl || ""
+                });
+            } else {
+                map.set(local.slug, local);
+            }
+        });
+        return Array.from(map.values());
+    }
+
+    function extractGuestRow(result) {
+        if (Array.isArray(result) && result[0]) return result[0];
+        if (result && result.id) return result;
+        return null;
+    }
+
     // --- Invités ---
     async function getGuests(eventId) {
-        let guests = [];
+        let cloudGuests = [];
         const cloud = await request("guests", {
             query: `?event_id=eq.${eventId}&order=created_at.desc`
         });
         if (Array.isArray(cloud)) {
-            guests = cloud.map(mapGuestFromCloud);
-        } else {
-            const raw = localStorage.getItem(localKey(eventId, "guests"));
-            guests = raw ? JSON.parse(raw) : [];
+            cloudGuests = cloud.map(mapGuestFromCloud);
         }
-        return filterDeletedGuests(eventId, guests);
+        const localGuests = readGuestsLocal(eventId);
+        const merged = cloudGuests.length || localGuests.length
+            ? mergeGuestLists(cloudGuests, localGuests)
+            : [];
+        return filterDeletedGuests(eventId, merged);
     }
 
     async function saveGuestsLocal(eventId, guests) {
@@ -111,44 +155,48 @@ const CloudAPI = (() => {
     }
 
     async function upsertGuest(eventId, guest) {
-        const payload = mapGuestToCloud(eventId, guest);
+        const fullPayload = mapGuestToCloud(eventId, guest);
+        const basePayload = mapGuestToCloudBase(eventId, guest);
         let cloudGuest = null;
 
         if (isEnabled()) {
-            if (guest.id) {
-                cloudGuest = await request("guests", {
+            const existing = await request("guests", {
+                query: `?event_id=eq.${eventId}&slug=eq.${encodeURIComponent(guest.slug)}&select=id`
+            });
+            if (existing && existing.length) {
+                const cloudId = existing[0].id;
+                cloudGuest = extractGuestRow(await request("guests", {
                     method: "PATCH",
-                    query: `?id=eq.${guest.id}`,
-                    body: payload,
+                    query: `?id=eq.${cloudId}`,
+                    body: fullPayload,
                     prefer: "return=representation"
-                });
-                if (Array.isArray(cloudGuest) && cloudGuest[0]) cloudGuest = cloudGuest[0];
-            }
-            if (!cloudGuest) {
-                const existing = await request("guests", {
-                    query: `?event_id=eq.${eventId}&slug=eq.${encodeURIComponent(guest.slug)}&select=id`
-                });
-                if (existing && existing.length) {
-                    cloudGuest = await request("guests", {
+                }));
+                if (!cloudGuest) {
+                    cloudGuest = extractGuestRow(await request("guests", {
                         method: "PATCH",
-                        query: `?id=eq.${existing[0].id}`,
-                        body: payload,
+                        query: `?id=eq.${cloudId}`,
+                        body: basePayload,
                         prefer: "return=representation"
-                    });
-                    if (Array.isArray(cloudGuest) && cloudGuest[0]) cloudGuest = cloudGuest[0];
-                } else {
-                    cloudGuest = await request("guests", {
+                    }));
+                }
+            } else {
+                cloudGuest = extractGuestRow(await request("guests", {
+                    method: "POST",
+                    body: fullPayload,
+                    prefer: "return=representation"
+                }));
+                if (!cloudGuest) {
+                    cloudGuest = extractGuestRow(await request("guests", {
                         method: "POST",
-                        body: payload,
+                        body: basePayload,
                         prefer: "return=representation"
-                    });
-                    if (Array.isArray(cloudGuest) && cloudGuest[0]) cloudGuest = cloudGuest[0];
+                    }));
                 }
             }
         }
 
         const merged = cloudGuest ? mapGuestFromCloud(cloudGuest) : guest;
-        const guests = (await getGuests(eventId)).filter((g) => g.id !== merged.id && g.slug !== guest.slug);
+        const guests = readGuestsLocal(eventId).filter((g) => g.slug !== merged.slug);
         guests.unshift(merged);
         await saveGuestsLocal(eventId, guests);
         return merged;
@@ -411,7 +459,7 @@ const CloudAPI = (() => {
         };
     }
 
-    function mapGuestToCloud(eventId, guest) {
+    function mapGuestToCloudBase(eventId, guest) {
         return {
             event_id: eventId,
             slug: guest.slug,
@@ -422,12 +470,6 @@ const CloudAPI = (() => {
             token: guest.token,
             status: guest.status || "pending",
             qr_approved: !!guest.qrApproved,
-            access_code: guest.accessCode || null,
-            table_number: guest.tableNumber || null,
-            drink_choices: guest.drinkChoices && guest.drinkChoices.length
-                ? JSON.stringify(guest.drinkChoices)
-                : null,
-            profile_photo_url: guest.profilePhotoUrl || null,
             adults: guest.adults || 1,
             children: guest.children || 0,
             rsvp_message: guest.rsvpMessage || "",
@@ -435,9 +477,22 @@ const CloudAPI = (() => {
         };
     }
 
+    function mapGuestToCloud(eventId, guest) {
+        return {
+            ...mapGuestToCloudBase(eventId, guest),
+            access_code: guest.accessCode || null,
+            table_number: guest.tableNumber || null,
+            drink_choices: guest.drinkChoices && guest.drinkChoices.length
+                ? JSON.stringify(guest.drinkChoices)
+                : null,
+            profile_photo_url: guest.profilePhotoUrl || null
+        };
+    }
+
     return {
         isEnabled,
         getGuests,
+        saveGuestsLocal,
         upsertGuest,
         syncAllGuests,
         removeGuestCloud,

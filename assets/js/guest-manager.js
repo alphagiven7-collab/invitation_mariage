@@ -78,27 +78,30 @@ const GuestManager = (() => {
 
     async function persistGuests(guests) {
         cache = guests;
-        if (window.CloudAPI) {
-            await CloudAPI.syncAllGuests(getEventId(), guests);
+        const eventId = getEventId();
+        if (window.CloudAPI && CloudAPI.isEnabled()) {
+            await CloudAPI.saveGuestsLocal(eventId, guests);
         } else {
             localStorage.setItem(storageKey(), JSON.stringify(guests));
         }
     }
 
     async function addGuest({ fullName, phone = "", email = "", group = "" }) {
-        if (!fullName || fullName.trim().length < 2) return null;
+        const trimmedName = (fullName || "").trim();
+        if (trimmedName.length < 2) return null;
+        await loadGuests(true);
         const guests = await loadGuests();
-        const slug = slugify(fullName);
+        const slug = slugify(trimmedName);
         const existing = guests.find((g) => g.slug === slug);
         if (existing) return existing;
 
         const guest = {
             id: crypto.randomUUID(),
             slug,
-            fullName: fullName.trim(),
-            phone: phone.trim(),
-            email: email.trim(),
-            group: group.trim(),
+            fullName: trimmedName,
+            phone: (phone || "").trim(),
+            email: (email || "").trim(),
+            group: (group || "").trim(),
             token: generateToken(),
             status: "pending",
             qrApproved: false,
@@ -114,8 +117,21 @@ const GuestManager = (() => {
         };
         guests.push(guest);
         await persistGuests(guests);
-        if (window.CloudAPI) await CloudAPI.upsertGuest(getEventId(), guest);
-        return guest;
+
+        let saved = guest;
+        if (window.CloudAPI && CloudAPI.isEnabled()) {
+            try {
+                saved = await CloudAPI.upsertGuest(getEventId(), guest) || guest;
+            } catch (e) {
+                console.warn("GuestManager.addGuest cloud sync", e);
+            }
+        }
+
+        const idx = guests.findIndex((g) => g.slug === slug);
+        if (idx >= 0) guests[idx] = saved;
+        cache = guests;
+        await persistGuests(guests);
+        return saved;
     }
 
     async function findByToken(token) {
@@ -162,9 +178,18 @@ const GuestManager = (() => {
 
         guests[idx] = next;
         await persistGuests(guests);
-        if (window.CloudAPI) await CloudAPI.upsertGuest(getEventId(), guests[idx]);
-        cache = null;
-        return guests[idx];
+        let saved = guests[idx];
+        if (window.CloudAPI && CloudAPI.isEnabled()) {
+            try {
+                saved = await CloudAPI.upsertGuest(getEventId(), guests[idx]) || guests[idx];
+            } catch (e) {
+                console.warn("GuestManager.updateGuest cloud sync", e);
+            }
+            guests[idx] = saved;
+            await persistGuests(guests);
+        }
+        cache = guests;
+        return saved;
     }
 
     async function recordRSVP({ guestId, fullName, phone, status, adults, children, message, drinkChoices, inviteToken }) {

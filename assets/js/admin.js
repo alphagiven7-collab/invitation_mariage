@@ -297,15 +297,35 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("add-guest-form").addEventListener("submit", async (e) => {
         e.preventDefault();
-        await GuestManager.addGuest({
-            fullName: document.getElementById("guest-name").value,
-            phone: document.getElementById("guest-phone").value,
-            email: document.getElementById("guest-email").value,
-            group: document.getElementById("guest-group").value
+        const fullName = document.getElementById("guest-name").value.trim();
+        if (fullName.length < 2) {
+            showToast("Nom obligatoire (2 caractères minimum).");
+            return;
+        }
+        const beforeSlugs = new Set((await GuestManager.loadGuests()).map((g) => g.slug));
+        const guest = await GuestManager.addGuest({
+            fullName,
+            phone: document.getElementById("guest-phone").value.trim(),
+            email: document.getElementById("guest-email").value.trim(),
+            group: document.getElementById("guest-group").value.trim()
         });
         e.target.reset();
+        await GuestManager.loadGuests(true);
         await refreshAll();
-        showToast("Invité ajouté avec succès");
+        if (!guest) {
+            showToast("Impossible d'ajouter cet invité.");
+            return;
+        }
+        const after = await GuestManager.loadGuests();
+        if (!after.some((g) => g.slug === guest.slug)) {
+            showToast("Erreur de synchronisation — vérifiez Supabase ou actualisez.");
+            return;
+        }
+        if (beforeSlugs.has(guest.slug)) {
+            showToast(`Invité déjà présent : ${guest.fullName}`);
+            return;
+        }
+        showToast(`Invité ajouté : ${guest.fullName}`);
     });
 
     document.getElementById("edit-guest-form").addEventListener("submit", async (e) => {
