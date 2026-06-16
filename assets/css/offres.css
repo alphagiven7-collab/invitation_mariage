@@ -1506,3 +1506,174 @@ html {
 .michelline-inner {
     max-width: 1180px;
 }
+
+/* ─── Version épurée ─── */
+.michelline-section--tight {
+    padding-top: 1.5rem;
+}
+
+.michelline-section-head--compact {
+    margin-bottom: 1.25rem;
+}
+
+.michelline-section-head--compact .michelline-section-title {
+    margin-bottom: 0.35rem;
+}
+
+.michelline-mosaic--compact {
+    grid-template-columns: 1fr;
+    min-height: auto;
+}
+
+.michelline-mosaic--compact .michelline-mosaic-main {
+    min-height: 280px;
+}
+
+.michelline-mosaic--compact .michelline-phone {
+    bottom: 12px;
+    right: 12px;
+    left: auto;
+    transform: none;
+}
+
+.michelline-gallery--compact {
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 160px;
+    gap: 0.6rem;
+}
+
+@media (max-width: 768px) {
+    .michelline-gallery--compact {
+        grid-template-columns: repeat(2, 1fr);
+        grid-auto-rows: 140px;
+    }
+}
+
+.michelline-gallery--compact .michelline-gallery-card figcaption {
+    display: none;
+}
+
+.michelline-pillars {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+    .michelline-pillars {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.michelline-pillar {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(232, 164, 184, 0.2);
+    border-radius: 18px;
+    padding: 1.15rem 1rem;
+    text-align: center;
+}
+
+.michelline-pillar-icon {
+    display: block;
+    font-size: 1.35rem;
+    margin-bottom: 0.4rem;
+}
+
+.michelline-pillar h3 {
+    font-family: var(--mch-font-display);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--mch-charcoal);
+    margin: 0 0 0.3rem;
+}
+
+.michelline-pillar p {
+    font-size: 0.72rem;
+    font-weight: 300;
+    color: var(--mch-muted);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.michelline-plan--lite {
+    padding: 1.35rem 1.25rem;
+}
+
+.michelline-plan--lite .michelline-plan-tier,
+.michelline-plan--lite .michelline-plan-tagline,
+.michelline-plan--lite .michelline-plan-price-alt,
+.michelline-plan--lite .michelline-plan-group-label {
+    display: none;
+}
+
+.michelline-plan-list-short {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.15rem;
+    flex: 1;
+}
+
+.michelline-plan-list-short li {
+    font-size: 0.76rem;
+    color: var(--mch-ink);
+    padding: 0.35rem 0;
+    border-bottom: 1px solid rgba(74, 108, 247, 0.08);
+    line-height: 1.45;
+}
+
+.michelline-plan-list-short li:last-child {
+    border-bottom: none;
+}
+
+.michelline-details-compare {
+    margin-top: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid var(--mch-line);
+    background: var(--mch-paper);
+    overflow: hidden;
+}
+
+.michelline-details-compare summary {
+    padding: 0.85rem 1.15rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--mch-blue);
+    cursor: pointer;
+    list-style: none;
+    text-align: center;
+}
+
+.michelline-details-compare summary::-webkit-details-marker {
+    display: none;
+}
+
+.michelline-details-compare .michelline-compare-wrap {
+    margin-top: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.michelline-cta--compact {
+    padding: 2rem 1.25rem;
+    margin-top: 2rem;
+}
+
+.michelline-cta--compact h2 {
+    font-size: clamp(1.5rem, 3.5vw, 2rem);
+}
+
+.michelline-cta-demo {
+    margin: 1rem 0 0;
+    font-size: 0.75rem;
+}
+
+.michelline-cta-demo a {
+    color: rgba(255, 255, 255, 0.75);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.michelline-cta-demo a:hover {
+    color: #fff;
+}
