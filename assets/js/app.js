@@ -46,6 +46,7 @@
                     applyGuestProfile(currentGuestProfile);
                 }
                 applyGuestName(guestName);
+                if (window.BackgroundMusic) BackgroundMusic.armAutoplay();
                 const gate = document.getElementById('welcome-gate');
                 const main = document.getElementById('main-view');
                 gate.classList.add('opacity-0', 'pointer-events-none');
@@ -1343,7 +1344,7 @@
             }
 
             if ('serviceWorker' in navigator && !isPreviewMode) {
-                navigator.serviceWorker.register('../sw.js?v=20').catch(() => {});
+                navigator.serviceWorker.register('../sw.js?v=21').catch(() => {});
             }
 
             defaultCustomizationState = getCurrentCustomizationState();

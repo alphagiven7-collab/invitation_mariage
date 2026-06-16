@@ -13,6 +13,8 @@ const BackgroundMusic = (() => {
         backgroundMusicEnabled: true
     };
     let userPaused = false;
+    let wantAutoplay = false;
+    let interactionWired = false;
     let wired = false;
 
     function getAudio() {
@@ -107,6 +109,9 @@ const BackgroundMusic = (() => {
                 events: {
                     onReady: (event) => {
                         event.target.setVolume(Math.round(settings.backgroundMusicVolume * 100));
+                        if (wantAutoplay && !userPaused) {
+                            try { event.target.playVideo(); } catch (e) {}
+                        }
                         resolve();
                     },
                     onStateChange: updateToggleUi
@@ -115,9 +120,42 @@ const BackgroundMusic = (() => {
         });
     }
 
-    function isYouTubePlaying() {
-        if (!youtubePlayer || typeof youtubePlayer.getPlayerState !== "function") return false;
-        return youtubePlayer.getPlayerState() === YT.PlayerState.PLAYING;
+    function isPlaying() {
+        if (playbackMode === "youtube") return isYouTubePlaying();
+        if (playbackMode === "audio") {
+            const el = getAudio();
+            return !!(el && !el.paused && !el.ended);
+        }
+        return false;
+    }
+
+    function shouldAutoplayNow() {
+        const main = document.getElementById("main-view");
+        const gate = document.getElementById("welcome-gate");
+        const mainVisible = main && !main.classList.contains("hidden");
+        const gateHidden = !gate || gate.classList.contains("hidden") || gate.classList.contains("opacity-0");
+        return mainVisible && gateHidden;
+    }
+
+    function ensureInteractionRetry() {
+        if (interactionWired || userPaused || !wantAutoplay) return;
+        interactionWired = true;
+        const retry = () => {
+            if (userPaused || !wantAutoplay || isPlaying()) return;
+            play();
+        };
+        document.addEventListener("pointerdown", retry, { once: true, passive: true });
+        document.addEventListener("touchstart", retry, { once: true, passive: true });
+        document.addEventListener("keydown", retry, { once: true, passive: true });
+    }
+
+    async function tryAutoplay(force = false) {
+        if (!settings.backgroundMusicUrl || !settings.backgroundMusicEnabled) return false;
+        if (userPaused && !force) return false;
+        wantAutoplay = true;
+        const ok = await play();
+        if (!ok && wantAutoplay && !userPaused) ensureInteractionRetry();
+        return ok;
     }
 
     function apply(state) {
@@ -145,7 +183,10 @@ const BackgroundMusic = (() => {
         if (ytId) {
             stopAudioElement();
             playbackMode = "youtube";
-            setupYouTubePlayer(ytId).then(updateToggleUi).catch(updateToggleUi);
+            setupYouTubePlayer(ytId).then(() => {
+                if (wantAutoplay && !userPaused) play();
+                updateToggleUi();
+            }).catch(updateToggleUi);
         } else {
             destroyYouTubePlayer();
             playbackMode = "audio";
@@ -158,20 +199,20 @@ const BackgroundMusic = (() => {
                     el.load();
                 }
             }
+            if (wantAutoplay && !userPaused && shouldAutoplayNow()) play();
         }
         updateToggleUi();
+    }
+
+    function isYouTubePlaying() {
+        if (!youtubePlayer || typeof youtubePlayer.getPlayerState !== "function") return false;
+        return youtubePlayer.getPlayerState() === YT.PlayerState.PLAYING;
     }
 
     function updateToggleUi() {
         const btn = document.getElementById("music-toggle-btn");
         if (!btn) return;
-        let playing = false;
-        if (playbackMode === "youtube") {
-            playing = isYouTubePlaying();
-        } else if (playbackMode === "audio") {
-            const el = getAudio();
-            playing = !!(el && !el.paused && !el.ended && el.currentTime > 0);
-        }
+        const playing = isPlaying();
         btn.setAttribute("aria-pressed", playing ? "true" : "false");
         btn.setAttribute("title", playing ? "Couper la musique" : "Lancer la musique");
         const icon = btn.querySelector(".music-toggle-icon");
@@ -194,7 +235,21 @@ const BackgroundMusic = (() => {
                 el.volume = settings.backgroundMusicVolume;
                 await el.play();
             } else {
-                return false;
+                const ytId = parseYouTubeId(settings.backgroundMusicUrl);
+                if (ytId) {
+                    playbackMode = "youtube";
+                    return play();
+                }
+                playbackMode = "audio";
+                const el = getAudio();
+                if (!el || !settings.backgroundMusicUrl) return false;
+                if (el.src !== settings.backgroundMusicUrl) {
+                    el.src = settings.backgroundMusicUrl;
+                    el.loop = true;
+                    el.load();
+                }
+                el.volume = settings.backgroundMusicVolume;
+                await el.play();
             }
             updateToggleUi();
             return true;
@@ -229,11 +284,26 @@ const BackgroundMusic = (() => {
         }
     }
 
+    function readPausedPreference() {
+        return sessionStorage.getItem("wedding_music_paused") === "1";
+    }
+
+    function savePausedPreference() {
+        sessionStorage.setItem("wedding_music_paused", userPaused ? "1" : "0");
+    }
+
+    function armAutoplay() {
+        userPaused = readPausedPreference();
+        if (userPaused) return;
+        wantAutoplay = true;
+        tryAutoplay();
+    }
+
     function onGuestEnter() {
-        if (!settings.backgroundMusicUrl || !settings.backgroundMusicEnabled) return;
-        const saved = localStorage.getItem("wedding_music_paused");
-        userPaused = saved === "1";
-        if (!userPaused) play();
+        userPaused = readPausedPreference();
+        if (userPaused) return;
+        wantAutoplay = true;
+        tryAutoplay();
     }
 
     function wireControls() {
@@ -243,7 +313,7 @@ const BackgroundMusic = (() => {
         if (btn) {
             btn.addEventListener("click", () => {
                 toggle();
-                localStorage.setItem("wedding_music_paused", userPaused ? "1" : "0");
+                savePausedPreference();
             });
         }
         const el = getAudio();
@@ -263,6 +333,7 @@ const BackgroundMusic = (() => {
         play,
         pause,
         toggle,
+        armAutoplay,
         onGuestEnter,
         init,
         parseYouTubeId,

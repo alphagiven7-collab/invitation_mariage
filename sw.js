@@ -1,4 +1,4 @@
-const CACHE = "invitation-v20";
+const CACHE = "invitation-v21";
 const PRECACHE = [
     "./assets/css/tailwind.min.css",
     "./assets/css/app.css"
