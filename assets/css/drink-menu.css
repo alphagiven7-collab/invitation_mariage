@@ -1,0 +1,202 @@
+/* Menu des boissons — cartes visuelles (invitation + modal RSVP) */
+
+#drink-menu-section,
+#rsvp-drinks-section {
+    width: 100%;
+}
+
+.drink-menu-shell {
+    background: linear-gradient(168deg, #ffffff 0%, #fffafb 45%, #f8fafc 100%);
+}
+
+.drink-menu-head-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #fce7f3, #fdf2f8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    box-shadow: 0 4px 14px rgba(236, 72, 153, 0.12);
+}
+
+.drink-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.drink-menu-grid--modal {
+    gap: 0.55rem;
+}
+
+@media (min-width: 640px) {
+    .drink-menu-grid:not(.drink-menu-grid--modal) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+label.drink-card {
+    position: relative;
+    display: block;
+    margin: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 2px solid #e2e8f0;
+    background: #fff;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+label.drink-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+label.drink-card.is-selected {
+    border-color: #ec4899;
+    box-shadow: 0 0 0 1px rgba(236, 72, 153, 0.25), 0 10px 24px rgba(236, 72, 153, 0.12);
+}
+
+.drink-card-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+    margin: 0;
+}
+
+.drink-card-media {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    min-height: 88px;
+    overflow: hidden;
+    background: #f1f5f9;
+}
+
+.drink-card-media img {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    display: block;
+}
+
+.drink-card-check {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid #e2e8f0;
+    color: transparent;
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 2;
+}
+
+label.drink-card.is-selected .drink-card-check {
+    background: #ec4899;
+    border-color: #ec4899;
+    color: #fff;
+}
+
+.drink-card-body {
+    padding: 0.65rem 0.7rem 0.75rem;
+    text-align: center;
+}
+
+.drink-card-title {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #0f172a;
+    line-height: 1.25;
+}
+
+.drink-card-desc {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 0.62rem;
+    color: #64748b;
+    line-height: 1.35;
+}
+
+label.drink-card.drink-card--compact .drink-card-body {
+    padding: 0.5rem 0.45rem 0.6rem;
+}
+
+label.drink-card.drink-card--compact .drink-card-title {
+    font-size: 0.72rem;
+}
+
+label.drink-card.drink-card--compact .drink-card-desc {
+    display: none;
+}
+
+.drink-menu-footnote {
+    border-top: 1px dashed #e2e8f0;
+    padding-top: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+#rsvp-modal .drink-menu-grid {
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 2px;
+}
+
+/* Mode sombre */
+body.dark-mode .drink-menu-shell {
+    background: linear-gradient(168deg, #1e293b 0%, #172033 45%, #111827 100%);
+    border-color: #334155 !important;
+}
+
+body.dark-mode label.drink-card {
+    background: #1f2937;
+    border-color: #475569;
+}
+
+body.dark-mode label.drink-card.is-selected {
+    border-color: #f472b6;
+    box-shadow: 0 0 0 1px rgba(244, 114, 182, 0.35), 0 10px 24px rgba(244, 114, 182, 0.15);
+}
+
+body.dark-mode .drink-card-media {
+    background: #0f172a;
+}
+
+body.dark-mode .drink-card-title {
+    color: #f8fafc;
+}
+
+body.dark-mode .drink-card-desc {
+    color: #94a3b8;
+}
+
+body.dark-mode .drink-menu-footnote {
+    border-top-color: #334155;
+}
+
+body.dark-mode .drink-card-check {
+    background: rgba(30, 41, 59, 0.92);
+    border-color: #475569;
+}
+
+body.dark-mode label.drink-card.is-selected .drink-card-check {
+    background: #ec4899;
+    border-color: #ec4899;
+    color: #fff;
+}

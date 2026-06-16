@@ -1,7 +1,8 @@
-const CACHE = "invitation-v21";
+const CACHE = "invitation-v25";
 const PRECACHE = [
-    "./assets/css/tailwind.min.css",
-    "./assets/css/app.css"
+    "./assets/css/tailwind.min.css?v=25",
+    "./assets/css/app.css?v=25",
+    "./assets/css/drink-menu.css?v=25"
 ];
 
 self.addEventListener("install", (e) => {
@@ -23,6 +24,7 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("fetch", (e) => {
     const url = new URL(e.request.url);
     const isAppAsset = url.pathname.includes("/assets/js/") ||
+        url.pathname.includes("/assets/css/") ||
         url.pathname.includes("/pages/") ||
         url.pathname.endsWith("invitation.html");
 

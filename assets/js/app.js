@@ -1330,7 +1330,7 @@
             }
 
             if ('serviceWorker' in navigator && !isPreviewMode) {
-                navigator.serviceWorker.register('../sw.js?v=21').catch(() => {});
+                navigator.serviceWorker.register('../sw.js?v=25').catch(() => {});
             }
 
             defaultCustomizationState = getCurrentCustomizationState();
