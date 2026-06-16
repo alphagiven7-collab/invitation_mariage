@@ -1,4 +1,4 @@
-# Grille tarifaire — Your Best Day
+# Grille tarifaire — Michelline
 
 > Document interne & commercial — juin 2026  
 > Page publique : `/pages/offres.html`
