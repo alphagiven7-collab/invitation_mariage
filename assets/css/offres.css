@@ -796,8 +796,8 @@ html {
     animation: michelline-float-pulse 3s ease-in-out infinite;
 }
 @keyframes michelline-float-pulse {
-    0%, 100% { box-shadow: 0 12px 32px rgba(212, 132, 154, 0.35); }
-    50% { box-shadow: 0 14px 40px rgba(212, 132, 154, 0.55); }
+    0%, 100% { box-shadow: 0 12px 32px rgba(74, 108, 247, 0.35); }
+    50% { box-shadow: 0 14px 40px rgba(212, 132, 154, 0.5); }
 }
 
 /* Sections avantages */
@@ -1505,9 +1505,4 @@ html {
 
 .michelline-inner {
     max-width: 1180px;
-}
-
-@keyframes michelline-float-pulse {
-    0%, 100% { box-shadow: 0 12px 32px rgba(74, 108, 247, 0.35); }
-    50% { box-shadow: 0 14px 40px rgba(212, 132, 154, 0.5); }
 }
