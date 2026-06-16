@@ -6,8 +6,12 @@
     --mch-champagne: #c4a265;
     --mch-gold: #a8864a;
     --mch-gold-light: #e8d5b0;
-    --mch-blush: #e8cfc7;
-    --mch-rose: #c9958a;
+    --mch-blush: #f5dce4;
+    --mch-rose: #e8a4b8;
+    --mch-rose-soft: #fdf2f6;
+    --mch-rose-mist: #fce8ef;
+    --mch-rose-deep: #d4849a;
+    --mch-pink-glow: rgba(232, 164, 184, 0.28);
     --mch-charcoal: #1c1816;
     --mch-ink: #2a2420;
     --mch-muted: #7a726a;
@@ -17,6 +21,10 @@
     --mch-radius: 20px;
     --mch-font-display: "Cormorant Garamond", "Playfair Display", Georgia, serif;
     --mch-font-body: "Montserrat", system-ui, sans-serif;
+}
+
+html {
+    scroll-behavior: smooth;
 }
 
 .michelline-page {
@@ -50,14 +58,21 @@
     height: 420px;
     top: -120px;
     right: -80px;
-    background: rgba(196, 162, 101, 0.18);
+    background: rgba(232, 164, 184, 0.22);
 }
 .michelline-glow--b {
     width: 360px;
     height: 360px;
     bottom: 20%;
     left: -100px;
-    background: rgba(201, 149, 138, 0.12);
+    background: rgba(196, 162, 101, 0.14);
+}
+.michelline-glow--c {
+    width: 280px;
+    height: 280px;
+    top: 45%;
+    right: 5%;
+    background: var(--mch-pink-glow);
 }
 
 .michelline-inner {
@@ -149,6 +164,14 @@
 }
 .michelline-btn:hover {
     transform: translateY(-2px);
+}
+.michelline-btn--rose {
+    background: linear-gradient(135deg, #f4b8c8 0%, var(--mch-rose-deep) 100%);
+    color: #fff;
+    box-shadow: 0 8px 28px rgba(212, 132, 154, 0.35);
+}
+.michelline-btn--rose:hover {
+    box-shadow: 0 12px 36px rgba(212, 132, 154, 0.45);
 }
 .michelline-btn--gold {
     background: linear-gradient(135deg, var(--mch-champagne) 0%, var(--mch-gold) 100%);
@@ -431,10 +454,10 @@
 }
 
 .michelline-plan--featured {
-    border-color: var(--mch-champagne);
+    border-color: var(--mch-rose);
     background:
-        linear-gradient(180deg, #fff 0%, #fdf9f3 100%);
-    box-shadow: var(--mch-shadow-lg);
+        linear-gradient(180deg, #fff 0%, var(--mch-rose-soft) 55%, #fdf9f3 100%);
+    box-shadow: 0 24px 64px rgba(212, 132, 154, 0.15), var(--mch-shadow-lg);
     transform: scale(1.03);
     z-index: 2;
 }
@@ -456,7 +479,7 @@
     top: -11px;
     left: 50%;
     transform: translateX(-50%);
-    background: linear-gradient(135deg, var(--mch-champagne), var(--mch-gold));
+    background: linear-gradient(135deg, #f4b8c8, var(--mch-rose-deep));
     color: #fff;
     font-size: 0.58rem;
     font-weight: 600;
@@ -716,4 +739,272 @@
     .michelline-nav-inner {
         padding: 0.75rem 1rem;
     }
+}
+
+/* Bouton flottant — accès rapide aux offres */
+.michelline-float-offers {
+    position: fixed;
+    bottom: 1.25rem;
+    right: 1.25rem;
+    z-index: 90;
+    box-shadow: 0 12px 32px rgba(212, 132, 154, 0.4);
+    animation: michelline-float-pulse 3s ease-in-out infinite;
+}
+@keyframes michelline-float-pulse {
+    0%, 100% { box-shadow: 0 12px 32px rgba(212, 132, 154, 0.35); }
+    50% { box-shadow: 0 14px 40px rgba(212, 132, 154, 0.55); }
+}
+
+/* Sections avantages */
+.michelline-benefits {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+}
+
+.michelline-benefit {
+    background: var(--mch-paper);
+    border: 1px solid rgba(232, 164, 184, 0.25);
+    border-radius: var(--mch-radius);
+    padding: 1.35rem 1.2rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.michelline-benefit::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--mch-rose-mist), var(--mch-rose), var(--mch-rose-mist));
+}
+.michelline-benefit:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 40px rgba(232, 164, 184, 0.12);
+    border-color: rgba(232, 164, 184, 0.45);
+}
+
+.michelline-benefit-num {
+    font-family: var(--mch-font-display);
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--mch-rose-mist);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.michelline-benefit h3 {
+    font-family: var(--mch-font-display);
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--mch-charcoal);
+    margin: 0 0 0.4rem;
+}
+
+.michelline-benefit p {
+    font-size: 0.76rem;
+    font-weight: 300;
+    color: var(--mch-muted);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Bloc pourquoi Michelline */
+.michelline-why {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: stretch;
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .michelline-why {
+        grid-template-columns: 1fr;
+    }
+}
+
+.michelline-why-panel {
+    border-radius: 24px;
+    padding: clamp(1.5rem, 4vw, 2rem);
+    border: 1px solid var(--mch-line);
+}
+
+.michelline-why-panel--rose {
+    background:
+        radial-gradient(ellipse 90% 70% at 100% 0%, rgba(252, 232, 239, 0.9), transparent 55%),
+        linear-gradient(165deg, #fff 0%, var(--mch-rose-soft) 100%);
+    border-color: rgba(232, 164, 184, 0.35);
+}
+
+.michelline-why-panel--gold {
+    background:
+        radial-gradient(ellipse 80% 60% at 0% 100%, rgba(232, 213, 176, 0.35), transparent 50%),
+        var(--mch-paper);
+}
+
+.michelline-why-panel h3 {
+    font-family: var(--mch-font-display);
+    font-size: clamp(1.35rem, 3vw, 1.75rem);
+    font-weight: 600;
+    color: var(--mch-charcoal);
+    margin: 0 0 0.75rem;
+    line-height: 1.2;
+}
+
+.michelline-why-panel > p {
+    font-size: 0.82rem;
+    font-weight: 300;
+    color: var(--mch-muted);
+    line-height: 1.7;
+    margin: 0 0 1.15rem;
+}
+
+.michelline-why-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.michelline-why-list li {
+    font-size: 0.78rem;
+    color: var(--mch-ink);
+    padding: 0.45rem 0 0.45rem 1.35rem;
+    position: relative;
+    line-height: 1.5;
+    border-bottom: 1px solid rgba(232, 164, 184, 0.12);
+}
+.michelline-why-list li:last-child {
+    border-bottom: none;
+}
+.michelline-why-list li::before {
+    content: "♥";
+    position: absolute;
+    left: 0;
+    top: 0.45rem;
+    font-size: 0.55rem;
+    color: var(--mch-rose-deep);
+}
+
+/* Limites forfaits */
+.michelline-plan-limit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: var(--mch-rose-soft);
+    border: 1px solid rgba(232, 164, 184, 0.35);
+    color: var(--mch-rose-deep);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    margin-bottom: 0.85rem;
+}
+
+.michelline-plan--featured .michelline-plan-limit {
+    background: #fff;
+    border-color: var(--mch-rose);
+}
+
+.michelline-plan-group-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--mch-rose-deep);
+    margin: 0.75rem 0 0.35rem;
+    font-weight: 600;
+}
+
+.michelline-plan li.is-included::before {
+    background: var(--mch-rose);
+}
+.michelline-plan li.is-excluded {
+    color: var(--mch-muted);
+    opacity: 0.7;
+    text-decoration: line-through;
+    text-decoration-color: rgba(122, 114, 106, 0.35);
+}
+.michelline-plan li.is-excluded::before {
+    background: transparent;
+    border: 1px solid rgba(232, 164, 184, 0.4);
+    width: 5px;
+    height: 5px;
+}
+
+/* Tableau comparatif */
+.michelline-compare-wrap {
+    overflow-x: auto;
+    margin-top: 2rem;
+    border-radius: 20px;
+    border: 1px solid rgba(232, 164, 184, 0.25);
+    background: var(--mch-paper);
+    box-shadow: var(--mch-shadow);
+}
+
+.michelline-compare {
+    width: 100%;
+    min-width: 560px;
+    border-collapse: collapse;
+    font-size: 0.72rem;
+}
+
+.michelline-compare th,
+.michelline-compare td {
+    padding: 0.65rem 0.85rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(168, 134, 74, 0.1);
+}
+
+.michelline-compare th {
+    font-family: var(--mch-font-display);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--mch-charcoal);
+    background: var(--mch-rose-soft);
+    padding-top: 0.85rem;
+    padding-bottom: 0.85rem;
+}
+
+.michelline-compare th:first-child,
+.michelline-compare td:first-child {
+    text-align: left;
+    font-weight: 500;
+    color: var(--mch-ink);
+    padding-left: 1.15rem;
+}
+
+.michelline-compare th.col-featured {
+    background: linear-gradient(180deg, var(--mch-rose-mist), var(--mch-rose-soft));
+    color: var(--mch-rose-deep);
+}
+
+.michelline-compare tr:last-child td {
+    border-bottom: none;
+}
+
+.michelline-compare .yes {
+    color: var(--mch-rose-deep);
+    font-weight: 600;
+}
+.michelline-compare .no {
+    color: var(--mch-muted);
+    opacity: 0.5;
+}
+.michelline-compare .limit {
+    font-weight: 600;
+    color: var(--mch-charcoal);
+    font-size: 0.68rem;
+}
+
+.michelline-section--rose-bg {
+    background:
+        radial-gradient(ellipse 100% 80% at 50% 0%, var(--mch-rose-soft), transparent 70%);
+    margin-left: -1.25rem;
+    margin-right: -1.25rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    padding-bottom: 1rem;
 }
