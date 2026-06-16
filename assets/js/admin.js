@@ -302,8 +302,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             showToast("Nom obligatoire (2 caractères minimum).");
             return;
         }
-        const beforeSlugs = new Set((await GuestManager.loadGuests()).map((g) => g.slug));
-        const guest = await GuestManager.addGuest({
+        const result = await GuestManager.addGuest({
             fullName,
             phone: document.getElementById("guest-phone").value.trim(),
             email: document.getElementById("guest-email").value.trim(),
@@ -312,26 +311,25 @@ window.addEventListener("DOMContentLoaded", async () => {
         e.target.reset();
         await GuestManager.loadGuests(true);
         await refreshAll();
-        if (!guest) {
+        if (!result || !result.guest) {
             showToast("Impossible d'ajouter cet invité.");
             return;
         }
-        const after = await GuestManager.loadGuests();
-        if (!after.some((g) => g.slug === guest.slug)) {
-            showToast("Erreur de synchronisation — vérifiez Supabase ou actualisez.");
+        if (result.duplicate) {
+            showToast(`Invité déjà présent : ${result.guest.fullName}`);
             return;
         }
-        if (beforeSlugs.has(guest.slug)) {
-            showToast(`Invité déjà présent : ${guest.fullName}`);
+        if (!result.cloudSynced && CloudAPI.isEnabled()) {
+            showToast(`Invité ajouté localement : ${result.guest.fullName} (cloud en attente)`);
             return;
         }
-        showToast(`Invité ajouté : ${guest.fullName}`);
+        showToast(`Invité ajouté : ${result.guest.fullName}`);
     });
 
     document.getElementById("edit-guest-form").addEventListener("submit", async (e) => {
         e.preventDefault();
         const id = document.getElementById("edit-guest-id").value;
-        const updated = await GuestManager.updateGuest(id, {
+        const result = await GuestManager.updateGuest(id, {
             fullName: document.getElementById("edit-guest-name").value.trim(),
             phone: document.getElementById("edit-guest-phone").value.trim(),
             email: document.getElementById("edit-guest-email").value.trim(),
@@ -344,16 +342,22 @@ window.addEventListener("DOMContentLoaded", async () => {
             tableNumber: document.getElementById("edit-guest-table").value.trim(),
             profilePhotoUrl: document.getElementById("edit-guest-profile-photo").value.trim()
         });
+        const updated = result?.guest || result;
         if (!updated) {
             showToast("Erreur : un autre invité porte déjà ce nom");
             return;
         }
         closeEditModal();
         await refreshAll();
+        if (result && result.cloudSynced === false && CloudAPI.isEnabled()) {
+            showToast("Modifications enregistrées localement (sync cloud en attente)");
+            return;
+        }
         showToast("Invité mis à jour");
     });
 
     document.getElementById("edit-cancel-btn").addEventListener("click", closeEditModal);
+    document.getElementById("edit-modal-close-btn")?.addEventListener("click", closeEditModal);
     document.getElementById("edit-guest-modal").addEventListener("click", (e) => {
         if (e.target.id === "edit-guest-modal") closeEditModal();
     });

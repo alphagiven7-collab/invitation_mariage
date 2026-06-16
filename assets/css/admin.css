@@ -383,42 +383,100 @@
 .admin-modal {
     width: 100%;
     max-width: 480px;
+    max-height: min(92vh, 680px);
     background: #fff;
     border-radius: 24px;
     box-shadow: 0 32px 64px rgba(15, 23, 42, 0.2);
     overflow: hidden;
     transform: translateY(16px) scale(0.98);
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    flex-direction: column;
 }
 .admin-modal-backdrop.open .admin-modal {
     transform: translateY(0) scale(1);
 }
 .admin-modal-header {
-    padding: 1.25rem 1.5rem;
+    padding: 1rem 1.25rem;
     background: linear-gradient(135deg, #eef2ff, #e0e7ff);
     border-bottom: 1px solid #c7d2fe;
+    flex-shrink: 0;
+}
+.admin-modal-header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+.admin-modal-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    border: 1px solid #c7d2fe;
+    background: rgba(255,255,255,0.85);
+    color: #4338ca;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
 }
 .admin-modal-header h3 {
     font-family: 'Playfair Display', serif;
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     margin: 0;
     color: #312e81;
 }
 .admin-modal-header p {
     margin: 0.25rem 0 0;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: #6366f1;
+    line-height: 1.35;
 }
 .admin-modal-body {
-    padding: 1.25rem 1.5rem;
+    padding: 1rem 1.25rem 0.5rem;
+    overflow-y: auto;
+    flex: 1 1 auto;
+    -webkit-overflow-scrolling: touch;
+}
+.admin-modal-section-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+}
+.admin-form-grid-compact {
+    gap: 0.65rem;
+    margin-bottom: 0.85rem;
+}
+.admin-modal-details {
+    margin-top: 0.25rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.65rem 0.75rem;
+    background: #f8fafc;
+}
+.admin-modal-details summary {
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #475569;
 }
 .admin-modal-footer {
     display: flex;
     gap: 0.5rem;
-    justify-content: flex-end;
-    padding: 1rem 1.5rem;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 1.25rem calc(0.85rem + env(safe-area-inset-bottom, 0px));
     background: #f8fafc;
     border-top: 1px solid #e2e8f0;
+    flex-shrink: 0;
+    box-shadow: 0 -6px 18px rgba(15, 23, 42, 0.06);
+}
+.admin-btn-save {
+    min-width: 148px;
+    font-weight: 700;
 }
 
 .admin-toolbar {

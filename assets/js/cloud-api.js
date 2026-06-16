@@ -154,52 +154,96 @@ const CloudAPI = (() => {
         localStorage.setItem(localKey(eventId, "guests"), JSON.stringify(guests));
     }
 
+    function restoreDeletedGuest(eventId, guest) {
+        if (!guest) return;
+        const list = getDeletedGuestsMeta(eventId).filter((entry) => {
+            if (guest.slug && entry.slug === guest.slug) return false;
+            if (guest.id && entry.id === guest.id) return false;
+            if (guest.token && entry.token === guest.token) return false;
+            return true;
+        });
+        localStorage.setItem(deletedGuestsKey(eventId), JSON.stringify(list));
+    }
+
+    function guestPayloadVariants(eventId, guest) {
+        const minimal = {
+            event_id: eventId,
+            slug: guest.slug,
+            full_name: guest.fullName,
+            phone: guest.phone || "",
+            email: guest.email || "",
+            group_name: guest.group || "",
+            token: guest.token,
+            status: guest.status || "pending",
+            adults: guest.adults || 1,
+            children: guest.children || 0,
+            rsvp_message: guest.rsvpMessage || "",
+            responded_at: guest.respondedAt || null
+        };
+        const withQr = { ...minimal, qr_approved: !!guest.qrApproved };
+        const withExtras = {
+            ...withQr,
+            access_code: guest.accessCode || null,
+            table_number: guest.tableNumber || null,
+            drink_choices: guest.drinkChoices && guest.drinkChoices.length
+                ? JSON.stringify(guest.drinkChoices)
+                : null,
+            profile_photo_url: guest.profilePhotoUrl || null
+        };
+        return [withExtras, withQr, minimal];
+    }
+
+    async function writeGuestRecord(method, query, payloads) {
+        for (const body of payloads) {
+            const result = await request("guests", {
+                method,
+                query,
+                body,
+                prefer: "return=representation"
+            });
+            const row = extractGuestRow(result);
+            if (row) return row;
+        }
+        return null;
+    }
+
     async function upsertGuest(eventId, guest) {
-        const fullPayload = mapGuestToCloud(eventId, guest);
-        const basePayload = mapGuestToCloudBase(eventId, guest);
+        let workingGuest = { ...guest };
         let cloudGuest = null;
 
         if (isEnabled()) {
+            const payloadsFor = () => guestPayloadVariants(eventId, workingGuest);
             const existing = await request("guests", {
-                query: `?event_id=eq.${eventId}&slug=eq.${encodeURIComponent(guest.slug)}&select=id`
+                query: `?event_id=eq.${eventId}&slug=eq.${encodeURIComponent(workingGuest.slug)}&select=id`
             });
+
             if (existing && existing.length) {
                 const cloudId = existing[0].id;
-                cloudGuest = extractGuestRow(await request("guests", {
-                    method: "PATCH",
-                    query: `?id=eq.${cloudId}`,
-                    body: fullPayload,
-                    prefer: "return=representation"
-                }));
-                if (!cloudGuest) {
-                    cloudGuest = extractGuestRow(await request("guests", {
-                        method: "PATCH",
-                        query: `?id=eq.${cloudId}`,
-                        body: basePayload,
-                        prefer: "return=representation"
-                    }));
-                }
+                cloudGuest = await writeGuestRecord("PATCH", `?id=eq.${cloudId}`, payloadsFor());
             } else {
-                cloudGuest = extractGuestRow(await request("guests", {
-                    method: "POST",
-                    body: fullPayload,
-                    prefer: "return=representation"
-                }));
+                cloudGuest = await writeGuestRecord("POST", "", payloadsFor());
                 if (!cloudGuest) {
-                    cloudGuest = extractGuestRow(await request("guests", {
-                        method: "POST",
-                        body: basePayload,
-                        prefer: "return=representation"
-                    }));
+                    workingGuest = { ...workingGuest, token: generateGuestToken() };
+                    cloudGuest = await writeGuestRecord("POST", "", payloadsFor());
                 }
             }
         }
 
-        const merged = cloudGuest ? mapGuestFromCloud(cloudGuest) : guest;
+        const merged = cloudGuest ? mapGuestFromCloud(cloudGuest) : workingGuest;
         const guests = readGuestsLocal(eventId).filter((g) => g.slug !== merged.slug);
         guests.unshift(merged);
         await saveGuestsLocal(eventId, guests);
-        return merged;
+        return {
+            guest: merged,
+            cloudSynced: !isEnabled() || !!cloudGuest
+        };
+    }
+
+    function generateGuestToken() {
+        if (window.crypto && crypto.randomUUID) {
+            return crypto.randomUUID().replace(/-/g, "").slice(0, 16);
+        }
+        return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-6);
     }
 
     async function syncAllGuests(eventId, guests) {
@@ -493,6 +537,7 @@ const CloudAPI = (() => {
         isEnabled,
         getGuests,
         saveGuestsLocal,
+        restoreDeletedGuest,
         upsertGuest,
         syncAllGuests,
         removeGuestCloud,

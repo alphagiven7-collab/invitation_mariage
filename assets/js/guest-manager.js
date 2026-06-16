@@ -16,12 +16,19 @@ const GuestManager = (() => {
     }
 
     function slugify(name) {
-        return (name || "")
+        const slug = (name || "")
             .normalize("NFD")
             .replace(/[\u0300-\u036f]/g, "")
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, "-")
             .replace(/(^-|-$)/g, "");
+        return slug;
+    }
+
+    function buildGuestSlug(fullName, token) {
+        const slug = slugify(fullName);
+        if (slug) return slug;
+        return `invite-${String(token || generateToken()).slice(0, 10)}`;
     }
 
     function generateToken() {
@@ -88,12 +95,20 @@ const GuestManager = (() => {
 
     async function addGuest({ fullName, phone = "", email = "", group = "" }) {
         const trimmedName = (fullName || "").trim();
-        if (trimmedName.length < 2) return null;
+        if (trimmedName.length < 2) return { guest: null, duplicate: false, cloudSynced: false };
+
         await loadGuests(true);
-        const guests = await loadGuests();
-        const slug = slugify(trimmedName);
+        const token = generateToken();
+        const slug = buildGuestSlug(trimmedName, token);
+        const guests = [...(await loadGuests())];
         const existing = guests.find((g) => g.slug === slug);
-        if (existing) return existing;
+        if (existing) {
+            return { guest: existing, duplicate: true, cloudSynced: true };
+        }
+
+        if (window.CloudAPI && CloudAPI.restoreDeletedGuest) {
+            CloudAPI.restoreDeletedGuest(getEventId(), { slug, token });
+        }
 
         const guest = {
             id: crypto.randomUUID(),
@@ -102,7 +117,7 @@ const GuestManager = (() => {
             phone: (phone || "").trim(),
             email: (email || "").trim(),
             group: (group || "").trim(),
-            token: generateToken(),
+            token,
             status: "pending",
             qrApproved: false,
             accessCode: "",
@@ -115,23 +130,28 @@ const GuestManager = (() => {
             respondedAt: null,
             createdAt: new Date().toISOString()
         };
+
         guests.push(guest);
         await persistGuests(guests);
 
         let saved = guest;
+        let cloudSynced = !(window.CloudAPI && CloudAPI.isEnabled());
         if (window.CloudAPI && CloudAPI.isEnabled()) {
             try {
-                saved = await CloudAPI.upsertGuest(getEventId(), guest) || guest;
+                const result = await CloudAPI.upsertGuest(getEventId(), guest);
+                saved = result?.guest || guest;
+                cloudSynced = !!result?.cloudSynced;
             } catch (e) {
                 console.warn("GuestManager.addGuest cloud sync", e);
+                cloudSynced = false;
             }
         }
 
         const idx = guests.findIndex((g) => g.slug === slug);
         if (idx >= 0) guests[idx] = saved;
-        cache = guests;
-        await persistGuests(guests);
-        return saved;
+        cache = null;
+        await loadGuests(true);
+        return { guest: saved, duplicate: false, cloudSynced };
     }
 
     async function findByToken(token) {
@@ -179,17 +199,22 @@ const GuestManager = (() => {
         guests[idx] = next;
         await persistGuests(guests);
         let saved = guests[idx];
+        let cloudSynced = !(window.CloudAPI && CloudAPI.isEnabled());
         if (window.CloudAPI && CloudAPI.isEnabled()) {
             try {
-                saved = await CloudAPI.upsertGuest(getEventId(), guests[idx]) || guests[idx];
+                const result = await CloudAPI.upsertGuest(getEventId(), guests[idx]);
+                saved = result?.guest || guests[idx];
+                cloudSynced = !!result?.cloudSynced;
             } catch (e) {
                 console.warn("GuestManager.updateGuest cloud sync", e);
+                cloudSynced = false;
             }
             guests[idx] = saved;
             await persistGuests(guests);
         }
-        cache = guests;
-        return saved;
+        cache = null;
+        await loadGuests(true);
+        return { guest: saved, cloudSynced };
     }
 
     async function recordRSVP({ guestId, fullName, phone, status, adults, children, message, drinkChoices, inviteToken }) {
@@ -200,7 +225,8 @@ const GuestManager = (() => {
             guest = guests.find((g) => g.fullName.toLowerCase() === fullName.toLowerCase());
         }
         if (!guest && fullName) {
-            guest = await addGuest({ fullName, phone });
+            const created = await addGuest({ fullName, phone });
+            guest = created?.guest || created;
         }
         if (!guest) return null;
 
@@ -270,7 +296,8 @@ const GuestManager = (() => {
         let skipped = 0;
         for (const row of rows) {
             const before = (await loadGuests()).length;
-            const g = await addGuest(row);
+            const created = await addGuest(row);
+            const g = created?.guest || created;
             const after = (await loadGuests()).length;
             if (after > before || g) imported++;
             else skipped++;

@@ -152,13 +152,19 @@
     <div id="edit-guest-modal" class="admin-modal-backdrop" aria-hidden="true">
         <div class="admin-modal" role="dialog" aria-labelledby="edit-modal-title">
             <div class="admin-modal-header">
-                <h3 id="edit-modal-title">Modifier l'invité</h3>
-                <p id="edit-modal-subtitle">Corrigez les informations avant envoi du lien</p>
+                <div class="admin-modal-header-row">
+                    <div>
+                        <h3 id="edit-modal-title">Modifier l'invité</h3>
+                        <p id="edit-modal-subtitle">Corrigez les informations avant envoi du lien</p>
+                    </div>
+                    <button type="button" id="edit-modal-close-btn" class="admin-modal-close" aria-label="Fermer">×</button>
+                </div>
             </div>
             <form id="edit-guest-form" class="admin-modal-body">
                 <input type="hidden" id="edit-guest-id">
-                <div class="admin-form-grid">
-                    <div class="admin-field" style="grid-column:1/-1">
+                <p class="admin-modal-section-label">Informations principales</p>
+                <div class="admin-form-grid admin-form-grid-compact">
+                    <div class="admin-field admin-field-full">
                         <label for="edit-guest-name">Nom complet *</label>
                         <input id="edit-guest-name" class="admin-input" required>
                     </div>
@@ -170,12 +176,15 @@
                         <label for="edit-guest-email">Email</label>
                         <input id="edit-guest-email" class="admin-input">
                     </div>
-                    <div class="admin-field">
+                    <div class="admin-field admin-field-full">
                         <label for="edit-guest-group">Groupe</label>
                         <input id="edit-guest-group" class="admin-input">
                     </div>
+                </div>
+                <p class="admin-modal-section-label">RSVP</p>
+                <div class="admin-form-grid admin-form-grid-compact">
                     <div class="admin-field">
-                        <label for="edit-guest-status">Statut RSVP</label>
+                        <label for="edit-guest-status">Statut</label>
                         <select id="edit-guest-status" class="admin-select">
                             <option value="pending">En attente</option>
                             <option value="yes">Confirmé</option>
@@ -190,41 +199,45 @@
                         <label for="edit-guest-children">Enfants</label>
                         <input id="edit-guest-children" type="number" min="0" class="admin-input" value="0">
                     </div>
-                    <div class="admin-field admin-field-full">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input id="edit-guest-qr-approved" type="checkbox" class="rounded border-slate-300">
-                            <span>Accès QR validé (invités sans lien personnel)</span>
-                        </label>
-                        <p class="text-xs text-slate-500 mt-1">Les invités avec lien personnel (?t=…) reçoivent le QR automatiquement. Cochez ici pour valider manuellement les autres.</p>
-                    </div>
-                    <div class="admin-field">
-                        <label for="edit-guest-access-code">Code d'accès (QR)</label>
-                        <input id="edit-guest-access-code" class="admin-input" placeholder="Ex: A7K9M2P1">
-                    </div>
-                    <div class="admin-field">
-                        <label for="edit-guest-table">Table réservée</label>
-                        <input id="edit-guest-table" class="admin-input" placeholder="Ex: Table 12 — Famille">
-                    </div>
-                    <div class="admin-field admin-field-full">
-                        <label for="edit-guest-profile-photo">Photo profil invité (URL, optionnel)</label>
-                        <input id="edit-guest-profile-photo" class="admin-input" placeholder="https://…">
-                    </div>
                 </div>
+                <details class="admin-modal-details">
+                    <summary>Options jour J (QR, table, photo)</summary>
+                    <div class="admin-form-grid admin-form-grid-compact mt-2">
+                        <div class="admin-field admin-field-full">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input id="edit-guest-qr-approved" type="checkbox" class="rounded border-slate-300">
+                                <span>Accès QR validé</span>
+                            </label>
+                        </div>
+                        <div class="admin-field">
+                            <label for="edit-guest-access-code">Code d'accès</label>
+                            <input id="edit-guest-access-code" class="admin-input" placeholder="A7K9M2P1">
+                        </div>
+                        <div class="admin-field">
+                            <label for="edit-guest-table">Table réservée</label>
+                            <input id="edit-guest-table" class="admin-input" placeholder="Table 12">
+                        </div>
+                        <div class="admin-field admin-field-full">
+                            <label for="edit-guest-profile-photo">Photo profil (URL)</label>
+                            <input id="edit-guest-profile-photo" class="admin-input" placeholder="https://…">
+                        </div>
+                    </div>
+                </details>
             </form>
             <div class="admin-modal-footer">
                 <button type="button" id="edit-cancel-btn" class="admin-btn admin-btn-ghost">Annuler</button>
-                <button type="submit" form="edit-guest-form" class="admin-btn admin-btn-success">Enregistrer</button>
+                <button type="submit" form="edit-guest-form" class="admin-btn admin-btn-success admin-btn-save">✓ Enregistrer</button>
             </div>
         </div>
     </div>
 
     <div id="toast" class="toast"></div>
 
-    <script src="../assets/js/supabase-config.js?v=22"></script>
-    <script src="../assets/js/event-config.js?v=22"></script>
-    <script src="../assets/js/cloud-api.js?v=22"></script>
-    <script src="../assets/js/auth.js?v=22"></script>
-    <script src="../assets/js/guest-manager.js?v=22"></script>
-    <script src="../assets/js/admin.js?v=22"></script>
+    <script src="../assets/js/supabase-config.js?v=23"></script>
+    <script src="../assets/js/event-config.js?v=23"></script>
+    <script src="../assets/js/cloud-api.js?v=23"></script>
+    <script src="../assets/js/auth.js?v=23"></script>
+    <script src="../assets/js/guest-manager.js?v=23"></script>
+    <script src="../assets/js/admin.js?v=23"></script>
 </body>
 </html>
