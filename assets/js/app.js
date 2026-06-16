@@ -1135,7 +1135,7 @@
             }
 
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('../sw.js?v=11').catch(() => {});
+                navigator.serviceWorker.register('../sw.js?v=12').catch(() => {});
             }
 
             defaultCustomizationState = getCurrentCustomizationState();
@@ -1151,7 +1151,11 @@
                     ? ContentBlocks.getDefaultsFromConfig(cfg)
                     : {};
                 try {
-                    dashboardState = await DashboardSync.load(EventConfig.getEventId(), defaults);
+                    dashboardState = await DashboardSync.load(
+                        EventConfig.getEventId(),
+                        defaults,
+                        { preferLocal: isPreviewMode }
+                    );
                     const hasLocalCursorImages = JSON.stringify(dashboardState).includes('file:///C:/Users/AL/.cursor');
                     if (hasLocalCursorImages) {
                         localStorage.removeItem(scopedDashboardKey);

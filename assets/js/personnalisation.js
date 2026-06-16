@@ -127,10 +127,13 @@ function updateCloudStatus(lastSave) {
         pill.className = "admin-cloud-pill offline";
         return;
     }
-    if (lastSave && lastSave.cloud) {
-        pill.textContent = "Sync cloud active";
-        pill.className = "admin-cloud-pill online";
-    } else if (lastSave && lastSave.cloud === false) {
+        if (lastSave && lastSave.cloud) {
+            pill.textContent = "Sync cloud active";
+            pill.className = "admin-cloud-pill online";
+        } else if (lastSave && lastSave.localOk === false) {
+            pill.textContent = "Stockage local plein — utilisez Sauvegarder";
+            pill.className = "admin-cloud-pill offline";
+        } else if (lastSave && lastSave.cloud === false) {
         pill.textContent = "Sauvé localement — sync cloud en attente";
         pill.className = "admin-cloud-pill offline";
     } else {
@@ -560,20 +563,49 @@ function wireMusicControls() {
 
 async function wireUploader(inputId, targetFieldId, previewId, multiple = false, max = 1) {
     const input = document.getElementById(inputId);
+    if (!input) return;
     input.addEventListener("change", async (e) => {
         const files = Array.from(e.target.files || []);
         if (!files.length) return;
-        const urls = await filesToDataUrls(multiple ? files.slice(0, max) : [files[0]]);
+        const eventId = getEventId();
         const field = document.getElementById(targetFieldId);
-        if (multiple) {
-            const existing = parseList(field.value, max);
-            field.value = [...existing, ...urls].slice(0, max).join(", ");
-            renderPreview(parseList(field.value, max));
-        } else {
-            field.value = urls[0];
-            if (previewId) renderSinglePreview(targetFieldId, previewId);
+
+        try {
+            if (window.ButtonLoading) {
+                ButtonLoading.setLoading(input.closest("label") || input, true, "Import…");
+            }
+            if (multiple) {
+                const urls = [];
+                for (const file of files.slice(0, max)) {
+                    const url = window.MediaUpload
+                        ? await MediaUpload.processFile(file, eventId, targetFieldId)
+                        : (await filesToDataUrls([file]))[0];
+                    urls.push(url);
+                }
+                const existing = parseList(field.value, max);
+                field.value = [...existing, ...urls].slice(0, max).join(", ");
+                renderPreview(parseList(field.value, max));
+            } else {
+                const url = window.MediaUpload
+                    ? await MediaUpload.processFile(files[0], eventId, targetFieldId)
+                    : (await filesToDataUrls([files[0]]))[0];
+                field.value = url;
+                if (previewId) renderSinglePreview(targetFieldId, previewId);
+            }
+            if (String(field.value).startsWith("http")) {
+                showToast("Photo importée et envoyée au cloud.");
+            } else {
+                showToast("Photo importée — cliquez Sauvegarder pour sync multi-appareils.");
+            }
+            schedulePreviewRefresh(300);
+        } catch (err) {
+            showToast(err.message || "Impossible d'importer cette photo.");
+        } finally {
+            if (window.ButtonLoading) {
+                ButtonLoading.setLoading(input.closest("label") || input, false);
+            }
+            e.target.value = "";
         }
-        e.target.value = "";
     });
 }
 
@@ -583,9 +615,13 @@ async function persistDashboard(payload, { cloudMessage = true } = {}) {
         const result = await DashboardSync.save(eventId, payload);
         updateCloudStatus(result);
         if (cloudMessage) {
-            showToast(result.cloud
-                ? "Sauvegardé localement et synchronisé cloud."
-                : "Sauvegardé localement (cloud hors ligne).");
+            if (result.cloud) {
+                showToast("Sauvegardé et synchronisé — visible sur tous vos appareils.");
+            } else if (result.localOk === false) {
+                showToast("Mémoire du navigateur saturée. Réessayez après Sauvegarder (upload cloud).");
+            } else {
+                showToast("Sauvegardé localement uniquement — ouvrez sur le même appareil ou vérifiez le cloud.");
+            }
         }
         return result;
     }

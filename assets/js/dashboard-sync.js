@@ -46,32 +46,54 @@ const DashboardSync = (() => {
     }
 
     function writeLocal(eventId, payload) {
-        const json = JSON.stringify(payload);
-        localStorage.setItem(scopedKey(eventId), json);
-        localStorage.setItem(LEGACY_KEY, json);
+        try {
+            const json = JSON.stringify(payload);
+            localStorage.setItem(scopedKey(eventId), json);
+            localStorage.setItem(LEGACY_KEY, json);
+            return true;
+        } catch (e) {
+            console.warn("DashboardSync: localStorage plein ou inaccessible", e);
+            return false;
+        }
     }
 
-    async function load(eventId, baseDefaults = {}) {
+    async function load(eventId, baseDefaults = {}, options = {}) {
+        const preferLocal = options.preferLocal === true;
         let cloud = null;
-        if (window.CloudAPI && CloudAPI.isEnabled()) {
+        if (window.CloudAPI && CloudAPI.isEnabled() && !preferLocal) {
             cloud = await CloudAPI.getEventSettings(eventId);
         }
         const local = readLocal(eventId);
+        if (preferLocal && local) {
+            return { ...(baseDefaults || {}), ...stripMeta(local), _savedAt: local._savedAt };
+        }
         return mergeStates(baseDefaults, cloud, local);
     }
 
     async function save(eventId, payload) {
+        let prepared = { ...(payload || {}) };
+        if (window.MediaUpload && MediaUpload.externalizeDashboardMedia) {
+            try {
+                prepared = await MediaUpload.externalizeDashboardMedia(prepared, eventId);
+            } catch (e) {
+                console.warn("DashboardSync: upload médias", e);
+            }
+        }
+
         const enriched = {
-            ...stripMeta(payload),
+            ...stripMeta(prepared),
             _savedAt: new Date().toISOString()
         };
-        writeLocal(eventId, enriched);
+        const localOk = writeLocal(eventId, enriched);
 
         let cloudResult = { cloud: false };
         if (window.CloudAPI && CloudAPI.isEnabled()) {
             cloudResult = await CloudAPI.saveEventSettings(eventId, enriched);
+            if (cloudResult.cloud && localOk) {
+                writeLocal(eventId, { ...enriched, _cloudUpdatedAt: cloudResult.updatedAt });
+            }
         }
-        return { saved: true, ...cloudResult };
+        return { saved: localOk || cloudResult.cloud, localOk, ...cloudResult };
     }
 
     /** Remplace Yanick/Keren (cache local ou cloud) par l'identité du JSON événement. */

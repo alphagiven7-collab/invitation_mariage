@@ -368,11 +368,13 @@ const CloudAPI = (() => {
         }
 
         if (!ok) {
+            const sizeKb = Math.round(JSON.stringify(clean).length / 1024);
             console.warn(
-                "CloudAPI: échec sauvegarde event_settings. Exécutez docs/SUPABASE-EVENT-SETTINGS.sql dans Supabase."
+                "CloudAPI: échec sauvegarde event_settings",
+                `(~${sizeKb} Ko). Vérifiez event_settings + bucket event-assets (docs/SUPABASE-STORAGE.sql).`
             );
         }
-        return { cloud: ok, updatedAt: now };
+        return { cloud: ok, updatedAt: now, sizeKb: Math.round(JSON.stringify(clean).length / 1024) };
     }
 
     function mapGuestFromCloud(row) {
