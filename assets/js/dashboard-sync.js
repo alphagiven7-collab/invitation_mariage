@@ -116,7 +116,7 @@ const DashboardSync = (() => {
 
     function readPreview(eventId) {
         try {
-            const raw = sessionStorage.getItem(previewKey(eventId));
+            const raw = localStorage.getItem(previewKey(eventId));
             return raw ? JSON.parse(raw) : null;
         } catch {
             return null;
@@ -137,9 +137,10 @@ const DashboardSync = (() => {
 
     function writePreview(eventId, payload) {
         try {
-            sessionStorage.setItem(previewKey(eventId), JSON.stringify(payload));
+            localStorage.setItem(previewKey(eventId), JSON.stringify(payload));
             return true;
         } catch (e) {
+            console.warn("DashboardSync: impossible d'écrire l'aperçu", e);
             return false;
         }
     }

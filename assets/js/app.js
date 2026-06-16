@@ -759,6 +759,32 @@
             if (window.BackgroundMusic) BackgroundMusic.apply(state);
         }
 
+        async function applyPreviewDashboardState(state) {
+            if (!state) return;
+            const cfg = window.EventConfig && EventConfig.getConfig ? EventConfig.getConfig() : null;
+            const defaults = window.ContentBlocks ? ContentBlocks.getDefaultsFromConfig(cfg) : {};
+            const merged = { ...defaults, ...state };
+            applyCustomizationState(merged);
+            if (window.ContentBlocks) ContentBlocks.apply(merged);
+            if (window.EventCountdown && merged.countdownDate) {
+                const parsed = new Date(merged.countdownDate).getTime();
+                if (!Number.isNaN(parsed)) {
+                    EventCountdown.setTarget(parsed);
+                    EventCountdown.applyDateToUI(merged.countdownDate);
+                    EventCountdown.tick();
+                }
+            }
+            if (window.BackgroundMusic) BackgroundMusic.apply(merged);
+            const params = new URLSearchParams(window.location.search);
+            if (params.get("preview") === "1") {
+                const main = document.getElementById("main-view");
+                const gate = document.getElementById("welcome-gate");
+                if (main && gate && main.classList.contains("hidden")) {
+                    openMainSite(null, { skipLoader: true });
+                }
+            }
+        }
+
         function openCustomizer() {
             if (!isDesignerMode) return showToast('Acces reserve au concepteur');
             const q = window.EventConfig && EventConfig.preserveEventQuery
@@ -1255,8 +1281,16 @@
                 CloudAPI.track(EventConfig.getEventId(), 'page_view', {});
             }
 
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('../sw.js?v=15').catch(() => {});
+            if ('serviceWorker' in navigator && !isPreviewMode) {
+                navigator.serviceWorker.register('../sw.js?v=16').catch(() => {});
+            }
+
+            if (isPreviewMode) {
+                window.addEventListener('message', (event) => {
+                    if (event.origin !== window.location.origin) return;
+                    if (!event.data || event.data.type !== 'WEDDING_PREVIEW_STATE') return;
+                    applyPreviewDashboardState(event.data.payload).catch(() => {});
+                });
             }
 
             defaultCustomizationState = getCurrentCustomizationState();
@@ -1378,6 +1412,7 @@
 
         // Garantit l'accès depuis les attributs onclick du HTML
         window.enterExperience = enterExperience;
+        window.applyPreviewDashboardState = applyPreviewDashboardState;
         window.openMainSite = openMainSite;
         window.openModal = openModal;
         window.closeModal = closeModal;

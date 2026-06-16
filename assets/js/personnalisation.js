@@ -680,7 +680,7 @@ async function persistDashboard(payload, { cloudMessage = true } = {}) {
     return { saved: true, cloud: false };
 }
 
-function refreshLivePreview() {
+function refreshLivePreview(forceReload = false) {
     if (previewPaused) return;
     const payload = toDashboardPayload(readFormState());
     const eventId = getEventId();
@@ -692,8 +692,36 @@ function refreshLivePreview() {
 
     const iframe = document.getElementById("live-preview");
     if (!iframe) return;
+
+    const postPreview = () => {
+        try {
+            iframe.contentWindow?.postMessage(
+                { type: "WEDDING_PREVIEW_STATE", payload: enriched },
+                window.location.origin
+            );
+            if (iframe.contentWindow?.applyPreviewDashboardState) {
+                iframe.contentWindow.applyPreviewDashboardState(enriched);
+            }
+        } catch (e) {
+            /* iframe pas prête */
+        }
+    };
+
     const qs = new URLSearchParams({ event: eventId, preview: "1", _: String(Date.now()) });
-    iframe.src = `./invitation.html?${qs.toString()}`;
+    const nextSrc = `./invitation.html?${qs.toString()}`;
+
+    const sameBase = iframe.src && iframe.src.includes("invitation.html") && iframe.src.includes("preview=1");
+    if (!forceReload && sameBase && iframe.dataset.previewReady === "1") {
+        postPreview();
+        return;
+    }
+
+    iframe.onload = () => {
+        iframe.dataset.previewReady = "1";
+        setTimeout(postPreview, 250);
+        setTimeout(postPreview, 800);
+    };
+    iframe.src = nextSrc;
 }
 
 function schedulePreviewRefresh(delay = 700) {
@@ -760,7 +788,7 @@ async function saveSettings(e) {
                 bestPhotos: state.bestPhotos
             });
         }
-        refreshLivePreview();
+        refreshLivePreview(true);
     };
 
     if (window.ButtonLoading && saveBtn) {
