@@ -1,2 +1,6 @@
 # Ne jamais committer le mot de passe DB Supabase
 # supabase-config.js peut être commité (clé anon publique + RLS)
+
+node_modules/
+tools/tailwindcss.exe
+tools/tailwindcss-windows-x64.exe
