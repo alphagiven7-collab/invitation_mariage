@@ -1,8 +1,8 @@
 # Scripts WhatsApp — prospection & vente
 
-> Copier-coller et personnaliser. Remplacer `[Prénom]`, `[Date]`, `[Lien démo]`.  
-> Lien démo : https://alphagiven7-collab.github.io/invitation_mariage/pages/invitation.html?event=yanick-keren  
-> Page offres : https://alphagiven7-collab.github.io/invitation_mariage/pages/offres.html
+> Copier-coller et personnaliser. Contact WhatsApp : **+243 845 370 370** · Marque **Your Best Day**  
+> Démo : https://alphagiven7-collab.github.io/invitation_mariage/pages/invitation.html?event=yanick-keren  
+> Offres : https://alphagiven7-collab.github.io/invitation_mariage/pages/offres.html
 
 ---
 

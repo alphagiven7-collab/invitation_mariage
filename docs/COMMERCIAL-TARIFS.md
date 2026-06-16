@@ -1,4 +1,4 @@
-# Grille tarifaire — Invite Premium
+# Grille tarifaire — Your Best Day
 
 > Document interne & commercial — juin 2026  
 > Page publique : `/pages/offres.html`
