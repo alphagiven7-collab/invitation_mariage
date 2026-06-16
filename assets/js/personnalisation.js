@@ -40,9 +40,7 @@ function getConfigDefaults() {
     const blocks = window.ContentBlocks ? ContentBlocks.getDefaultsFromConfig(cfg) : {};
     return {
         program: blocks.program || ContentBlocks?.DEFAULT_PROGRAM || [],
-,
         practicalInfo: blocks.practicalInfo || ContentBlocks?.DEFAULT_PRACTICAL || [],
-,
         programSectionTitle: cfg?.programSectionTitle || "Programme de la journée",
         practicalSectionTitle: cfg?.practicalSectionTitle || "Informations pratiques",
         venueTitle: blocks.venueTitle || "",
@@ -51,10 +49,10 @@ function getConfigDefaults() {
         venueLng: blocks.venueLng || "",
         mapLink: blocks.mapLink || cfg?.links?.map || "",
         mapImage: blocks.mapImage || "",
-        title: cfg?.title || "Mariage de Yanick et Keren",
-        subtitle: cfg?.subtitle || "Yanick et Keren",
-        coupleLeft: "Keren",
-        coupleRight: "Yanick",
+        title: cfg?.title || "Mariage de Josue et Divine",
+        subtitle: cfg?.subtitle || "Josue et Divine",
+        coupleLeft: cfg?.coupleLeft || "Divine",
+        coupleRight: cfg?.coupleRight || "Josue",
         backgroundMusicUrl: cfg?.ambiance?.musicUrl || cfg?.backgroundMusicUrl || "",
         backgroundMusicVolume: cfg?.ambiance?.volume ?? 0.35,
         backgroundMusicEnabled: cfg?.ambiance?.enabled !== false
@@ -62,10 +60,10 @@ function getConfigDefaults() {
 }
 
 const DEFAULT_STATE = {
-    title: "Mariage de Yanick et Keren",
-    subtitle: "Yanick et Keren",
-    coupleLeft: "Keren",
-    coupleRight: "Yanick",
+    title: "Mariage de Josue et Divine",
+    subtitle: "Josue et Divine",
+    coupleLeft: "Divine",
+    coupleRight: "Josue",
     mainText: "La cérémonie, suivie d'une réception, se tiendra le jeudi 30 avril 2026 à partir de 19h30.",
     welcomeImage: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
     heroImage: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=80",
@@ -157,9 +155,22 @@ async function loadStateFromSync() {
     const cfgDefaults = getConfigDefaults();
     const base = { ...DEFAULT_STATE, ...cfgDefaults };
     const eventId = getEventId();
+    const cfg = window.EventConfig && EventConfig.getConfig ? EventConfig.getConfig() : null;
 
     if (window.DashboardSync) {
-        return DashboardSync.load(eventId, base);
+        let state = await DashboardSync.load(eventId, base);
+        if (DashboardSync.syncIdentityFromConfig && cfg) {
+            const sync = DashboardSync.syncIdentityFromConfig(state, cfg);
+            state = sync.state;
+            if (sync.changed) {
+                try {
+                    await DashboardSync.save(eventId, state);
+                } catch {
+                    /* ignore */
+                }
+            }
+        }
+        return state;
     }
     return loadStateLocalOnly();
 }

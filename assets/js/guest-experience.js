@@ -27,7 +27,7 @@ const GuestExperience = (() => {
 
     function getCoupleLabel() {
         const cfg = window.EventConfig && EventConfig.getConfig && EventConfig.getConfig();
-        return (cfg && cfg.subtitle) ? cfg.subtitle : "Yanick & Keren";
+        return (cfg && cfg.subtitle) ? cfg.subtitle : "Josue & Divine";
     }
 
     function showToast(msg) {
@@ -228,7 +228,7 @@ const GuestExperience = (() => {
     function showConfirmation(payload, code) {
         const isYes = payload.status === "yes";
         const cfg = window.EventConfig && EventConfig.getConfig && EventConfig.getConfig();
-        const eventTitle = (cfg && cfg.title) ? cfg.title : "Mariage de Yanick et Keren";
+        const eventTitle = (cfg && cfg.title) ? cfg.title : "Mariage de Josue et Divine";
 
         document.getElementById("confirm-title").textContent = isYes
             ? "Présence confirmée avec joie"

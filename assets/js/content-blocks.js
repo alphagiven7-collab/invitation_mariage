@@ -219,6 +219,10 @@ const ContentBlocks = (() => {
         }
         if (cfg.program) out.program = cfg.program;
         if (cfg.practicalInfo) out.practicalInfo = cfg.practicalInfo;
+        if (cfg.title) out.title = cfg.title;
+        if (cfg.subtitle) out.subtitle = cfg.subtitle;
+        if (cfg.coupleLeft) out.coupleLeft = cfg.coupleLeft;
+        if (cfg.coupleRight) out.coupleRight = cfg.coupleRight;
         return out;
     }
 

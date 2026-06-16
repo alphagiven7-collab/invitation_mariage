@@ -96,7 +96,7 @@
             document.getElementById('gate-personal-container').classList.remove('hidden');
 
             const cfg = EventConfig.getConfig && EventConfig.getConfig();
-            const couple = (cfg && cfg.subtitle) ? cfg.subtitle : 'Yanick & Keren';
+            const couple = (cfg && cfg.subtitle) ? cfg.subtitle : 'Josue & Divine';
             const firstName = (guest.fullName || '').split(' ')[0];
 
             document.getElementById('gate-personal-greeting').textContent = `Cher/Chère ${guest.fullName}`;
@@ -114,7 +114,7 @@
 
         function showRsvpConfirmation(payload, confirmCode) {
             const cfg = EventConfig.getConfig && EventConfig.getConfig();
-            const eventTitle = (cfg && cfg.title) ? cfg.title : 'Mariage de Yanick et Keren';
+            const eventTitle = (cfg && cfg.title) ? cfg.title : 'Mariage de Josue et Divine';
             const isYes = payload.status === 'yes';
 
             document.getElementById('confirm-title').textContent = isYes
@@ -491,8 +491,30 @@
             return { left: s, right: "" };
         }
 
+        async function syncAndApplyDashboardState(dashboardState, eventId, cfg) {
+            if (window.DashboardSync && DashboardSync.syncIdentityFromConfig) {
+                const sync = DashboardSync.syncIdentityFromConfig(dashboardState, cfg);
+                dashboardState = sync.state;
+                if (sync.changed && eventId) {
+                    try {
+                        await DashboardSync.save(eventId, dashboardState);
+                    } catch {
+                        /* local save best-effort */
+                    }
+                }
+            } else if (dashboardState) {
+                dashboardState = enrichDashboardCoupleNames(dashboardState);
+            }
+            if (dashboardState) applyCustomizationState(dashboardState);
+            return dashboardState;
+        }
+
         function enrichDashboardCoupleNames(state) {
             if (!state) return state;
+            const cfg = window.EventConfig && EventConfig.getConfig ? EventConfig.getConfig() : null;
+            if (window.DashboardSync && DashboardSync.syncIdentityFromConfig && cfg) {
+                return DashboardSync.syncIdentityFromConfig(state, cfg).state;
+            }
             if ((!state.coupleLeft || !state.coupleRight) && state.subtitle) {
                 const p = parseCoupleFromSubtitle(state.subtitle);
                 if (!state.coupleLeft) state.coupleLeft = p.left;
@@ -581,13 +603,13 @@
             const mapUrl = normalizeUrl(state.mapLink || 'https://maps.google.com/?q=Sultani+River+Kinshasa');
             const siteUrl = normalizeUrl(state.siteUrl || window.location.href);
             const shareImage = normalizeUrl(state.shareImage || document.getElementById('about-cover-image').src);
-            const description = state.metaDescription || 'Invitation officielle au mariage de Yanick et Keren.';
-            const supportEmail = (state.supportEmail || 'weddingplanner@yanick-keren.com').trim();
+            const description = state.metaDescription || 'Invitation officielle au mariage de Josue et Divine.';
+            const supportEmail = (state.supportEmail || 'contact@josue-divine.com').trim();
 
             document.getElementById('donation-btn').dataset.link = donationUrl;
             document.getElementById('rsvp-form').dataset.externalLink = normalizeUrl(state.rsvpLink || '');
             document.getElementById('venue-map-link').href = mapUrl;
-            document.getElementById('support-email-link').href = `mailto:${supportEmail}?subject=Contact%20Mariage%20Yanick%20Keren`;
+            document.getElementById('support-email-link').href = `mailto:${supportEmail}?subject=Contact%20Mariage%20Josue%20Divine`;
 
             document.getElementById('meta-description').content = description;
             document.getElementById('meta-og-title').content = document.getElementById('hero-title').textContent.trim();
@@ -789,7 +811,11 @@
         }
 
         function startQuiz() {
-            const answer = window.prompt('Quiz: Qui est le plus romantique ? (Yanick/Keren)');
+            const cfg = EventConfig.getConfig && EventConfig.getConfig();
+            const quizNames = (cfg && cfg.subtitle)
+                ? cfg.subtitle.replace(/\s+et\s+/i, '/').replace(/\s*&\s*/i, '/')
+                : 'Josue/Divine';
+            const answer = window.prompt(`Quiz: Qui est le plus romantique ? (${quizNames})`);
             if (!answer) return;
             showToast('Merci pour votre reponse: ' + answer);
         }
@@ -1036,7 +1062,7 @@
             }
 
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('../sw.js?v=5').catch(() => {});
+                navigator.serviceWorker.register('../sw.js?v=10').catch(() => {});
             }
 
             defaultCustomizationState = getCurrentCustomizationState();
@@ -1059,9 +1085,12 @@
                         localStorage.removeItem(dashboardStateKey);
                         dashboardState = await DashboardSync.load(EventConfig.getEventId(), defaults);
                     }
-                    dashboardState = enrichDashboardCoupleNames(dashboardState);
                     if (!hasLocalCursorImages && dashboardState) {
-                        applyCustomizationState(dashboardState);
+                        dashboardState = await syncAndApplyDashboardState(
+                            dashboardState,
+                            EventConfig.getEventId(),
+                            cfg
+                        );
                     }
                 } catch (e) {
                     dashboardState = null;
@@ -1077,8 +1106,12 @@
                             localStorage.removeItem(dashboardStateKey);
                             dashboardState = null;
                         } else {
-                            dashboardState = enrichDashboardCoupleNames(dashboardState);
-                            applyCustomizationState(dashboardState);
+                            const cfg = EventConfig.getConfig && EventConfig.getConfig();
+                            dashboardState = await syncAndApplyDashboardState(
+                                dashboardState,
+                                EventConfig.getEventId ? EventConfig.getEventId() : null,
+                                cfg
+                            );
                         }
                     } catch (e) {}
                 }

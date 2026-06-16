@@ -35,6 +35,20 @@ const EventConfig = (() => {
         return res.json();
     }
 
+    function sanitizeLegacyIdentityOverrides(partial, base) {
+        if (!partial || !base) return partial;
+        const blob = JSON.stringify(partial);
+        if (!/yanick|keren/i.test(blob)) return partial;
+        const out = { ...partial };
+        ["title", "subtitle", "coupleLeft", "coupleRight"].forEach((key) => {
+            if (/yanick|keren/i.test(String(out[key] || ""))) {
+                if (base[key]) out[key] = base[key];
+                else delete out[key];
+            }
+        });
+        return out;
+    }
+
     async function init() {
         if (ready && config) return config;
         eventId = getEventId();
@@ -48,7 +62,12 @@ const EventConfig = (() => {
         const overridesRaw = localStorage.getItem(storageKey("settings"));
         if (overridesRaw) {
             try {
-                config = deepMerge(config, JSON.parse(overridesRaw));
+                const parsed = sanitizeLegacyIdentityOverrides(JSON.parse(overridesRaw), config);
+                const original = JSON.parse(overridesRaw);
+                config = deepMerge(config, parsed);
+                if (JSON.stringify(parsed) !== JSON.stringify(original)) {
+                    localStorage.setItem(storageKey("settings"), JSON.stringify(parsed));
+                }
             } catch {
                 /* ignore invalid JSON */
             }
@@ -82,10 +101,21 @@ const EventConfig = (() => {
         setText("hero-title", config.title);
         setText("hero-subtitle", config.subtitle);
         setText("venue-title", config.venue);
+        setText("couple-name-left", config.coupleLeft);
+        setText("couple-name-right", config.coupleRight);
 
-        const gateTitle = document.querySelector("#welcome-gate h1");
-        if (gateTitle && config.subtitle) {
-            gateTitle.textContent = config.subtitle.replace(/\s+et\s+/i, " & ");
+        const coupleDisplay = document.getElementById("invite-couple-display");
+        if (coupleDisplay) {
+            if (config.coupleLeft || config.coupleRight) {
+                coupleDisplay.textContent = [config.coupleLeft, config.coupleRight].filter(Boolean).join(" et ");
+            } else if (config.subtitle) {
+                coupleDisplay.textContent = config.subtitle;
+            }
+        }
+
+        const welcomeGateTitle = document.getElementById("welcome-gate-title");
+        if (welcomeGateTitle && config.subtitle) {
+            welcomeGateTitle.textContent = config.subtitle.replace(/\s+et\s+/i, " & ");
         }
 
         const welcomeMsg = document.querySelector("#welcome-gate .text-gray-500");

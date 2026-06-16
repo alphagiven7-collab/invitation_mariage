@@ -15,8 +15,8 @@ const WeddingDB = (() => {
 
     const defaults = {
         settings: {
-            title: "Mariage de Yanick et Keren",
-            subtitle: "Yanick et Keren",
+            title: "Mariage de Josue et Divine",
+            subtitle: "Josue et Divine",
             message: "Merci de célébrer ce moment précieux avec nous.",
             primaryColor: "#4caf50",
             accentColor: "#ec4899",

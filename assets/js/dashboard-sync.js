@@ -74,6 +74,57 @@ const DashboardSync = (() => {
         return { saved: true, ...cloudResult };
     }
 
+    /** Remplace Yanick/Keren (cache local ou cloud) par l'identité du JSON événement. */
+    function syncIdentityFromConfig(state, cfg) {
+        if (!cfg) return { state: state || {}, changed: false };
+
+        const next = state ? { ...state } : {};
+        let changed = false;
+        const rev = cfg.identityRevision || 1;
+        const stateRev = next._identityRevision || 0;
+        const identityBlob = [next.title, next.subtitle, next.coupleLeft, next.coupleRight].join(" ");
+        const hasLegacy = /yanick|keren/i.test(identityBlob);
+
+        if (hasLegacy || stateRev < rev) {
+            if (cfg.title && next.title !== cfg.title) {
+                next.title = cfg.title;
+                changed = true;
+            }
+            if (cfg.subtitle && next.subtitle !== cfg.subtitle) {
+                next.subtitle = cfg.subtitle;
+                changed = true;
+            }
+            if (cfg.coupleLeft && next.coupleLeft !== cfg.coupleLeft) {
+                next.coupleLeft = cfg.coupleLeft;
+                changed = true;
+            }
+            if (cfg.coupleRight && next.coupleRight !== cfg.coupleRight) {
+                next.coupleRight = cfg.coupleRight;
+                changed = true;
+            }
+            if (next._identityRevision !== rev) {
+                next._identityRevision = rev;
+                changed = true;
+            }
+        }
+
+        if ((!next.coupleLeft || !next.coupleRight) && next.subtitle) {
+            const m = next.subtitle.match(/^(.+?)\s+(?:et|&|\+)\s+(.+)$/i);
+            if (m) {
+                if (!next.coupleLeft) {
+                    next.coupleLeft = m[1].trim();
+                    changed = true;
+                }
+                if (!next.coupleRight) {
+                    next.coupleRight = m[2].trim();
+                    changed = true;
+                }
+            }
+        }
+
+        return { state: next, changed };
+    }
+
     return {
         LEGACY_KEY,
         scopedKey,
@@ -82,7 +133,8 @@ const DashboardSync = (() => {
         writeLocal,
         load,
         save,
-        stripMeta
+        stripMeta,
+        syncIdentityFromConfig
     };
 })();
 
