@@ -161,6 +161,32 @@ const GuestExperience = (() => {
         return true;
     }
 
+    async function tryRestoreConfirmation() {
+        if (!window.GuestManager) return;
+        const token = (getParams().get("t") || "").trim();
+        let guest = null;
+        let saved = null;
+
+        if (token) {
+            try { guest = await GuestManager.findByToken(token); } catch (e) {}
+            saved = localStorage.getItem(`wedding_confirm_${token}`);
+        } else {
+            const name = (localStorage.getItem("wedding_guest_name_simple") || "").trim();
+            if (name) {
+                try { guest = await GuestManager.findByName(name); } catch (e) {}
+                saved = localStorage.getItem(`wedding_confirm_name_${slugify(name)}`);
+            }
+        }
+
+        if (!saved || !guest || guest.status !== "yes") return;
+        try {
+            const data = JSON.parse(saved);
+            if (canShowQrCode(guest, data.payload)) {
+                setTimeout(() => showConfirmation(data.payload, data.code, guest), 800);
+            }
+        } catch (e) {}
+    }
+
     async function initAsync() {
         if (initDone) return !!profile;
         initDone = true;
@@ -182,8 +208,10 @@ const GuestExperience = (() => {
                     CloudAPI.track(getEventId(), "guest_link_open", { guestToken: token });
                 } catch (e) {}
             }
+            await tryRestoreConfirmation();
             return true;
         }
+        await tryRestoreConfirmation();
         return false;
     }
 
@@ -211,6 +239,31 @@ const GuestExperience = (() => {
         return `YK26-${tok}-${Date.now().toString(36).slice(-4).toUpperCase()}`;
     }
 
+    function hasPersonalInviteToken(guest) {
+        const token = (getParams().get("t") || "").trim();
+        if (!token) return false;
+        const g = guest || profile;
+        return !!(g && g.token && g.token === token);
+    }
+
+    function canShowQrCode(guest, payload) {
+        if (!payload || payload.status !== "yes") return false;
+        if (hasPersonalInviteToken(guest)) return true;
+        const g = guest || profile;
+        return !!(g && g.qrApproved);
+    }
+
+    function saveConfirmationCache(payload, code) {
+        const token = (getParams().get("t") || "").trim();
+        const data = JSON.stringify({ payload, code });
+        if (token) {
+            localStorage.setItem(`wedding_confirm_${token}`, data);
+        }
+        if (payload.name) {
+            localStorage.setItem(`wedding_confirm_name_${slugify(payload.name)}`, data);
+        }
+    }
+
     function setQrImage(data) {
         const img = document.getElementById("rsvp-qr-image");
         if (!img) return;
@@ -225,34 +278,66 @@ const GuestExperience = (() => {
         }
     }
 
-    function showConfirmation(payload, code) {
+    function showConfirmation(payload, code, guest) {
+        const resolvedGuest = guest || profile;
         const isYes = payload.status === "yes";
+        const showQr = canShowQrCode(resolvedGuest, payload);
         const cfg = window.EventConfig && EventConfig.getConfig && EventConfig.getConfig();
         const eventTitle = (cfg && cfg.title) ? cfg.title : "Mariage de Josue et Divine";
 
         document.getElementById("confirm-title").textContent = isYes
-            ? "Présence confirmée avec joie"
+            ? (showQr ? "Présence confirmée avec joie" : "Demande enregistrée")
             : "Réponse enregistrée avec gratitude";
         document.getElementById("confirm-subtitle").textContent = isYes
-            ? "Nous avons hâte de vous accueillir"
+            ? (showQr ? "Nous avons hâte de vous accueillir" : "En attente de validation par les mariés")
             : "Merci d'avoir pris le temps de répondre";
         document.getElementById("confirm-guest-line").textContent = payload.name;
         document.getElementById("confirm-detail-line").textContent = isYes
             ? `${eventTitle} · ${payload.adults} adulte(s) · ${payload.children} enfant(s)`
             : "Vous avez indiqué ne pas pouvoir être présent(e).";
-        document.getElementById("confirm-code-line").textContent = code;
 
-        const qrData = JSON.stringify({
-            code,
-            event: getEventId(),
-            name: payload.name,
-            phone: payload.phone,
-            status: payload.status,
-            adults: payload.adults,
-            children: payload.children,
-            confirmedAt: payload.sentAt
-        });
-        setQrImage(qrData);
+        const qrWrap = document.getElementById("confirm-qr-wrap");
+        const pendingWrap = document.getElementById("confirm-pending-wrap");
+        const codeLine = document.getElementById("confirm-code-line");
+        const qrHint = document.getElementById("confirm-qr-hint");
+
+        if (showQr) {
+            document.getElementById("confirm-code-line").textContent = code;
+            const qrData = JSON.stringify({
+                code,
+                event: getEventId(),
+                name: payload.name,
+                phone: payload.phone,
+                status: payload.status,
+                adults: payload.adults,
+                children: payload.children,
+                confirmedAt: payload.sentAt,
+                personal: hasPersonalInviteToken(resolvedGuest)
+            });
+            setQrImage(qrData);
+            if (qrWrap) qrWrap.classList.remove("hidden");
+            if (pendingWrap) pendingWrap.classList.add("hidden");
+            if (codeLine) codeLine.classList.remove("hidden");
+            if (qrHint) {
+                qrHint.textContent = "Présentez ce QR code le jour J pour un accueil rapide.";
+                qrHint.classList.remove("hidden");
+            }
+        } else if (isYes) {
+            if (qrWrap) qrWrap.classList.add("hidden");
+            if (pendingWrap) pendingWrap.classList.remove("hidden");
+            if (codeLine) codeLine.classList.add("hidden");
+            if (qrHint) qrHint.classList.add("hidden");
+            const pendingText = document.getElementById("confirm-pending-text");
+            if (pendingText) {
+                pendingText.textContent =
+                    "Votre présence est enregistrée. Le QR code d'accès vous sera délivré une fois que les mariés auront confirmé votre invitation.";
+            }
+        } else {
+            if (qrWrap) qrWrap.classList.add("hidden");
+            if (pendingWrap) pendingWrap.classList.add("hidden");
+            if (codeLine) codeLine.classList.add("hidden");
+            if (qrHint) qrHint.classList.add("hidden");
+        }
 
         const modal = document.getElementById("rsvp-confirmation-modal");
         if (typeof window.openModal === "function") {
@@ -296,6 +381,7 @@ const GuestExperience = (() => {
             localStorage.setItem("wedding_rsvp_data", JSON.stringify(payload));
             localStorage.setItem("wedding_rsvp_status", payload.status);
 
+            let updatedGuest = null;
             if (window.GuestManager) {
                 const token = getParams().get("t");
                 let guestByToken = null;
@@ -303,16 +389,20 @@ const GuestExperience = (() => {
                     try { guestByToken = await GuestManager.findByToken(token); } catch (e) {}
                 }
                 try {
-                    await GuestManager.recordRSVP({
+                    updatedGuest = await GuestManager.recordRSVP({
                         guestId: guestByToken ? guestByToken.id : null,
                         fullName: payload.name,
                         phone: payload.phone,
                         status: payload.status,
                         adults: payload.adults,
                         children: payload.children,
-                        message: payload.message
+                        message: payload.message,
+                        inviteToken: token || ""
                     });
                 } catch (e) {}
+                if (!updatedGuest && payload.name) {
+                    try { updatedGuest = await GuestManager.findByName(payload.name); } catch (e) {}
+                }
             }
 
             if (window.CloudAPI && EventConfig && EventConfig.isReady && EventConfig.isReady()) {
@@ -327,13 +417,11 @@ const GuestExperience = (() => {
                 document.getElementById("rsvp-modal")?.classList.add("hidden");
             }
 
-            const confirmCode = buildConfirmCode(profile, payload);
-            const token = getParams().get("t");
-            if (token) {
-                localStorage.setItem(`wedding_confirm_${token}`, JSON.stringify({ payload, code: confirmCode }));
-            }
+            const confirmCode = buildConfirmCode(updatedGuest || profile, payload);
+            saveConfirmationCache(payload, confirmCode);
+            if (updatedGuest) profile = updatedGuest;
 
-            showConfirmation(payload, confirmCode);
+            showConfirmation(payload, confirmCode, updatedGuest || profile);
         };
 
         if (window.ButtonLoading && submitBtn) {
@@ -374,7 +462,9 @@ const GuestExperience = (() => {
         openRsvp,
         submitRsvp,
         buildConfirmCode,
-        showConfirmation
+        showConfirmation,
+        canShowQrCode,
+        hasPersonalInviteToken
     };
 })();
 

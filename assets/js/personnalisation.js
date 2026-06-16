@@ -65,6 +65,10 @@ function getConfigDefaults() {
         aboutStory2: cfg?.aboutStory2 || "",
         aboutImage: cfg?.branding?.aboutImage || "",
         donationLink: cfg?.links?.donation || "",
+        whatsappDonationPhone: cfg?.links?.whatsappDonation || cfg?.whatsappDonationPhone || "",
+        donationWhatsAppMessage: cfg?.links?.donationWhatsAppMessage || "",
+        dressCodeTitle: cfg?.dressCodeTitle || "Tenue élégante",
+        dressImages: cfg?.dressImages || [],
         supportEmail: cfg?.links?.supportEmail || "",
         rsvpLink: cfg?.links?.rsvp || "",
         metaDescription: cfg?.metaDescription || cfg?.title || "",
@@ -101,6 +105,10 @@ const DEFAULT_STATE = {
     aboutStory2: "",
     aboutImage: "",
     donationLink: "https://www.paypal.com",
+    whatsappDonationPhone: "",
+    donationWhatsAppMessage: "Bonjour {couple}, je souhaite vous faire un don pour votre mariage. Merci de me communiquer les modalités.",
+    dressCodeTitle: "Tenue élégante",
+    dressImages: [],
     supportEmail: "contact@josue-divine.com",
     rsvpLink: "",
     metaDescription: "Invitation officielle au mariage de Josue et Divine.",
@@ -263,6 +271,10 @@ function readFormState() {
         aboutStory2: document.getElementById("aboutStory2").value.trim(),
         aboutImage: document.getElementById("aboutImage").value.trim(),
         donationLink: document.getElementById("donationLink").value.trim(),
+        whatsappDonationPhone: document.getElementById("whatsappDonationPhone").value.trim(),
+        donationWhatsAppMessage: document.getElementById("donationWhatsAppMessage").value.trim(),
+        dressCodeTitle: document.getElementById("dressCodeTitle").value.trim(),
+        dressImages: parseList(document.getElementById("dressImages").value, 8),
         supportEmail: document.getElementById("supportEmail").value.trim(),
         rsvpLink: document.getElementById("rsvpLink").value.trim(),
         metaDescription: document.getElementById("metaDescription").value.trim(),
@@ -317,10 +329,26 @@ function toDashboardPayload(formState) {
         aboutStory2: formState.aboutStory2,
         aboutImage: formState.aboutImage,
         donationLink: formState.donationLink,
+        whatsappDonationPhone: formState.whatsappDonationPhone,
+        donationWhatsAppMessage: formState.donationWhatsAppMessage,
+        dressCodeTitle: formState.dressCodeTitle,
+        dressImages: formState.dressImages,
         supportEmail: formState.supportEmail,
         rsvpLink: formState.rsvpLink,
         metaDescription: formState.metaDescription
     };
+}
+
+function renderDressPreview(urls) {
+    const root = document.getElementById("dress-photos-preview");
+    if (!root) return;
+    root.innerHTML = "";
+    urls.filter(Boolean).forEach((src) => {
+        const img = document.createElement("img");
+        img.src = src;
+        img.alt = "Aperçu tenue";
+        root.appendChild(img);
+    });
 }
 
 function renderPreview(urls) {
@@ -460,6 +488,10 @@ function hydrateForm(state) {
     document.getElementById("aboutStory2").value = state.aboutStory2 || "";
     document.getElementById("aboutImage").value = state.aboutImage || "";
     document.getElementById("donationLink").value = state.donationLink || "";
+    document.getElementById("whatsappDonationPhone").value = state.whatsappDonationPhone || "";
+    document.getElementById("donationWhatsAppMessage").value = state.donationWhatsAppMessage || "";
+    document.getElementById("dressCodeTitle").value = state.dressCodeTitle || "Tenue élégante";
+    document.getElementById("dressImages").value = (state.dressImages || []).join(", ");
     document.getElementById("supportEmail").value = state.supportEmail || "";
     document.getElementById("rsvpLink").value = state.rsvpLink || "";
     document.getElementById("metaDescription").value = state.metaDescription || "";
@@ -493,6 +525,7 @@ function hydrateForm(state) {
     renderProgramEditor(state.program || []);
     renderPracticalEditor(state.practicalInfo || []);
     renderPreview(photos);
+    renderDressPreview(state.dressImages || []);
     renderSinglePreview("heroImage", "preview-heroImage");
     renderSinglePreview("welcomeImage", "preview-welcomeImage");
     renderSinglePreview("mapImage", "preview-mapImage");
@@ -584,7 +617,11 @@ async function wireUploader(inputId, targetFieldId, previewId, multiple = false,
                 }
                 const existing = parseList(field.value, max);
                 field.value = [...existing, ...urls].slice(0, max).join(", ");
-                renderPreview(parseList(field.value, max));
+                if (targetFieldId === "dressImages") {
+                    renderDressPreview(parseList(field.value, max));
+                } else {
+                    renderPreview(parseList(field.value, max));
+                }
             } else {
                 const url = window.MediaUpload
                     ? await MediaUpload.processFile(files[0], eventId, targetFieldId)
@@ -807,6 +844,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     });
 
     document.getElementById("bestPhotos").addEventListener("input", () => renderPreview(parseList(document.getElementById("bestPhotos").value, 12)));
+    document.getElementById("dressImages").addEventListener("input", () => renderDressPreview(parseList(document.getElementById("dressImages").value, 8)));
     document.getElementById("heroImage").addEventListener("input", () => renderSinglePreview("heroImage", "preview-heroImage"));
     document.getElementById("welcomeImage").addEventListener("input", () => renderSinglePreview("welcomeImage", "preview-welcomeImage"));
     document.getElementById("mapImage").addEventListener("input", () => renderSinglePreview("mapImage", "preview-mapImage"));
@@ -817,6 +855,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     await wireUploader("upload-map", "mapImage", "preview-mapImage");
     await wireUploader("upload-about", "aboutImage", "preview-aboutImage");
     await wireUploader("upload-best", "bestPhotos", null, true, 12);
+    await wireUploader("upload-dress", "dressImages", null, true, 8);
 
     initScrollSpy();
     wirePreviewAutoRefresh();

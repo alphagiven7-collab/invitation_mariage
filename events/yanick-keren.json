@@ -57,9 +57,12 @@
   "adminCode": "YANICK-CLIENT-2026",
   "links": {
     "donation": "https://www.paypal.com",
+    "whatsappDonation": "243900000000",
+    "donationWhatsAppMessage": "Bonjour {couple}, je souhaite vous faire un don pour votre mariage. Merci de me communiquer les modalités.",
     "supportEmail": "contact@josue-divine.com",
     "map": "https://maps.google.com/?q=Sultani+River+Kinshasa"
   },
+  "dressCodeTitle": "Tenue élégante",
   "ambiance": {
     "musicUrl": "",
     "volume": 0.35,

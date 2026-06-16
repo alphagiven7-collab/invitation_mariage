@@ -44,6 +44,7 @@ function openEditModal(guest) {
     document.getElementById("edit-guest-status").value = guest.status || "pending";
     document.getElementById("edit-guest-adults").value = guest.adults ?? 1;
     document.getElementById("edit-guest-children").value = guest.children ?? 0;
+    document.getElementById("edit-guest-qr-approved").checked = !!guest.qrApproved;
     document.getElementById("edit-modal-subtitle").textContent =
         `Lien actuel : ${GuestManager.buildInviteLink(guest).slice(0, 60)}…`;
     const modal = document.getElementById("edit-guest-modal");
@@ -105,11 +106,12 @@ async function renderGuestsTable() {
             </td>
             <td>${escapeHtml(guest.phone || "—")}</td>
             <td>${escapeHtml(guest.group || "—")}</td>
-            <td>${statusBadge(guest.status)}</td>
+            <td>${statusBadge(guest.status)}${guest.qrApproved ? ' <span class="admin-badge admin-badge-yes" title="QR validé">QR ✓</span>' : ''}</td>
             <td>
                 <div class="admin-actions">
                     <button type="button" class="admin-btn admin-btn-ghost admin-btn-icon" data-edit="${guest.id}" title="Modifier">✎</button>
                     <button type="button" class="admin-btn admin-btn-ghost admin-btn-icon" data-copy="${encodeURIComponent(link)}" title="Copier le lien">🔗</button>
+                    ${guest.status === "yes" && !guest.qrApproved ? `<button type="button" class="admin-btn admin-btn-success admin-btn-icon" data-approve-qr="${guest.id}" title="Valider QR">QR</button>` : ""}
                     <a href="${waLink}" target="_blank" class="admin-btn admin-btn-ghost admin-btn-icon" title="WhatsApp">💬</a>
                     <button type="button" class="admin-btn admin-btn-danger admin-btn-icon" data-remove="${guest.id}" title="Supprimer">×</button>
                 </div>
@@ -133,6 +135,16 @@ async function renderGuestsTable() {
         btn.addEventListener("click", () => {
             const guest = guestsCache.find((g) => g.id === btn.dataset.edit);
             if (guest) openEditModal(guest);
+        });
+    });
+
+    tbody.querySelectorAll("[data-approve-qr]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+            const updated = await GuestManager.updateGuest(btn.dataset.approveQr, { qrApproved: true });
+            if (updated) {
+                showToast(`QR validé pour ${updated.fullName}`);
+                await refreshAll();
+            }
         });
     });
 
@@ -303,7 +315,8 @@ window.addEventListener("DOMContentLoaded", async () => {
             group: document.getElementById("edit-guest-group").value.trim(),
             status: document.getElementById("edit-guest-status").value,
             adults: Number(document.getElementById("edit-guest-adults").value) || 0,
-            children: Number(document.getElementById("edit-guest-children").value) || 0
+            children: Number(document.getElementById("edit-guest-children").value) || 0,
+            qrApproved: document.getElementById("edit-guest-qr-approved").checked
         });
         if (!updated) {
             showToast("Erreur : un autre invité porte déjà ce nom");

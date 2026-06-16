@@ -35,6 +35,7 @@
                 <a href="#sec-programme"><span class="perso-nav-icon">🕐</span> Programme du jour</a>
                 <a href="#sec-pratique"><span class="perso-nav-icon">ℹ️</span> Infos pratiques</a>
                 <a href="#sec-photos"><span class="perso-nav-icon">🖼</span> Photos</a>
+                <a href="#sec-tenue"><span class="perso-nav-icon">👔</span> Code vestimentaire</a>
                 <a href="#sec-about"><span class="perso-nav-icon">📖</span> Notre histoire</a>
                 <a href="#sec-musique"><span class="perso-nav-icon">♫</span> Musique</a>
                 <a href="#sec-couleurs"><span class="perso-nav-icon">🎨</span> Couleurs &amp; RSVP</a>
@@ -122,7 +123,7 @@
 
                 <section class="admin-card perso-section" id="sec-lieu">
                     <h2 class="admin-card-title">Lieu, GPS &amp; carte</h2>
-                    <p class="admin-card-desc">Nom du lieu, adresse, coordonnées GPS et lien Google Maps. Les coordonnées GPS génèrent automatiquement l'itinéraire si aucun lien personnalisé n'est renseigné.</p>
+                    <p class="admin-card-desc">Nom du lieu, adresse, coordonnées GPS et lien Google Maps. <strong>La carte interactive s'affiche automatiquement</strong> dès qu'une adresse ou des coordonnées GPS sont renseignées.</p>
                     <div class="dash-grid-2">
                         <label>
                             <span class="dash-field-label">Nom du lieu</span>
@@ -212,6 +213,21 @@
                     <div id="best-photos-preview" class="dash-multi-preview"></div>
                 </section>
 
+                <section class="admin-card perso-section" id="sec-tenue">
+                    <h2 class="admin-card-title">Code vestimentaire</h2>
+                    <p class="admin-card-desc">Photos de tenues et styles recommandés — défilent sur l'invitation (jusqu'à 8 images).</p>
+                    <label class="block">
+                        <span class="dash-field-label">Titre de la section</span>
+                        <input id="dressCodeTitle" class="admin-input" placeholder="Tenue élégante">
+                    </label>
+                    <label class="dash-upload-btn mb-2 mt-3">
+                        Importer photos tenue (multi, max 8)
+                        <input id="upload-dress" type="file" accept="image/*" multiple class="hidden">
+                    </label>
+                    <textarea id="dressImages" rows="3" class="admin-input" style="min-height:86px;resize:vertical" placeholder="URLs séparées par des virgules (8 max)"></textarea>
+                    <div id="dress-photos-preview" class="dash-multi-preview mt-2"></div>
+                </section>
+
                 <section class="admin-card perso-section" id="sec-about">
                     <h2 class="admin-card-title">Notre histoire</h2>
                     <p class="admin-card-desc">Modale « À propos de nous » sur l'invitation.</p>
@@ -286,17 +302,26 @@
 
                 <section class="admin-card perso-section" id="sec-liens">
                     <h2 class="admin-card-title">Liens, contact &amp; SEO</h2>
-                    <p class="admin-card-desc">Don, email support et description pour le partage sur les réseaux.</p>
+                    <p class="admin-card-desc">Don via WhatsApp, email support et description pour le partage sur les réseaux.</p>
                     <div class="dash-grid-2">
                         <label>
-                            <span class="dash-field-label">Lien don / PayPal</span>
-                            <input id="donationLink" class="admin-input" placeholder="https://www.paypal.com/…">
+                            <span class="dash-field-label">WhatsApp don (numéro international)</span>
+                            <input id="whatsappDonationPhone" class="admin-input" placeholder="243XXXXXXXXX" inputmode="tel">
                         </label>
                         <label>
                             <span class="dash-field-label">Email contact</span>
                             <input id="supportEmail" type="email" class="admin-input" placeholder="contact@…">
                         </label>
                     </div>
+                    <label class="mt-3 block">
+                        <span class="dash-field-label">Message WhatsApp pré-rempli pour le don</span>
+                        <textarea id="donationWhatsAppMessage" rows="2" class="admin-input" style="min-height:64px;resize:vertical" placeholder="Bonjour {couple}, je souhaite vous faire un don pour votre mariage…"></textarea>
+                        <p class="perso-gps-hint mt-1">Utilisez <code>{couple}</code> pour insérer les prénoms automatiquement.</p>
+                    </label>
+                    <label class="mt-3 block">
+                        <span class="dash-field-label">Lien don alternatif (optionnel)</span>
+                        <input id="donationLink" class="admin-input" placeholder="https://paypal.com/… (si pas de WhatsApp)">
+                    </label>
                     <label class="mt-3 block">
                         <span class="dash-field-label">Description SEO (partage réseaux)</span>
                         <textarea id="metaDescription" rows="2" class="admin-input" style="min-height:64px;resize:vertical" placeholder="Invitation officielle au mariage de…"></textarea>
@@ -335,16 +360,16 @@
 
     <div id="perso-toast" class="perso-toast" role="status" aria-live="polite"></div>
 
-    <script src="../assets/js/button-loading.js?v=13"></script>
-    <script src="../assets/js/media-upload.js?v=13"></script>
-    <script src="../assets/js/supabase-config.js?v=13"></script>
-    <script src="../assets/js/event-config.js?v=13"></script>
-    <script src="../assets/js/auth.js?v=13"></script>
-    <script src="../assets/js/content-blocks.js?v=13"></script>
-    <script src="../assets/js/countdown.js?v=13"></script>
-    <script src="../assets/js/cloud-api.js?v=13"></script>
-    <script src="../assets/js/dashboard-sync.js?v=13"></script>
-    <script src="../assets/js/db.js?v=13"></script>
-    <script src="../assets/js/personnalisation.js?v=13"></script>
+    <script src="../assets/js/button-loading.js?v=14"></script>
+    <script src="../assets/js/media-upload.js?v=14"></script>
+    <script src="../assets/js/supabase-config.js?v=14"></script>
+    <script src="../assets/js/event-config.js?v=14"></script>
+    <script src="../assets/js/auth.js?v=14"></script>
+    <script src="../assets/js/content-blocks.js?v=14"></script>
+    <script src="../assets/js/countdown.js?v=14"></script>
+    <script src="../assets/js/cloud-api.js?v=14"></script>
+    <script src="../assets/js/dashboard-sync.js?v=14"></script>
+    <script src="../assets/js/db.js?v=14"></script>
+    <script src="../assets/js/personnalisation.js?v=14"></script>
 </body>
 </html>

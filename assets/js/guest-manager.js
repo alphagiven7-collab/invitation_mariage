@@ -101,6 +101,7 @@ const GuestManager = (() => {
             group: group.trim(),
             token: generateToken(),
             status: "pending",
+            qrApproved: false,
             adults: 1,
             children: 0,
             rsvpMessage: "",
@@ -125,6 +126,13 @@ const GuestManager = (() => {
         return guests.find((g) => g.slug === slug) || null;
     }
 
+    async function findByName(fullName) {
+        if (!fullName || fullName.trim().length < 2) return null;
+        const guests = await loadGuests();
+        const normalized = fullName.trim().toLowerCase();
+        return guests.find((g) => g.fullName.trim().toLowerCase() === normalized) || null;
+    }
+
     async function updateGuest(id, patch) {
         const guests = await loadGuests();
         const idx = guests.findIndex((g) => g.id === id);
@@ -140,6 +148,7 @@ const GuestManager = (() => {
         if (patch.phone !== undefined) next.phone = (patch.phone || "").trim();
         if (patch.email !== undefined) next.email = (patch.email || "").trim();
         if (patch.group !== undefined) next.group = (patch.group || "").trim();
+        if (patch.qrApproved !== undefined) next.qrApproved = !!patch.qrApproved;
 
         guests[idx] = next;
         await persistGuests(guests);
@@ -148,7 +157,7 @@ const GuestManager = (() => {
         return guests[idx];
     }
 
-    async function recordRSVP({ guestId, fullName, phone, status, adults, children, message }) {
+    async function recordRSVP({ guestId, fullName, phone, status, adults, children, message, inviteToken }) {
         await loadGuests(true);
         const guests = await loadGuests();
         let guest = guestId ? guests.find((g) => g.id === guestId) : null;
@@ -160,13 +169,19 @@ const GuestManager = (() => {
         }
         if (!guest) return null;
 
+        const isPersonalInvite = !!(inviteToken && guest.token === inviteToken);
+        const qrApproved = status === "yes" && isPersonalInvite
+            ? true
+            : !!(guest.qrApproved);
+
         const updated = await updateGuest(guest.id, {
             status: status === "yes" ? "yes" : status === "no" ? "no" : "pending",
             adults: Number(adults) || 1,
             children: Number(children) || 0,
             rsvpMessage: message || "",
             phone: phone || guest.phone,
-            respondedAt: new Date().toISOString()
+            respondedAt: new Date().toISOString(),
+            qrApproved
         });
 
         if (window.CloudAPI && CloudAPI.isEnabled()) {
@@ -284,6 +299,7 @@ const GuestManager = (() => {
         addGuest,
         findByToken,
         findBySlug,
+        findByName,
         updateGuest,
         recordRSVP,
         parseCSV,

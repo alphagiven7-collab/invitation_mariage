@@ -41,6 +41,12 @@ const ContentBlocks = (() => {
     }
 
     function buildMapEmbedUrl(state) {
+        if (state.mapLink && state.mapLink.includes("google") && state.mapLink.includes("maps")) {
+            const qMatch = state.mapLink.match(/[?&]q=([^&]+)/);
+            if (qMatch) {
+                return `https://maps.google.com/maps?q=${qMatch[1]}&z=16&output=embed`;
+            }
+        }
         if (state.venueLat && state.venueLng) {
             return `https://maps.google.com/maps?q=${encodeURIComponent(`${state.venueLat},${state.venueLng}`)}&z=16&output=embed`;
         }
@@ -236,6 +242,10 @@ const ContentBlocks = (() => {
         if (cfg.branding?.primaryColor) out.primaryColor = cfg.branding.primaryColor;
         if (cfg.branding?.accentColor) out.accentColor = cfg.branding.accentColor;
         if (cfg.links?.donation) out.donationLink = cfg.links.donation;
+        if (cfg.links?.whatsappDonation) out.whatsappDonationPhone = cfg.links.whatsappDonation;
+        if (cfg.links?.donationWhatsAppMessage) out.donationWhatsAppMessage = cfg.links.donationWhatsAppMessage;
+        if (cfg.dressCodeTitle) out.dressCodeTitle = cfg.dressCodeTitle;
+        if (cfg.dressImages) out.dressImages = cfg.dressImages;
         if (cfg.links?.supportEmail) out.supportEmail = cfg.links.supportEmail;
         if (cfg.metaDescription) out.metaDescription = cfg.metaDescription;
         return out;

@@ -190,6 +190,13 @@
                         <label for="edit-guest-children">Enfants</label>
                         <input id="edit-guest-children" type="number" min="0" class="admin-input" value="0">
                     </div>
+                    <div class="admin-field admin-field-full">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input id="edit-guest-qr-approved" type="checkbox" class="rounded border-slate-300">
+                            <span>Accès QR validé (invités sans lien personnel)</span>
+                        </label>
+                        <p class="text-xs text-slate-500 mt-1">Les invités avec lien personnel (?t=…) reçoivent le QR automatiquement. Cochez ici pour valider manuellement les autres.</p>
+                    </div>
                 </div>
             </form>
             <div class="admin-modal-footer">

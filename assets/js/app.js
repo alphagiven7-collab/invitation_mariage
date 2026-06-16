@@ -131,7 +131,11 @@
             return `YK26-${token}-${stamp}`;
         }
 
-        function showRsvpConfirmation(payload, confirmCode) {
+        function showRsvpConfirmation(payload, confirmCode, guest) {
+            if (window.GuestExperience && GuestExperience.showConfirmation) {
+                GuestExperience.showConfirmation(payload, confirmCode, guest || currentGuestProfile);
+                return;
+            }
             const cfg = EventConfig.getConfig && EventConfig.getConfig();
             const eventTitle = (cfg && cfg.title) ? cfg.title : 'Mariage de Josue et Divine';
             const isYes = payload.status === 'yes';
@@ -162,6 +166,29 @@
                 `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrPayload)}`;
 
             openModal('rsvp-confirmation-modal');
+        }
+
+        function buildWhatsAppDonationUrl(state) {
+            const couple = (state && state.subtitle)
+                || document.getElementById('hero-subtitle')?.textContent?.trim()
+                || 'Josue et Divine';
+            const phone = (
+                (state && state.whatsappDonationPhone)
+                || document.getElementById('donation-btn')?.dataset.whatsapp
+                || ''
+            ).replace(/\D/g, '');
+            let message = (state && state.donationWhatsAppMessage)
+                || document.getElementById('donation-btn')?.dataset.waMessage
+                || `Bonjour ${couple}, je souhaite vous faire un don pour votre mariage. Merci de me communiquer les modalités.`;
+            message = message.replace(/\{couple\}/gi, couple);
+            if (phone) {
+                return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+            }
+            return normalizeUrl(
+                (state && state.donationLink)
+                || document.getElementById('donation-btn')?.dataset.link
+                || 'https://www.paypal.com'
+            );
         }
 
         function prefillRsvpForm() {
@@ -201,7 +228,12 @@
                         if (saved) {
                             try {
                                 const data = JSON.parse(saved);
-                                setTimeout(() => showRsvpConfirmation(data.payload, data.code), 800);
+                                const showQr = window.GuestExperience
+                                    ? GuestExperience.canShowQrCode(guestByToken, data.payload)
+                                    : guestByToken.qrApproved;
+                                if (showQr) {
+                                    setTimeout(() => showRsvpConfirmation(data.payload, data.code, guestByToken), 800);
+                                }
                             } catch (e) {}
                         }
                     }
@@ -651,6 +683,10 @@
                 }
             }
 
+            if (state.dressCodeTitle) {
+                const dressTitle = document.getElementById('dress-code-title');
+                if (dressTitle) dressTitle.textContent = state.dressCodeTitle;
+            }
             if (Array.isArray(state.dressImages)) {
                 applyImageList(['dress-photo-1', 'dress-photo-2', 'dress-photo-3', 'dress-photo-4', 'dress-photo-5', 'dress-photo-6', 'dress-photo-7', 'dress-photo-8'], state.dressImages);
             }
@@ -680,14 +716,16 @@
             document.getElementById('donation-btn').style.backgroundColor = accentColor;
             document.getElementById('couple-name-left').style.color = accentColor;
 
-            const donationUrl = normalizeUrl(state.donationLink || 'https://www.paypal.com');
+            const donationBtn = document.getElementById('donation-btn');
             const mapUrl = normalizeUrl(state.mapLink || 'https://maps.google.com/?q=Sultani+River+Kinshasa');
             const siteUrl = normalizeUrl(state.siteUrl || window.location.href);
             const shareImage = normalizeUrl(state.shareImage || document.getElementById('about-cover-image').src);
             const description = state.metaDescription || 'Invitation officielle au mariage de Josue et Divine.';
             const supportEmail = (state.supportEmail || 'contact@josue-divine.com').trim();
 
-            document.getElementById('donation-btn').dataset.link = donationUrl;
+            donationBtn.dataset.link = normalizeUrl(state.donationLink || 'https://www.paypal.com');
+            donationBtn.dataset.whatsapp = (state.whatsappDonationPhone || '').trim();
+            donationBtn.dataset.waMessage = state.donationWhatsAppMessage || '';
             document.getElementById('rsvp-form').dataset.externalLink = normalizeUrl(state.rsvpLink || '');
             document.getElementById('venue-map-link').href = mapUrl;
             document.getElementById('support-email-link').href = `mailto:${supportEmail}?subject=Contact%20Mariage%20Josue%20Divine`;
@@ -876,7 +914,8 @@
                         status: payload.status,
                         adults: payload.adults,
                         children: payload.children,
-                        message: payload.message
+                        message: payload.message,
+                        inviteToken: token || ''
                     });
                 }
 
@@ -895,11 +934,15 @@
                 if (token) {
                     localStorage.setItem(`wedding_confirm_${token}`, JSON.stringify({ payload, code: confirmCode }));
                 }
+                if (payload.name) {
+                    const slug = payload.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                    localStorage.setItem(`wedding_confirm_name_${slug}`, JSON.stringify({ payload, code: confirmCode }));
+                }
 
                 if (window.GuestExperience) {
-                    GuestExperience.showConfirmation(payload, confirmCode);
+                    GuestExperience.showConfirmation(payload, confirmCode, currentGuestProfile);
                 } else {
-                    showRsvpConfirmation(payload, confirmCode);
+                    showRsvpConfirmation(payload, confirmCode, currentGuestProfile);
                 }
 
                 if (externalRsvpLink) {
@@ -926,10 +969,10 @@
 
         function openDonationLink(ev) {
             const run = () => {
-                const donationBtn = document.getElementById('donation-btn');
-                const donationUrl = donationBtn?.dataset.link || 'https://www.paypal.com';
+                const donationUrl = buildWhatsAppDonationUrl();
                 window.open(donationUrl, '_blank');
-                showToast('Page de don ouverte.');
+                const isWa = donationUrl.includes('wa.me');
+                showToast(isWa ? 'WhatsApp ouvert — envoyez votre message de don.' : 'Page de don ouverte.');
             };
             if (window.ButtonLoading) {
                 return ButtonLoading.runWithLoader(ev, 'donation-btn', run, 'Ouverture…');
@@ -1197,7 +1240,7 @@
             }
 
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('../sw.js?v=13').catch(() => {});
+                navigator.serviceWorker.register('../sw.js?v=14').catch(() => {});
             }
 
             defaultCustomizationState = getCurrentCustomizationState();
