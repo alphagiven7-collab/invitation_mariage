@@ -393,8 +393,6 @@
             anchor.remove();
             URL.revokeObjectURL(url);
         }
-;
-        }
 
         function fileToDataUrl(file) {
             return new Promise((resolve, reject) => {
@@ -1310,7 +1308,7 @@
             }
 
             if ('serviceWorker' in navigator && !isPreviewMode) {
-                navigator.serviceWorker.register('../sw.js?v=17').catch(() => {});
+                navigator.serviceWorker.register('../sw.js?v=18').catch(() => {});
             }
 
             defaultCustomizationState = getCurrentCustomizationState();
