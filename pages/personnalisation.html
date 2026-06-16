@@ -3,59 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personnalisation - Invitation</title>
+    <title>Personnalisation — Invitation mariage</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../assets/css/app.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
+    <link rel="stylesheet" href="../assets/css/personnalisation.css">
 </head>
-<body class="pro-page bg-slate-100 text-slate-800">
+<body class="admin-shell text-slate-800">
     <main class="dash-wrap">
-        <header class="dash-top ring-1 ring-white/10">
-            <p class="dash-overline">Dashboard concepteur</p>
-            <h1>Personnalisation avancée de l'invitation</h1>
-            <p class="dash-sub">Chaque champ indique précisément la zone impactée. Imports visuels premium + sauvegarde instantanée.</p>
-            <div class="dash-head-actions pt-1">
-                <a href="./invitation.html" class="dash-head-btn">Retour invitation</a>
-                <a href="./admin.html" class="dash-head-btn">Gérer invités</a>
-                <a href="./formulaires.html" class="dash-head-btn">Ouvrir formulaires</a>
+        <header class="admin-header">
+            <p class="admin-overline">Studio concepteur</p>
+            <h1>Personnaliser l'invitation</h1>
+            <p class="admin-subtitle">Programme du jour · lieu &amp; GPS · infos pratiques · textes · photos · date · couleurs — sauvegarde cloud + aperçu live.</p>
+            <span id="cloud-status" class="admin-cloud-pill offline">Sync cloud…</span>
+            <div class="admin-head-actions">
+                <a href="./invitation.html" class="admin-head-btn primary">Voir l'invitation</a>
+                <a href="./admin.html" class="admin-head-btn">Gérer les invités</a>
+                <a href="./formulaires.html" class="admin-head-btn">Formulaires</a>
             </div>
         </header>
 
-        <div class="dash-layout">
-            <aside class="dash-nav border-slate-200">
-                <p>Navigation</p>
-                <a href="#sec-textes">Textes & identité</a>
-                <a href="#sec-photos-principales">Photos principales</a>
-                <a href="#sec-galerie">Galerie du couple</a>
-                <a href="#sec-couleurs">Palette visuelle</a>
-                <a href="#sec-aide">Aide de modification</a>
-            </aside>
+        <div class="perso-workspace">
+        <div class="perso-layout">
+            <nav class="perso-sidebar perso-nav" aria-label="Sections personnalisation">
+                <p class="perso-nav-label">Sections</p>
+                <a href="#sec-textes"><span class="perso-nav-icon">✦</span> Identité</a>
+                <a href="#sec-date"><span class="perso-nav-icon">📅</span> Date &amp; compte à rebours</a>
+                <a href="#sec-lieu"><span class="perso-nav-icon">📍</span> Lieu &amp; carte</a>
+                <a href="#sec-programme"><span class="perso-nav-icon">🕐</span> Programme du jour</a>
+                <a href="#sec-pratique"><span class="perso-nav-icon">ℹ️</span> Infos pratiques</a>
+                <a href="#sec-photos"><span class="perso-nav-icon">🖼</span> Photos</a>
+                <a href="#sec-musique"><span class="perso-nav-icon">♫</span> Musique</a>
+                <a href="#sec-couleurs"><span class="perso-nav-icon">🎨</span> Couleurs</a>
+                <a href="#sec-aide"><span class="perso-nav-icon">?</span> Aide</a>
+            </nav>
 
             <form id="settings-form" class="dash-main">
-                <section class="dash-card backdrop-blur-sm" id="sec-textes">
-                    <h2>Textes & identité</h2>
-                    <p class="dash-tip">Modifie les textes affichés dans l’en-tête et la carte d’invitation principale.</p>
+                <section class="admin-card perso-section" id="sec-textes">
+                    <h2 class="admin-card-title">Identité &amp; textes</h2>
+                    <p class="admin-card-desc">Titre, sous-titre et message principal sur la carte d'invitation principale.</p>
                     <div class="dash-grid-2">
                         <label>
-                            <span class="dash-field-label">Titre principal</span>
-                            <input id="title" class="dash-input" placeholder="Ex: Mariage de Yanick et Keren">
-                            <span class="dash-field-note">Zone: bannière d’ouverture de l’invitation.</span>
+                            <span class="dash-field-label">Titre invitation</span>
+                            <input id="title" class="admin-input" placeholder="Ex : Mariage de Yanick et Keren">
                         </label>
                         <label>
                             <span class="dash-field-label">Sous-titre</span>
-                            <input id="subtitle" class="dash-input" placeholder="Ex: Yanick et Keren">
-                            <span class="dash-field-note">Zone: sous le titre principal.</span>
+                            <input id="subtitle" class="admin-input" placeholder="Ex : Yanick et Keren">
                         </label>
                     </div>
-                    <label class="mt-2 block">
-                        <span class="dash-field-label">Message d’invitation</span>
-                        <textarea id="message" rows="3" class="dash-textarea" placeholder="Texte affiché à vos invités"></textarea>
-                        <span class="dash-field-note">Zone: carte “Invitation”.</span>
+                    <label class="mt-3 block">
+                        <span class="dash-field-label">Message d'invitation</span>
+                        <textarea id="message" rows="3" class="admin-input" style="min-height:86px;resize:vertical" placeholder="Texte affiché aux invités"></textarea>
                     </label>
                 </section>
 
-                <section class="dash-card" id="sec-photos-principales">
-                    <h2>Photos principales</h2>
-                    <p class="dash-tip">Importe directement les images les plus importantes sans toucher aux URLs.</p>
+                <section class="admin-card perso-section" id="sec-date">
+                    <h2 class="admin-card-title">Date &amp; compte à rebours</h2>
+                    <p class="admin-card-desc">Met à jour le calendrier, le compte à rebours et l'heure affichée sur l'invitation.</p>
+                    <label class="block mt-2">
+                        <span class="dash-field-label">Date et heure de l'événement</span>
+                        <input id="eventDate" type="datetime-local" class="admin-input">
+                    </label>
+                </section>
+
+                <section class="admin-card perso-section" id="sec-lieu">
+                    <h2 class="admin-card-title">Lieu, GPS &amp; carte</h2>
+                    <p class="admin-card-desc">Nom du lieu, adresse, coordonnées GPS et lien Google Maps. Les coordonnées GPS génèrent automatiquement l'itinéraire si aucun lien personnalisé n'est renseigné.</p>
+                    <div class="dash-grid-2">
+                        <label>
+                            <span class="dash-field-label">Nom du lieu</span>
+                            <input id="venueTitle" class="admin-input" placeholder="Ex : Sultani River">
+                        </label>
+                        <label>
+                            <span class="dash-field-label">Lien Google Maps (optionnel)</span>
+                            <input id="mapLink" class="admin-input" placeholder="https://maps.google.com/...">
+                        </label>
+                    </div>
+                    <label class="mt-3 block">
+                        <span class="dash-field-label">Adresse complète</span>
+                        <input id="venueAddress" class="admin-input" placeholder="32, avenue de la Justice, Kinshása">
+                    </label>
+                    <div class="dash-grid-2 mt-3">
+                        <label>
+                            <span class="dash-field-label">Latitude GPS</span>
+                            <input id="venueLat" class="admin-input" placeholder="-4.3215" inputmode="decimal">
+                        </label>
+                        <label>
+                            <span class="dash-field-label">Longitude GPS</span>
+                            <input id="venueLng" class="admin-input" placeholder="15.3128" inputmode="decimal">
+                        </label>
+                    </div>
+                    <p class="perso-gps-hint">Astuce : copiez les coordonnées depuis Google Maps (clic droit sur le lieu → « Plus coordonnées »). Elles s'affichent sous l'adresse sur l'invitation.</p>
+                    <article class="dash-media-item mt-3">
+                        <h4>Image de la carte</h4>
+                        <img id="preview-mapImage" class="perso-map-preview" alt="Aperçu carte">
+                        <label class="dash-upload-btn mt-2">
+                            Importer image carte
+                            <input id="upload-map" type="file" accept="image/*" class="hidden">
+                        </label>
+                        <input id="mapImage" class="admin-input mt-2" placeholder="URL image carte">
+                    </article>
+                </section>
+
+                <section class="admin-card perso-section" id="sec-programme">
+                    <h2 class="admin-card-title">Programme du jour</h2>
+                    <p class="admin-card-desc">Chronologie de la journée — horaires, étapes et couleurs des pastilles.</p>
+                    <label class="block mb-3">
+                        <span class="dash-field-label">Titre de la section</span>
+                        <input id="programSectionTitle" class="admin-input" placeholder="Programme de la journée">
+                    </label>
+                    <div id="program-editor" class="perso-dynamic-list" aria-live="polite"></div>
+                    <button type="button" id="add-program-step" class="perso-add-btn">+ Ajouter une étape</button>
+                </section>
+
+                <section class="admin-card perso-section" id="sec-pratique">
+                    <h2 class="admin-card-title">Informations pratiques</h2>
+                    <p class="admin-card-desc">Parking, hébergement, dress code, transport… Ajoutez autant de blocs que nécessaire.</p>
+                    <label class="block mb-3">
+                        <span class="dash-field-label">Titre de la section</span>
+                        <input id="practicalSectionTitle" class="admin-input" placeholder="Informations pratiques">
+                    </label>
+                    <div id="practical-editor" class="perso-dynamic-list" aria-live="polite"></div>
+                    <button type="button" id="add-practical-item" class="perso-add-btn">+ Ajouter une info</button>
+                </section>
+
+                <section class="admin-card perso-section" id="sec-photos">
+                    <h2 class="admin-card-title">Photos principales &amp; galerie</h2>
+                    <p class="admin-card-desc">Images d'accueil, bannière et galerie du couple (jusqu'à 12 photos).</p>
                     <div class="dash-media-grid">
                         <article class="dash-media-item">
                             <h4>Fond accueil</h4>
@@ -64,7 +139,7 @@
                                 Importer fond accueil
                                 <input id="upload-welcome" type="file" accept="image/*" class="hidden">
                             </label>
-                            <input id="welcomeImage" class="dash-input mt-2" placeholder="URL image accueil">
+                            <input id="welcomeImage" class="admin-input mt-2" placeholder="URL image accueil">
                         </article>
                         <article class="dash-media-item">
                             <h4>Fond titre invitation</h4>
@@ -73,50 +148,63 @@
                                 Importer image en-tête
                                 <input id="upload-hero" type="file" accept="image/*" class="hidden">
                             </label>
-                            <input id="heroImage" class="dash-input mt-2" placeholder="URL image en-tête">
+                            <input id="heroImage" class="admin-input mt-2" placeholder="URL image en-tête">
                         </article>
                     </div>
-                </section>
-
-                <section class="dash-card" id="sec-galerie">
-                    <h2>Galerie du couple</h2>
-                    <p class="dash-tip">Ajoute jusqu’à 12 photos (affichage dans “Moments d’exception” + modale galerie).</p>
-                    <label class="dash-upload-btn mb-2">
+                    <label class="dash-upload-btn mb-2 mt-3">
                         Importer photos galerie (multi)
                         <input id="upload-best" type="file" accept="image/*" multiple class="hidden">
                     </label>
-                    <textarea id="bestPhotos" rows="3" class="dash-textarea" placeholder="URLs séparées par des virgules"></textarea>
+                    <textarea id="bestPhotos" rows="3" class="admin-input" style="min-height:86px;resize:vertical" placeholder="URLs séparées par des virgules"></textarea>
                     <div id="best-photos-preview" class="dash-multi-preview"></div>
                 </section>
 
-                <section class="dash-card" id="sec-date">
-                    <h2>Date du mariage</h2>
-                    <p class="dash-tip">Met à jour le compte à rebours et le calendrier affiché aux invités.</p>
-                    <label class="block mt-2">
-                        <span class="dash-field-label">Date et heure de l'événement</span>
-                        <input id="eventDate" type="datetime-local" class="dash-input">
+                <section class="admin-card perso-section" id="sec-musique">
+                    <h2 class="admin-card-title">Musique de fond</h2>
+                    <p class="admin-card-desc">Ambiance sonore sur l'invitation — démarre quand l'invité entre (bouton ♪ sur la page). Formats : MP3, WAV, OGG.</p>
+                    <label class="flex items-center gap-2 mb-3 cursor-pointer">
+                        <input id="backgroundMusicEnabled" type="checkbox" class="rounded border-slate-300" checked>
+                        <span class="dash-field-label mb-0">Activer la musique de fond</span>
                     </label>
+                    <label class="dash-upload-btn mb-2">
+                        Importer un fichier audio
+                        <input id="upload-music" type="file" accept="audio/mpeg,audio/mp3,audio/wav,audio/ogg,audio/*" class="hidden">
+                    </label>
+                    <label class="block">
+                        <span class="dash-field-label">URL du fichier audio (MP3)</span>
+                        <input id="backgroundMusicUrl" class="admin-input" placeholder="https://…/votre-musique.mp3">
+                    </label>
+                    <label class="block mt-3">
+                        <span class="dash-field-label">Volume <span id="music-volume-label">35</span>%</span>
+                        <input id="backgroundMusicVolume" type="range" min="0" max="100" value="35" class="w-full accent-indigo-600">
+                    </label>
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        <button type="button" id="test-music-btn" class="perso-add-btn">▶ Tester la musique</button>
+                        <button type="button" id="stop-music-btn" class="perso-add-btn">■ Arrêter</button>
+                    </div>
+                    <audio id="perso-music-preview" class="hidden" preload="metadata"></audio>
+                    <p class="perso-gps-hint mt-2">Astuce : hébergez un MP3 sur Google Drive (lien direct) ou utilisez l'import local. Taille max conseillée : 5 Mo.</p>
                 </section>
 
-                <section class="dash-card" id="sec-couleurs">
-                    <h2>Palette visuelle</h2>
-                    <p class="dash-tip">Pilote les couleurs dominantes des boutons et accents du thème.</p>
+                <section class="admin-card perso-section" id="sec-couleurs">
+                    <h2 class="admin-card-title">Palette visuelle</h2>
+                    <p class="admin-card-desc">Couleurs dominantes des boutons et accents du thème.</p>
                     <div class="dash-grid-2">
                         <label>
                             <span class="dash-field-label">Couleur principale</span>
-                            <input id="primaryColor" type="color" class="dash-input">
+                            <input id="primaryColor" type="color" class="admin-input" style="height:44px;padding:4px">
                         </label>
                         <label>
                             <span class="dash-field-label">Couleur accent</span>
-                            <input id="accentColor" type="color" class="dash-input">
+                            <input id="accentColor" type="color" class="admin-input" style="height:44px;padding:4px">
                         </label>
                     </div>
                 </section>
 
-                <section class="dash-card" id="sec-aide">
-                    <h2>Aide de modification</h2>
-                    <p class="dash-tip">Flux recommandé: 1) importer photos 2) modifier textes 3) ajuster couleurs 4) sauvegarder 5) ouvrir l’invitation.</p>
-                    <p class="dash-tip">Tous les réglages sont stockés localement et réappliqués automatiquement sur la page invitation.</p>
+                <section class="admin-card perso-section" id="sec-aide">
+                    <h2 class="admin-card-title">Aide &amp; flux recommandé</h2>
+                    <p class="admin-card-desc">1) Renseignez le lieu et le GPS · 2) Programme du jour · 3) Infos pratiques · 4) Photos &amp; textes · 5) <strong>Sauvegarder</strong> · 6) Ouvrir l'invitation pour vérifier.</p>
+                    <p class="admin-card-desc mb-0">Les réglages sont stockés localement et réappliqués automatiquement sur la page invitation.</p>
                 </section>
 
                 <div class="dash-actionbar">
@@ -127,10 +215,30 @@
                 </div>
             </form>
         </div>
+
+        <aside class="perso-preview-panel" aria-label="Aperçu live invitation">
+            <div class="perso-preview-header">
+                <div>
+                    <p class="perso-preview-label">Aperçu live</p>
+                    <p class="perso-preview-hint">Mise à jour automatique · format mobile</p>
+                </div>
+                <button type="button" id="refresh-preview-btn" class="perso-preview-refresh" title="Rafraîchir l'aperçu">↻</button>
+            </div>
+            <div class="perso-phone-frame">
+                <iframe id="live-preview" title="Aperçu invitation" src="about:blank" loading="lazy"></iframe>
+            </div>
+        </aside>
+        </div>
     </main>
 
+    <div id="perso-toast" class="perso-toast" role="status" aria-live="polite"></div>
+
+    <script src="../assets/js/supabase-config.js"></script>
     <script src="../assets/js/event-config.js"></script>
+    <script src="../assets/js/content-blocks.js"></script>
     <script src="../assets/js/countdown.js"></script>
+    <script src="../assets/js/cloud-api.js"></script>
+    <script src="../assets/js/dashboard-sync.js"></script>
     <script src="../assets/js/db.js"></script>
     <script src="../assets/js/personnalisation.js"></script>
 </body>

@@ -34,7 +34,12 @@
             </span>
         </label>
         <button id="lang-toggle-btn" type="button" onclick="I18n.toggle()" aria-label="Changer de langue" title="Français / English">EN</button>
+        <button id="music-toggle-btn" type="button" class="music-toggle-btn hidden" aria-label="Musique de fond" title="Lancer la musique">
+            <span class="music-toggle-icon" aria-hidden="true">♪</span>
+        </button>
     </div>
+
+    <audio id="background-music" loop preload="auto" class="hidden"></audio>
 
     <div id="welcome-gate" class="fixed inset-0 z-[100] welcome-gate-bg backdrop-blur-sm flex items-center justify-center px-5 transition-opacity duration-500">
         <div class="w-full max-w-sm welcome-envelope-shell rounded-3xl p-6 text-center">
@@ -229,91 +234,47 @@
                     </div>
                 </div>
 
-                <!-- Programme de la journée (Icônes réalistes) -->
-                <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-5 text-center">Programme de la journée</p>
-                <div class="space-y-6 relative before:absolute before:inset-0 before:ml-[1.1rem] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 before:to-transparent">
-                    
-                    <!-- Etape 1 -->
-                    <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                        <div class="flex items-center justify-center w-9 h-9 rounded-full border-2 border-white bg-blue-50 text-blue-500 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
-                            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="8.5" cy="7" r="3"></circle>
-                                <path d="M20 8v6"></path>
-                                <path d="M23 11h-6"></path>
-                            </svg>
-                        </div>
-                        <div class="w-[calc(100%-3rem)] md:w-[calc(50%-2.5rem)] pl-4 md:pl-0 font-medium">
-                            <p class="text-[10px] text-gray-400">19h30 - 20h00</p>
-                            <p class="text-sm text-gray-800">Arrivée des invités</p>
-                        </div>
-                    </div>
+                <button type="button" id="add-to-calendar-btn" class="w-full mb-6 inline-flex justify-center items-center gap-2 py-3 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold transition">
+                    <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+                    <span>Ajouter au calendrier</span>
+                </button>
 
-                    <!-- Etape 2 -->
-                    <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                        <div class="flex items-center justify-center w-9 h-9 rounded-full border-2 border-white bg-green-50 text-green-500 shadow shrink-0 md:order-1 z-10">
-                            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"></path>
-                                <circle cx="12" cy="10" r="2.5"></circle>
-                            </svg>
-                        </div>
-                        <div class="w-[calc(100%-3rem)] pl-4 font-medium">
-                            <p class="text-[10px] text-gray-400">20h00 - 20h30</p>
-                            <p class="text-sm text-gray-800">Emplacements</p>
-                        </div>
-                    </div>
-
-                    <!-- Etape 3 -->
-                    <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                        <div class="flex items-center justify-center w-9 h-9 rounded-full border-2 border-white bg-pink-50 text-pink-500 shadow shrink-0 md:order-1 z-10">
-                            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M12 3l1.7 3.8L17.5 8l-3.8 1.2L12 13l-1.7-3.8L6.5 8l3.8-1.2L12 3z"></path>
-                                <path d="M18.5 14l1 2.2L22 17l-2.5.8-1 2.2-1-2.2L15 17l2.5-.8 1-2.2z"></path>
-                            </svg>
-                        </div>
-                        <div class="w-[calc(100%-3rem)] pl-4 font-medium">
-                            <p class="text-[10px] text-gray-400">20h30 - 21h00</p>
-                            <p class="text-sm text-gray-800">Entrée des mariés</p>
-                        </div>
-                    </div>
-
-                    <!-- Etape 4 -->
-                    <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                        <div class="flex items-center justify-center w-9 h-9 rounded-full border-2 border-white bg-purple-50 text-purple-500 shadow shrink-0 md:order-1 z-10">
-                            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M9 18V5l12-2v13"></path>
-                                <circle cx="6" cy="18" r="3"></circle>
-                                <circle cx="18" cy="16" r="3"></circle>
-                            </svg>
-                        </div>
-                        <div class="w-[calc(100%-3rem)] pl-4 font-medium">
-                            <p class="text-[10px] text-gray-400">21h00 - 23h30</p>
-                            <p class="text-sm text-gray-800">Danses et spectacles</p>
-                        </div>
-                    </div>
-                </div>
+                <p id="program-section-title" class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-5 text-center">Programme de la journée</p>
+                <div id="program-timeline" class="space-y-6 relative"></div>
             </div>
         </section>
 
         <!-- 6. Lieu / Carte Google -->
         <section class="px-4 mt-6">
             <div class="bg-white rounded-2xl shadow-sm p-1 border border-gray-50 overflow-hidden relative">
-                <div class="h-32 bg-gray-200 relative">
-                    <!-- Image de carte simulée -->
-                    <img id="map-image" src="https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover opacity-50" alt="Map">
-                    <div class="absolute inset-0 flex justify-center items-center">
-                        <div class="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center animate-bounce">
-                            <i data-lucide="map-pin" class="w-6 h-6 text-gray-800"></i>
+                <div id="venue-map-container" class="venue-map-container relative bg-gray-200">
+                    <iframe id="venue-map-embed" class="venue-map-embed hidden" title="Carte Google Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+                    <div id="venue-map-fallback" class="venue-map-fallback h-40 relative">
+                        <img id="map-image" src="https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover opacity-50" alt="Carte du lieu">
+                        <div class="absolute inset-0 flex justify-center items-center pointer-events-none">
+                            <div class="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center animate-bounce">
+                                <i data-lucide="map-pin" class="w-6 h-6 text-gray-800"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="p-5 text-center">
                     <h3 id="venue-title" class="font-serif text-lg mb-1 text-gray-800">Sultani River</h3>
-                    <p id="venue-address" class="text-[11px] text-gray-500 mb-4 px-4">32, avenue de la Justice (Gombe), Kinshasa, RDC</p>
+                    <p id="venue-address" class="text-[11px] text-gray-500 mb-1 px-4">32, avenue de la Justice (Gombe), Kinshasa, RDC</p>
+                    <div class="flex flex-wrap items-center justify-center gap-2 mb-3">
+                        <p id="venue-gps-line" class="text-[10px] text-emerald-600 hidden font-mono"></p>
+                        <button type="button" id="copy-gps-btn" class="hidden text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg">Copier GPS</button>
+                    </div>
+                    <div class="flex flex-col gap-2">
                     <a id="venue-map-link" href="https://maps.google.com/?q=Sultani+River+Kinshasa" target="_blank" class="inline-flex w-full justify-center items-center space-x-2 bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-3 rounded-xl text-xs font-semibold transition">
                         <i data-lucide="navigation" class="w-4 h-4"></i>
                         <span>Obtenir l'itinéraire</span>
-                    </a>
+                        </a>
+                        <a id="venue-waze-link" href="#" target="_blank" rel="noopener" class="hidden inline-flex w-full justify-center items-center space-x-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-100 px-6 py-3 rounded-xl text-xs font-semibold transition">
+                            <i data-lucide="car" class="w-4 h-4"></i>
+                            <span>Ouvrir dans Waze</span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </section>
@@ -430,38 +391,10 @@
         <section class="px-4 mt-6">
             <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-50">
                 <h3 class="font-semibold text-xs text-gray-800 mb-4 px-2 flex justify-between items-center">
-                    Informations pratiques <span class="text-gray-400 text-[10px] font-normal">3 infos</span>
+                    <span id="practical-info-title">Informations pratiques</span>
+                    <span id="practical-info-count" class="text-gray-400 text-[10px] font-normal">3 infos</span>
                 </h3>
-                
-                <div class="space-y-4">
-                    <div class="flex items-start space-x-3 px-2">
-                        <div class="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center shrink-0">
-                            <i data-lucide="car" class="w-4 h-4 text-gray-500"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs font-bold text-gray-700">PARKING</p>
-                            <p class="text-[11px] text-gray-500">Le parking est disponible, disposant de 200 places.</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start space-x-3 px-2">
-                        <div class="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center shrink-0">
-                            <i data-lucide="bed" class="w-4 h-4 text-gray-500"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs font-bold text-gray-700">HÉBERGEMENT</p>
-                            <p class="text-[11px] text-gray-500">Hôtel le Pullman à 5min.</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start space-x-3 px-2">
-                        <div class="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center shrink-0">
-                            <i data-lucide="wine" class="w-4 h-4 text-gray-500"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs font-bold text-gray-700">BOÎTE À BOISSON</p>
-                            <p class="text-[11px] text-gray-500">Merci de ne pas apporter de boisson de l'extérieur.</p>
-                        </div>
-                    </div>
-                </div>
+                <div id="practical-info-list" class="space-y-4"></div>
             </div>
         </section>
 
@@ -890,13 +823,17 @@
     <!-- Scripts pour l'interactivité -->
     <script src="../assets/js/supabase-config.js?v=5"></script>
     <script src="../assets/js/event-config.js?v=5"></script>
-    <script src="../assets/js/cloud-api.js?v=5"></script>
+    <script src="../assets/js/cloud-api.js?v=6"></script>
+    <script src="../assets/js/dashboard-sync.js?v=6"></script>
     <script src="../assets/js/guest-manager.js?v=5"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-    <script src="../assets/js/countdown.js?v=5"></script>
+    <script src="../assets/js/content-blocks.js?v=8"></script>
+    <script src="../assets/js/calendar-export.js?v=8"></script>
+    <script src="../assets/js/background-music.js?v=8"></script>
+    <script src="../assets/js/countdown.js?v=6"></script>
     <script src="../assets/js/lucide-init.js?v=5"></script>
     <script src="../assets/js/i18n.js?v=5"></script>
-    <script src="../assets/js/app.js?v=5"></script>
+    <script src="../assets/js/app.js?v=8"></script>
     <script src="../assets/js/guest-experience.js?v=5"></script>
     <script>
         // Fallback robuste si app.js ne se charge pas complètement

@@ -83,3 +83,16 @@ CREATE POLICY "analytics_insert" ON analytics_events FOR INSERT WITH CHECK (true
 CREATE POLICY "analytics_read" ON analytics_events FOR SELECT USING (true);
 
 CREATE POLICY "events_read" ON events FOR SELECT USING (true);
+
+-- Personnalisation dashboard (programme, GPS, infos pratiques, visuels)
+CREATE TABLE IF NOT EXISTS event_settings (
+    event_id TEXT PRIMARY KEY REFERENCES events(id) ON DELETE CASCADE,
+    dashboard_json JSONB NOT NULL DEFAULT '{}',
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE event_settings ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "event_settings_read" ON event_settings FOR SELECT USING (true);
+CREATE POLICY "event_settings_insert" ON event_settings FOR INSERT WITH CHECK (true);
+CREATE POLICY "event_settings_update" ON event_settings FOR UPDATE USING (true);

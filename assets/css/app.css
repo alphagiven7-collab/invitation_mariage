@@ -632,6 +632,37 @@
     from { opacity: 0; transform: translateY(24px); }
     to { opacity: 1; transform: translateY(0); }
 }
+body.preview-mode .app-floating-tools,
+body.preview-mode #designer-access-btn,
+body.preview-mode #designer-customize-btn {
+    display: none !important;
+}
+
+/* Carte Google Maps intégrée */
+.venue-map-container {
+    min-height: 10rem;
+}
+
+.venue-map-embed {
+    display: block;
+    width: 100%;
+    height: 12.5rem;
+    border: none;
+}
+
+.venue-map-embed.hidden {
+    display: none;
+}
+
+.venue-map-fallback.hidden {
+    display: none;
+}
+
+@media (min-width: 640px) {
+    .venue-map-embed {
+        height: 14rem;
+    }
+}
 
 /* Boutons flottants thème / langue — mobile + desktop */
 .app-floating-tools {
@@ -643,6 +674,38 @@
     flex-direction: column;
     gap: 8px;
     pointer-events: none;
+}
+.app-floating-tools #lang-toggle-btn,
+.app-floating-tools .music-toggle-btn {
+    pointer-events: auto;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(15, 23, 42, 0.82);
+    color: #fff;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.25);
+    cursor: pointer;
+}
+.music-toggle-btn {
+    font-size: 16px;
+    line-height: 1;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.music-toggle-btn.hidden {
+    display: none;
+}
+.music-toggle-btn[aria-pressed="true"] {
+    background: linear-gradient(120deg, rgba(99, 102, 241, 0.95), rgba(236, 72, 153, 0.9));
+    border-color: rgba(255, 255, 255, 0.35);
 }
 .app-floating-tools #lang-toggle-btn {
     pointer-events: auto;

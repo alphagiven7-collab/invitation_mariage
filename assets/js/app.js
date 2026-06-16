@@ -46,6 +46,7 @@
                 main.classList.remove('hidden');
                 requestAnimationFrame(() => main.classList.remove('opacity-0'));
                 document.body.style.overflow = 'auto';
+                if (window.BackgroundMusic) BackgroundMusic.onGuestEnter();
             }, 450);
         }
 
@@ -228,7 +229,16 @@
         }
 
         function applyDesignerVisibility() {
+            const isPreviewMode = document.body.classList.contains('preview-mode');
             const btn = document.getElementById('designer-customize-btn');
+            const accessBtn = document.getElementById('designer-access-btn');
+            if (isPreviewMode) {
+                if (btn) btn.classList.add('hidden');
+                if (accessBtn) accessBtn.classList.add('hidden');
+                const floatTools = document.getElementById('app-floating-tools');
+                if (floatTools) floatTools.classList.add('hidden');
+                return;
+            }
             if (isDesignerMode) {
                 btn.classList.remove('hidden');
                 document.getElementById('designer-access-btn').textContent = 'Concepteur actif';
@@ -387,6 +397,12 @@
         }
 
         function getCurrentCustomizationState() {
+            let savedBlocks = {};
+            try {
+                const raw = localStorage.getItem(dashboardStateKey);
+                if (raw) savedBlocks = JSON.parse(raw);
+            } catch { /* ignore */ }
+
             return {
                 title: document.getElementById('hero-title').textContent.trim(),
                 subtitle: document.getElementById('hero-subtitle').textContent.trim(),
@@ -407,6 +423,12 @@
                 aboutStory2: document.getElementById('about-story-paragraph-2').textContent.trim(),
                 venueTitle: document.getElementById('venue-title').textContent.trim(),
                 venueAddress: document.getElementById('venue-address').textContent.trim(),
+                venueLat: savedBlocks.venueLat || '',
+                venueLng: savedBlocks.venueLng || '',
+                programSectionTitle: savedBlocks.programSectionTitle || document.getElementById('program-section-title')?.textContent.trim() || '',
+                practicalSectionTitle: savedBlocks.practicalSectionTitle || document.getElementById('practical-info-title')?.textContent.trim() || '',
+                program: savedBlocks.program || (window.ContentBlocks ? ContentBlocks.DEFAULT_PROGRAM : []),
+                practicalInfo: savedBlocks.practicalInfo || (window.ContentBlocks ? ContentBlocks.DEFAULT_PRACTICAL : []),
                 dressImages: Array.from({ length: 8 }, (_, i) => document.getElementById(`dress-photo-${i + 1}`).src),
                 bestGridImages: [document.getElementById('best-photo-1').src, document.getElementById('best-photo-2').src],
                 bestMarqueeImages: Array.from({ length: 6 }, (_, i) => document.getElementById(`best-marquee-${i + 1}`).src),
@@ -545,6 +567,9 @@
             document.getElementById('meta-twitter-title').content = document.getElementById('hero-title').textContent.trim();
             document.getElementById('meta-twitter-description').content = description;
             document.getElementById('meta-twitter-image').content = shareImage;
+
+            if (window.ContentBlocks) ContentBlocks.apply(state);
+            if (window.BackgroundMusic) BackgroundMusic.apply(state);
         }
 
         function openCustomizer() {
@@ -559,8 +584,22 @@
             document.body.style.overflow = 'auto';
         }
 
+        function getExistingDashboardBlocks() {
+            const scopedKey = window.EventConfig && EventConfig.isReady()
+                ? EventConfig.storageKey('dashboard_state')
+                : dashboardStateKey;
+            try {
+                const raw = localStorage.getItem(scopedKey) || localStorage.getItem(dashboardStateKey);
+                return raw ? JSON.parse(raw) : {};
+            } catch {
+                return {};
+            }
+        }
+
         function applyCustomization() {
+            const existing = getExistingDashboardBlocks();
             const state = {
+                ...existing,
                 title: document.getElementById('custom-title').value.trim(),
                 subtitle: document.getElementById('custom-subtitle').value.trim(),
                 coupleLeft: document.getElementById('custom-couple-left').value.trim(),
@@ -603,7 +642,14 @@
 
         function saveCustomization() {
             const state = applyCustomization();
+            const scopedKey = window.EventConfig && EventConfig.isReady()
+                ? EventConfig.storageKey('dashboard_state')
+                : dashboardStateKey;
+            localStorage.setItem(scopedKey, JSON.stringify(state));
             localStorage.setItem(dashboardStateKey, JSON.stringify(state));
+            if (window.DashboardSync && EventConfig.isReady()) {
+                DashboardSync.save(EventConfig.getEventId(), state).catch(() => {});
+            }
             showToast('Personnalisation sauvegardée');
         }
 
@@ -967,20 +1013,42 @@
             const scopedDashboardKey = window.EventConfig && EventConfig.isReady()
                 ? EventConfig.storageKey('dashboard_state')
                 : dashboardStateKey;
+            const isPreviewMode = new URLSearchParams(window.location.search).get('preview') === '1';
             let dashboardState = null;
-            const savedState = localStorage.getItem(scopedDashboardKey) || localStorage.getItem(dashboardStateKey);
-            if (savedState) {
+
+            if (window.DashboardSync && EventConfig.isReady()) {
+                const cfg = EventConfig.getConfig();
+                const defaults = window.ContentBlocks
+                    ? ContentBlocks.getDefaultsFromConfig(cfg)
+                    : {};
                 try {
-                    dashboardState = JSON.parse(savedState);
+                    dashboardState = await DashboardSync.load(EventConfig.getEventId(), defaults);
                     const hasLocalCursorImages = JSON.stringify(dashboardState).includes('file:///C:/Users/AL/.cursor');
                     if (hasLocalCursorImages) {
                         localStorage.removeItem(scopedDashboardKey);
                         localStorage.removeItem(dashboardStateKey);
-                        dashboardState = null;
+                        dashboardState = await DashboardSync.load(EventConfig.getEventId(), defaults);
                     } else {
                         applyCustomizationState(dashboardState);
                     }
-                } catch (e) {}
+                } catch (e) {
+                    dashboardState = null;
+                }
+            } else {
+                const savedState = localStorage.getItem(scopedDashboardKey) || localStorage.getItem(dashboardStateKey);
+                if (savedState) {
+                    try {
+                        dashboardState = JSON.parse(savedState);
+                        const hasLocalCursorImages = JSON.stringify(dashboardState).includes('file:///C:/Users/AL/.cursor');
+                        if (hasLocalCursorImages) {
+                            localStorage.removeItem(scopedDashboardKey);
+                            localStorage.removeItem(dashboardStateKey);
+                            dashboardState = null;
+                        } else {
+                            applyCustomizationState(dashboardState);
+                        }
+                    } catch (e) {}
+                }
             }
 
             if (window.EventCountdown) {
@@ -990,7 +1058,31 @@
                 );
             }
 
+            if (window.ContentBlocks) {
+                const cfg = EventConfig.getConfig && EventConfig.getConfig();
+                const defaults = ContentBlocks.getDefaultsFromConfig(cfg);
+                const merged = { ...defaults, ...(dashboardState || {}) };
+                ContentBlocks.apply(merged);
+            }
+
+            if (window.BackgroundMusic) {
+                const cfg = EventConfig.getConfig && EventConfig.getConfig();
+                const defaults = window.ContentBlocks ? ContentBlocks.getDefaultsFromConfig(cfg) : {};
+                const merged = { ...defaults, ...(dashboardState || {}) };
+                BackgroundMusic.apply(merged);
+                BackgroundMusic.init();
+            }
+
             await initEntryFlow();
+
+            if (isPreviewMode) {
+                guestName = guestName || 'Aperçu';
+                openMainSite();
+                document.body.classList.add('preview-mode');
+            }
+
+            if (window.CalendarExport) CalendarExport.init();
+
             applyDesignerVisibility();
         })();
 

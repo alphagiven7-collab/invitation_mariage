@@ -1,0 +1,270 @@
+/* Personnalisation — UI/UX alignée admin */
+.perso-workspace {
+    display: grid;
+    grid-template-columns: 1fr min(400px, 38vw);
+    gap: 1.25rem;
+    align-items: start;
+}
+
+.perso-preview-panel {
+    position: sticky;
+    top: 1rem;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 24px;
+    padding: 1rem;
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
+}
+
+.perso-preview-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.perso-preview-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #4338ca;
+    margin: 0;
+}
+
+.perso-preview-hint {
+    font-size: 0.68rem;
+    color: #94a3b8;
+    margin: 0.2rem 0 0;
+}
+
+.perso-preview-refresh {
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #475569;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    transition: background 0.15s, transform 0.15s;
+}
+
+.perso-preview-refresh:hover {
+    background: #eef2ff;
+    transform: rotate(90deg);
+}
+
+.perso-phone-frame {
+    background: linear-gradient(145deg, #0f172a, #1e293b);
+    border-radius: 28px;
+    padding: 10px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 20px 50px rgba(15, 23, 42, 0.25);
+}
+
+.perso-phone-frame iframe {
+    display: block;
+    width: 100%;
+    height: min(78vh, 720px);
+    border: none;
+    border-radius: 20px;
+    background: #fff;
+}
+
+.perso-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 1.25rem;
+    align-items: start;
+}
+
+.perso-sidebar {
+    position: sticky;
+    top: 1rem;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 0.75rem;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.perso-nav-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    padding: 0.5rem 0.75rem 0.25rem;
+    margin: 0;
+}
+
+.perso-nav a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: 12px;
+    color: #475569;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+}
+
+.perso-nav a:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+.perso-nav a.active {
+    background: linear-gradient(120deg, #eef2ff, #e0e7ff);
+    color: #4338ca;
+    box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.2);
+}
+
+.perso-nav-icon {
+    width: 1.25rem;
+    text-align: center;
+}
+
+.perso-section {
+    scroll-margin-top: 1rem;
+}
+
+.perso-dynamic-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.perso-dynamic-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1rem;
+    position: relative;
+}
+
+.perso-dynamic-item-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.65rem;
+}
+
+.perso-dynamic-item-head span {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6366f1;
+}
+
+.perso-remove-btn {
+    border: none;
+    background: #fee2e2;
+    color: #dc2626;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.perso-remove-btn:hover {
+    background: #fecaca;
+}
+
+.perso-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    border: 1px dashed #a5b4fc;
+    background: #eef2ff;
+    color: #4338ca;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.perso-add-btn:hover {
+    background: #e0e7ff;
+    border-color: #6366f1;
+}
+
+.perso-map-preview {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 12px;
+    background: #e2e8f0;
+    margin-top: 0.5rem;
+}
+
+.perso-gps-hint {
+    font-size: 0.68rem;
+    color: #64748b;
+    margin-top: 0.35rem;
+    line-height: 1.45;
+}
+
+.perso-toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 9999;
+    padding: 0.75rem 1.25rem;
+    border-radius: 14px;
+    background: #0f172a;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 600;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.35);
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.25s, transform 0.25s;
+    pointer-events: none;
+}
+
+.perso-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.perso-color-select {
+    min-width: 120px;
+}
+
+@media (max-width: 1100px) {
+    .perso-workspace {
+        grid-template-columns: 1fr;
+    }
+    .perso-preview-panel {
+        position: static;
+        order: -1;
+    }
+    .perso-phone-frame iframe {
+        height: min(55vh, 520px);
+    }
+}
+
+@media (max-width: 900px) {
+    .perso-layout {
+        grid-template-columns: 1fr;
+    }
+    .perso-sidebar {
+        position: static;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+    .perso-nav-label {
+        width: 100%;
+    }
+}

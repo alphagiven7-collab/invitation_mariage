@@ -303,6 +303,78 @@ const CloudAPI = (() => {
         return local;
     }
 
+    // --- Personnalisation (event_settings) ---
+    async function getEventSettings(eventId) {
+        if (!isEnabled()) {
+            const raw = localStorage.getItem(localKey(eventId, "dashboard_state"))
+                || localStorage.getItem("wedding_dashboard_state");
+            if (!raw) return null;
+            try {
+                return JSON.parse(raw);
+            } catch {
+                return null;
+            }
+        }
+
+        const rows = await request("event_settings", {
+            query: `?event_id=eq.${encodeURIComponent(eventId)}&select=dashboard_json,updated_at&limit=1`
+        });
+        if (!Array.isArray(rows) || !rows[0]) return null;
+
+        const row = rows[0];
+        const json = row.dashboard_json || {};
+        return {
+            ...json,
+            _cloudUpdatedAt: row.updated_at || null
+        };
+    }
+
+    async function saveEventSettings(eventId, payload) {
+        const clean = { ...(payload || {}) };
+        delete clean._cloudUpdatedAt;
+
+        localStorage.setItem(localKey(eventId, "dashboard_state"), JSON.stringify(payload));
+        localStorage.setItem("wedding_dashboard_state", JSON.stringify(payload));
+
+        if (!isEnabled()) {
+            return { cloud: false, reason: "offline" };
+        }
+
+        const now = new Date().toISOString();
+        const existing = await request("event_settings", {
+            query: `?event_id=eq.${encodeURIComponent(eventId)}&select=event_id&limit=1`
+        });
+
+        let ok = false;
+        if (Array.isArray(existing) && existing.length) {
+            const patched = await request("event_settings", {
+                method: "PATCH",
+                query: `?event_id=eq.${encodeURIComponent(eventId)}`,
+                body: { dashboard_json: clean, updated_at: now },
+                prefer: "return=minimal"
+            });
+            ok = patched === true;
+        } else {
+            const inserted = await request("event_settings", {
+                method: "POST",
+                body: {
+                    event_id: eventId,
+                    dashboard_json: clean,
+                    updated_at: now
+                },
+                prefer: "return=minimal"
+            });
+            ok = inserted === true;
+        }
+
+        if (!ok) {
+            console.warn(
+                "CloudAPI: échec sauvegarde event_settings. Exécutez docs/SUPABASE-EVENT-SETTINGS.sql dans Supabase."
+            );
+        }
+        return { cloud: ok, updatedAt: now };
+    }
+
     function mapGuestFromCloud(row) {
         return {
             id: row.id,
@@ -349,7 +421,9 @@ const CloudAPI = (() => {
         addGuestbookMessage,
         getGuestbookMessages,
         track,
-        getAnalytics
+        getAnalytics,
+        getEventSettings,
+        saveEventSettings
     };
 })();
 
