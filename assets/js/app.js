@@ -100,6 +100,9 @@
                 setVal('rsvp-status', guest.status, false);
             }
             if (guest.rsvpMessage) setVal('rsvp-message', guest.rsvpMessage);
+            if (Array.isArray(guest.drinkChoices) && guest.drinkChoices.length && window.DrinkMenu) {
+                DrinkMenu.setSelected(guest.drinkChoices);
+            }
 
             const guestbookArea = document.getElementById('guestbook-textarea');
             if (guestbookArea && guestName) {
@@ -667,11 +670,14 @@
                 const confirmLabel = document.getElementById('confirm-presence-label');
                 if (confirmLabel) confirmLabel.textContent = state.reserveText;
             }
-            renderRsvpDrinkOptions(state.drinkMenuOptions);
+            if (window.DrinkMenu) {
+                DrinkMenu.apply(state);
+            }
+            const drinkNames = (state.drinkMenu || []).map((item) => item.name).filter(Boolean);
             window.__eventConfirmationMeta = {
                 couplePhotoLeft: state.confirmationCouplePhoto1 || state.aboutImage || '',
                 couplePhotoRight: state.confirmationCouplePhoto2 || state.heroImage || '',
-                drinkMenuOptions: state.drinkMenuOptions || []
+                drinkMenuOptions: drinkNames.length ? drinkNames : (state.drinkMenuOptions || [])
             };
             if (state.mainText) document.getElementById('invite-main-text').textContent = state.mainText;
             if (state.day) document.getElementById('event-day').textContent = state.day;
@@ -1226,36 +1232,16 @@
             stopBestGalleryAutoplay();
         }
 
-        function renderRsvpDrinkOptions(options) {
-            const section = document.getElementById('rsvp-drinks-section');
-            const root = document.getElementById('rsvp-drink-options');
-            if (!section || !root) return;
-            const list = (Array.isArray(options) ? options : [])
-                .map((item) => String(item || '').trim())
-                .filter(Boolean);
-            if (!list.length) {
-                section.classList.add('hidden');
-                root.innerHTML = '';
-                return;
-            }
-            section.classList.remove('hidden');
-            root.innerHTML = list.map((label, index) => `
-                <label class="rsvp-drink-option">
-                    <input type="checkbox" name="rsvp-drink" value="${label.replace(/"/g, '&quot;')}" class="rounded border-gray-300 text-pink-500 focus:ring-pink-200">
-                    <span>${label}</span>
-                </label>
-            `).join('');
-        }
-
         function collectSelectedDrinks() {
-            return Array.from(document.querySelectorAll('#rsvp-drink-options input[name="rsvp-drink"]:checked'))
-                .map((el) => el.value)
-                .filter(Boolean);
+            return window.DrinkMenu ? DrinkMenu.getSelected() : [];
         }
 
         // Système de modales (Pages)
         function openModal(id) {
-            if (id === 'rsvp-modal' && typeof prefillRsvpForm === 'function') prefillRsvpForm();
+            if (id === 'rsvp-modal') {
+                if (typeof prefillRsvpForm === 'function') prefillRsvpForm();
+                if (window.DrinkMenu) DrinkMenu.syncToRsvp();
+            }
             const modal = document.getElementById(id);
             if (!modal) return;
             modal.classList.remove('hidden');

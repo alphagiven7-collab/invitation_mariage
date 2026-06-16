@@ -17,7 +17,7 @@
     <meta name="twitter:image" id="meta-twitter-image" content="">
     <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#4caf50">
-    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=21">
+    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=24">
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@0.469.0"></script>
     <link rel="stylesheet" href="../assets/css/app.css">
@@ -346,6 +346,19 @@
             </div>
         </section>
 
+        <!-- Menu des boissons (section dédiée) -->
+        <section id="drink-menu-section" class="px-4 mt-6 hidden">
+            <div class="drink-menu-shell rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="drink-menu-head px-5 pt-5 pb-3 text-center">
+                    <div class="drink-menu-head-icon mx-auto mb-2" aria-hidden="true">🥂</div>
+                    <h3 id="drink-menu-title" class="font-serif text-xl text-gray-800 mb-1">Menu des boissons</h3>
+                    <p id="drink-menu-subtitle" class="text-[11px] text-gray-500 leading-relaxed max-w-sm mx-auto">Sélectionnez vos préférences pour le jour J (optionnel).</p>
+                </div>
+                <div id="drink-menu-grid" class="drink-menu-grid px-4 pb-4"></div>
+                <p class="drink-menu-footnote text-[10px] text-center text-gray-400 px-4 pb-4">Vos choix seront repris automatiquement lors de la confirmation RSVP.</p>
+            </div>
+        </section>
+
         <!-- 9. Actions Principales (Boutons interactifs de la vidéo) -->
         <section class="px-4 mt-6 space-y-3">
             
@@ -647,8 +660,8 @@
                     </div>
                     <div id="rsvp-drinks-section" class="hidden">
                         <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-2">Menu des boissons</label>
-                        <p class="text-[11px] text-gray-400 mb-2">Choisissez vos préférences pour le jour J.</p>
-                        <div id="rsvp-drink-options" class="grid grid-cols-2 gap-2"></div>
+                        <p id="rsvp-drinks-hint" class="text-[11px] text-gray-400 mb-3">Optionnel — plusieurs choix possibles.</p>
+                        <div id="rsvp-drink-options" class="drink-menu-grid drink-menu-grid--modal"></div>
                     </div>
                     <button id="rsvp-submit-btn" type="submit" class="btn-rsvp btn-with-loader w-full rounded-xl py-3 text-sm font-semibold transition">
                         Envoyer ma réponse RSVP
@@ -882,22 +895,23 @@
     <div id="toast" class="toast"></div>
 
     <!-- Scripts pour l'interactivité -->
-    <script src="../assets/js/button-loading.js?v=21"></script>
-    <script src="../assets/js/media-upload.js?v=21"></script>
-    <script src="../assets/js/supabase-config.js?v=21"></script>
-    <script src="../assets/js/event-config.js?v=21"></script>
-    <script src="../assets/js/cloud-api.js?v=21"></script>
-    <script src="../assets/js/dashboard-sync.js?v=21"></script>
-    <script src="../assets/js/guest-manager.js?v=21"></script>
+    <script src="../assets/js/button-loading.js?v=24"></script>
+    <script src="../assets/js/media-upload.js?v=24"></script>
+    <script src="../assets/js/supabase-config.js?v=24"></script>
+    <script src="../assets/js/event-config.js?v=24"></script>
+    <script src="../assets/js/cloud-api.js?v=24"></script>
+    <script src="../assets/js/dashboard-sync.js?v=24"></script>
+    <script src="../assets/js/guest-manager.js?v=24"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-    <script src="../assets/js/content-blocks.js?v=21"></script>
-    <script src="../assets/js/calendar-export.js?v=21"></script>
-    <script src="../assets/js/background-music.js?v=21"></script>
-    <script src="../assets/js/countdown.js?v=21"></script>
-    <script src="../assets/js/lucide-init.js?v=21"></script>
-    <script src="../assets/js/i18n.js?v=21"></script>
-    <script src="../assets/js/app.js?v=21"></script>
-    <script src="../assets/js/guest-experience.js?v=21"></script>
+    <script src="../assets/js/content-blocks.js?v=24"></script>
+    <script src="../assets/js/calendar-export.js?v=24"></script>
+    <script src="../assets/js/background-music.js?v=24"></script>
+    <script src="../assets/js/countdown.js?v=24"></script>
+    <script src="../assets/js/lucide-init.js?v=24"></script>
+    <script src="../assets/js/i18n.js?v=24"></script>
+    <script src="../assets/js/drink-menu.js?v=24"></script>
+    <script src="../assets/js/app.js?v=24"></script>
+    <script src="../assets/js/guest-experience.js?v=24"></script>
     <script>
         // Fallback robuste si app.js ne se charge pas complètement
         (function () {

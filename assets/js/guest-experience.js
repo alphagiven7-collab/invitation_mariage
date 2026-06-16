@@ -70,6 +70,9 @@ const GuestExperience = (() => {
             const st = document.getElementById("rsvp-status");
             if (st) st.value = guest.status;
         }
+        if (Array.isArray(guest.drinkChoices) && guest.drinkChoices.length && window.DrinkMenu) {
+            DrinkMenu.setSelected(guest.drinkChoices);
+        }
     }
 
     function showPersonalWelcome(guest) {
