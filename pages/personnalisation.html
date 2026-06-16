@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personnalisation — Invitation mariage</title>
-    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=19">
+    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=20">
     <link rel="stylesheet" href="../assets/css/app.css">
     <link rel="stylesheet" href="../assets/css/admin.css">
     <link rel="stylesheet" href="../assets/css/personnalisation.css">
@@ -256,7 +256,7 @@
 
                 <section class="admin-card perso-section" id="sec-musique">
                     <h2 class="admin-card-title">Musique de fond</h2>
-                    <p class="admin-card-desc">Ambiance sonore sur l'invitation — démarre quand l'invité entre (bouton ♪ sur la page). Formats : MP3, WAV, OGG.</p>
+                    <p class="admin-card-desc">Ambiance sonore sur l'invitation — démarre quand l'invité entre (bouton ♪ sur la page). MP3 direct ou lien YouTube.</p>
                     <label class="flex items-center gap-2 mb-3 cursor-pointer">
                         <input id="backgroundMusicEnabled" type="checkbox" class="rounded border-slate-300" checked>
                         <span class="dash-field-label mb-0">Activer la musique de fond</span>
@@ -266,8 +266,8 @@
                         <input id="upload-music" type="file" accept="audio/mpeg,audio/mp3,audio/wav,audio/ogg,audio/*" class="hidden">
                     </label>
                     <label class="block">
-                        <span class="dash-field-label">URL du fichier audio (MP3)</span>
-                        <input id="backgroundMusicUrl" class="admin-input" placeholder="https://…/votre-musique.mp3">
+                        <span class="dash-field-label">URL audio (MP3) ou YouTube</span>
+                        <input id="backgroundMusicUrl" class="admin-input" placeholder="https://…/musique.mp3 ou https://youtu.be/…">
                     </label>
                     <label class="block mt-3">
                         <span class="dash-field-label">Volume <span id="music-volume-label">35</span>%</span>
@@ -278,7 +278,27 @@
                         <button type="button" id="stop-music-btn" class="perso-add-btn">■ Arrêter</button>
                     </div>
                     <audio id="perso-music-preview" class="hidden" preload="metadata"></audio>
-                    <p class="perso-gps-hint mt-2">Astuce : hébergez un MP3 sur Google Drive (lien direct) ou utilisez l'import local. Taille max conseillée : 5 Mo.</p>
+                    <p class="perso-gps-hint mt-2">MP3 direct, import local, ou lien YouTube (ex: https://youtu.be/…). Après entrée, touchez ♪ si la lecture ne démarre pas.</p>
+                </section>
+
+                <section class="admin-card perso-section" id="sec-rsvp-card">
+                    <h2 class="admin-card-title">RSVP · boissons &amp; carte d'accès</h2>
+                    <p class="admin-card-desc">Menu des boissons dans le formulaire RSVP et photos optionnelles sur la carte de confirmation (QR).</p>
+                    <label class="block">
+                        <span class="dash-field-label">Options boissons (séparées par des virgules)</span>
+                        <textarea id="drinkMenuOptions" rows="2" class="admin-input" style="min-height:64px;resize:vertical" placeholder="Champagne, Vin rouge, Vin blanc, Jus, Eau, Soft"></textarea>
+                    </label>
+                    <div class="dash-grid-2 mt-3">
+                        <label>
+                            <span class="dash-field-label">Photo carte (gauche / invité)</span>
+                            <input id="confirmationCouplePhoto1" class="admin-input" placeholder="URL photo profil ou couple">
+                        </label>
+                        <label>
+                            <span class="dash-field-label">Photo carte (droite / couple)</span>
+                            <input id="confirmationCouplePhoto2" class="admin-input" placeholder="URL photo du couple">
+                        </label>
+                    </div>
+                    <p class="perso-gps-hint mt-2">Assignez la table et le code d'accès par invité dans l'administration.</p>
                 </section>
 
                 <section class="admin-card perso-section" id="sec-couleurs">
@@ -360,16 +380,16 @@
 
     <div id="perso-toast" class="perso-toast" role="status" aria-live="polite"></div>
 
-    <script src="../assets/js/button-loading.js?v=19"></script>
-    <script src="../assets/js/media-upload.js?v=19"></script>
-    <script src="../assets/js/supabase-config.js?v=19"></script>
-    <script src="../assets/js/event-config.js?v=19"></script>
-    <script src="../assets/js/auth.js?v=19"></script>
-    <script src="../assets/js/content-blocks.js?v=19"></script>
-    <script src="../assets/js/countdown.js?v=19"></script>
-    <script src="../assets/js/cloud-api.js?v=19"></script>
-    <script src="../assets/js/dashboard-sync.js?v=19"></script>
-    <script src="../assets/js/db.js?v=19"></script>
-    <script src="../assets/js/personnalisation.js?v=19"></script>
+    <script src="../assets/js/button-loading.js?v=20"></script>
+    <script src="../assets/js/media-upload.js?v=20"></script>
+    <script src="../assets/js/supabase-config.js?v=20"></script>
+    <script src="../assets/js/event-config.js?v=20"></script>
+    <script src="../assets/js/auth.js?v=20"></script>
+    <script src="../assets/js/content-blocks.js?v=20"></script>
+    <script src="../assets/js/countdown.js?v=20"></script>
+    <script src="../assets/js/cloud-api.js?v=20"></script>
+    <script src="../assets/js/dashboard-sync.js?v=20"></script>
+    <script src="../assets/js/db.js?v=20"></script>
+    <script src="../assets/js/personnalisation.js?v=20"></script>
 </body>
 </html>

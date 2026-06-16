@@ -377,6 +377,17 @@ const CloudAPI = (() => {
         return { cloud: ok, updatedAt: now, sizeKb: Math.round(JSON.stringify(clean).length / 1024) };
     }
 
+    function parseDrinkChoices(value) {
+        if (Array.isArray(value)) return value;
+        if (!value) return [];
+        try {
+            const parsed = JSON.parse(value);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return String(value).split(",").map((v) => v.trim()).filter(Boolean);
+        }
+    }
+
     function mapGuestFromCloud(row) {
         return {
             id: row.id,
@@ -388,6 +399,10 @@ const CloudAPI = (() => {
             token: row.token,
             status: row.status || "pending",
             qrApproved: !!(row.qr_approved ?? row.qrApproved),
+            accessCode: row.access_code || row.accessCode || "",
+            tableNumber: row.table_number || row.tableNumber || "",
+            drinkChoices: parseDrinkChoices(row.drink_choices ?? row.drinkChoices),
+            profilePhotoUrl: row.profile_photo_url || row.profilePhotoUrl || "",
             adults: row.adults || 1,
             children: row.children || 0,
             rsvpMessage: row.rsvp_message || "",
@@ -407,6 +422,12 @@ const CloudAPI = (() => {
             token: guest.token,
             status: guest.status || "pending",
             qr_approved: !!guest.qrApproved,
+            access_code: guest.accessCode || null,
+            table_number: guest.tableNumber || null,
+            drink_choices: guest.drinkChoices && guest.drinkChoices.length
+                ? JSON.stringify(guest.drinkChoices)
+                : null,
+            profile_photo_url: guest.profilePhotoUrl || null,
             adults: guest.adults || 1,
             children: guest.children || 0,
             rsvp_message: guest.rsvpMessage || "",

@@ -235,9 +235,47 @@ const GuestExperience = (() => {
     }
 
     function buildConfirmCode(guest, payload) {
+        const access = buildAccessCode(guest);
+        if (access) return access;
         const tok = (guest && guest.token) ? guest.token.slice(0, 8).toUpperCase() : "INV";
         return `YK26-${tok}-${Date.now().toString(36).slice(-4).toUpperCase()}`;
     }
+
+    function buildAccessCode(guest) {
+        if (guest && guest.accessCode) return String(guest.accessCode).trim().toUpperCase();
+        if (guest && guest.token) return guest.token.slice(0, 8).toUpperCase();
+        return "";
+    }
+
+    function getGuestTableLabel(guest) {
+        const table = guest && (guest.tableNumber || guest.table);
+        if (table) return String(table).trim();
+        return "En cours d'attribution";
+    }
+
+    function getConfirmationMeta() {
+        return window.__eventConfirmationMeta || {};
+    }
+
+    function buildQrPayload(payload, code, guest) {
+        const drinks = payload.drinkChoices || guest?.drinkChoices || [];
+        return JSON.stringify({
+            code,
+            accessCode: buildAccessCode(guest) || code,
+            table: getGuestTableLabel(guest),
+            drinks: Array.isArray(drinks) ? drinks : [],
+            event: getEventId(),
+            name: payload.name,
+            phone: payload.phone,
+            status: payload.status,
+            adults: payload.adults,
+            children: payload.children,
+            confirmedAt: payload.sentAt,
+            token: guest?.token || ""
+        });
+    }
+
+    let lastConfirmationExport = null;
 
     function hasPersonalInviteToken(guest) {
         const token = (getParams().get("t") || "").trim();
@@ -247,10 +285,7 @@ const GuestExperience = (() => {
     }
 
     function canShowQrCode(guest, payload) {
-        if (!payload || payload.status !== "yes") return false;
-        if (hasPersonalInviteToken(guest)) return true;
-        const g = guest || profile;
-        return !!(g && g.qrApproved);
+        return !!(payload && payload.status === "yes");
     }
 
     function saveConfirmationCache(payload, code) {
@@ -284,59 +319,88 @@ const GuestExperience = (() => {
         const showQr = canShowQrCode(resolvedGuest, payload);
         const cfg = window.EventConfig && EventConfig.getConfig && EventConfig.getConfig();
         const eventTitle = (cfg && cfg.title) ? cfg.title : "Mariage de Josue et Divine";
+        const meta = getConfirmationMeta();
+        const accessCode = buildAccessCode(resolvedGuest) || code;
+        const tableLabel = getGuestTableLabel(resolvedGuest);
+        const drinks = payload.drinkChoices || resolvedGuest?.drinkChoices || [];
+        const drinksLabel = drinks.length ? drinks.join(" · ") : "Non précisé";
 
         document.getElementById("confirm-title").textContent = isYes
-            ? (showQr ? "Présence confirmée avec joie" : "Demande enregistrée")
+            ? "Présence confirmée avec joie"
             : "Réponse enregistrée avec gratitude";
         document.getElementById("confirm-subtitle").textContent = isYes
-            ? (showQr ? "Nous avons hâte de vous accueillir" : "En attente de validation par les mariés")
+            ? "Votre place est réservée — gardez cette carte pour le jour J"
             : "Merci d'avoir pris le temps de répondre";
         document.getElementById("confirm-guest-line").textContent = payload.name;
         document.getElementById("confirm-detail-line").textContent = isYes
             ? `${eventTitle} · ${payload.adults} adulte(s) · ${payload.children} enfant(s)`
             : "Vous avez indiqué ne pas pouvoir être présent(e).";
 
+        const coupleWrap = document.getElementById("confirm-couple-photos");
+        const photoLeft = document.getElementById("confirm-photo-left");
+        const photoRight = document.getElementById("confirm-photo-right");
+        const leftUrl = (resolvedGuest && resolvedGuest.profilePhotoUrl) || meta.couplePhotoLeft || "";
+        const rightUrl = meta.couplePhotoRight || "";
+        if (coupleWrap && photoLeft && photoRight && (leftUrl || rightUrl)) {
+            coupleWrap.classList.remove("hidden");
+            if (leftUrl) {
+                photoLeft.src = leftUrl;
+                photoLeft.alt = getCoupleLabel();
+                photoLeft.classList.remove("hidden");
+            } else {
+                photoLeft.classList.add("hidden");
+            }
+            if (rightUrl) {
+                photoRight.src = rightUrl;
+                photoRight.alt = getCoupleLabel();
+                photoRight.classList.remove("hidden");
+            } else {
+                photoRight.classList.add("hidden");
+            }
+        } else if (coupleWrap) {
+            coupleWrap.classList.add("hidden");
+        }
+
+        const infoGrid = document.getElementById("confirm-info-grid");
+        const accessEl = document.getElementById("confirm-access-code");
+        const tableEl = document.getElementById("confirm-table-line");
+        const drinksEl = document.getElementById("confirm-drinks-line");
+        if (isYes && infoGrid && accessEl && tableEl && drinksEl) {
+            infoGrid.classList.remove("hidden");
+            accessEl.textContent = accessCode;
+            tableEl.textContent = tableLabel;
+            drinksEl.textContent = drinksLabel;
+        } else if (infoGrid) {
+            infoGrid.classList.add("hidden");
+        }
+
         const qrWrap = document.getElementById("confirm-qr-wrap");
         const pendingWrap = document.getElementById("confirm-pending-wrap");
         const codeLine = document.getElementById("confirm-code-line");
         const qrHint = document.getElementById("confirm-qr-hint");
+        const downloadBtn = document.getElementById("confirm-download-btn");
 
         if (showQr) {
-            document.getElementById("confirm-code-line").textContent = code;
-            const qrData = JSON.stringify({
-                code,
-                event: getEventId(),
-                name: payload.name,
-                phone: payload.phone,
-                status: payload.status,
-                adults: payload.adults,
-                children: payload.children,
-                confirmedAt: payload.sentAt,
-                personal: hasPersonalInviteToken(resolvedGuest)
-            });
-            setQrImage(qrData);
+            if (codeLine) {
+                codeLine.textContent = `Code : ${accessCode}`;
+                codeLine.classList.remove("hidden");
+            }
+            setQrImage(buildQrPayload(payload, accessCode, resolvedGuest));
             if (qrWrap) qrWrap.classList.remove("hidden");
             if (pendingWrap) pendingWrap.classList.add("hidden");
-            if (codeLine) codeLine.classList.remove("hidden");
             if (qrHint) {
-                qrHint.textContent = "Présentez ce QR code le jour J pour un accueil rapide.";
+                qrHint.textContent = "Scannez ce QR à l'entrée : code d'accès, table et boissons inclus.";
                 qrHint.classList.remove("hidden");
             }
-        } else if (isYes) {
-            if (qrWrap) qrWrap.classList.add("hidden");
-            if (pendingWrap) pendingWrap.classList.remove("hidden");
-            if (codeLine) codeLine.classList.add("hidden");
-            if (qrHint) qrHint.classList.add("hidden");
-            const pendingText = document.getElementById("confirm-pending-text");
-            if (pendingText) {
-                pendingText.textContent =
-                    "Votre présence est enregistrée. Le QR code d'accès vous sera délivré une fois que les mariés auront confirmé votre invitation.";
-            }
+            if (downloadBtn) downloadBtn.classList.remove("hidden");
+            lastConfirmationExport = { payload, accessCode, tableLabel, drinksLabel, eventTitle, guest: resolvedGuest, meta };
         } else {
             if (qrWrap) qrWrap.classList.add("hidden");
             if (pendingWrap) pendingWrap.classList.add("hidden");
             if (codeLine) codeLine.classList.add("hidden");
             if (qrHint) qrHint.classList.add("hidden");
+            if (downloadBtn) downloadBtn.classList.add("hidden");
+            lastConfirmationExport = null;
         }
 
         const modal = document.getElementById("rsvp-confirmation-modal");
@@ -346,6 +410,132 @@ const GuestExperience = (() => {
             modal.classList.remove("hidden");
             document.body.style.overflow = "hidden";
         }
+    }
+
+    async function downloadConfirmationPass() {
+        const data = lastConfirmationExport;
+        if (!data) {
+            showToast("Aucune carte à télécharger.");
+            return;
+        }
+        const qrImg = document.getElementById("rsvp-qr-image");
+        if (!qrImg || !qrImg.src) {
+            showToast("QR code indisponible.");
+            return;
+        }
+
+        const loadImage = (src) => new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = src;
+        });
+
+        try {
+            const canvas = document.createElement("canvas");
+            canvas.width = 900;
+            canvas.height = 1280;
+            const ctx = canvas.getContext("2d");
+            const gradient = ctx.createLinearGradient(0, 0, 900, 1280);
+            gradient.addColorStop(0, "#ecfdf5");
+            gradient.addColorStop(1, "#fff1f2");
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#0f766e";
+            ctx.fillRect(0, 0, canvas.width, 180);
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "700 42px Georgia, serif";
+            ctx.textAlign = "center";
+            ctx.fillText("Carte d'accès", canvas.width / 2, 70);
+            ctx.font = "400 24px Arial, sans-serif";
+            ctx.fillText(data.eventTitle, canvas.width / 2, 120);
+
+            ctx.fillStyle = "#0f172a";
+            ctx.font = "700 36px Georgia, serif";
+            ctx.fillText(data.payload.name, canvas.width / 2, 250);
+            ctx.font = "400 22px Arial, sans-serif";
+            ctx.fillStyle = "#475569";
+            ctx.fillText(`${data.payload.adults} adulte(s) · ${data.payload.children} enfant(s)`, canvas.width / 2, 295);
+
+            const boxY = 340;
+            const boxH = 220;
+            ctx.fillStyle = "#ffffff";
+            ctx.strokeStyle = "#e2e8f0";
+            ctx.lineWidth = 2;
+            roundRect(ctx, 60, boxY, canvas.width - 120, boxH, 20, true, true);
+            ctx.fillStyle = "#64748b";
+            ctx.font = "600 18px Arial, sans-serif";
+            ctx.textAlign = "left";
+            ctx.fillText("CODE D'ACCÈS", 90, boxY + 45);
+            ctx.fillStyle = "#0f172a";
+            ctx.font = "700 34px monospace";
+            ctx.fillText(data.accessCode, 90, boxY + 85);
+            ctx.fillStyle = "#64748b";
+            ctx.font = "600 18px Arial, sans-serif";
+            ctx.fillText("TABLE", 90, boxY + 130);
+            ctx.fillStyle = "#0f172a";
+            ctx.font = "700 28px Arial, sans-serif";
+            ctx.fillText(data.tableLabel, 90, boxY + 165);
+            ctx.fillStyle = "#64748b";
+            ctx.font = "600 18px Arial, sans-serif";
+            ctx.fillText("BOISSONS", 470, boxY + 130);
+            ctx.fillStyle = "#0f172a";
+            ctx.font = "700 22px Arial, sans-serif";
+            wrapText(ctx, data.drinksLabel, 470, boxY + 165, 340, 28);
+
+            const qr = await loadImage(qrImg.src);
+            const qrSize = 320;
+            const qrX = (canvas.width - qrSize) / 2;
+            const qrY = 610;
+            ctx.fillStyle = "#ffffff";
+            roundRect(ctx, qrX - 16, qrY - 16, qrSize + 32, qrSize + 32, 24, true, true);
+            ctx.drawImage(qr, qrX, qrY, qrSize, qrSize);
+
+            ctx.fillStyle = "#64748b";
+            ctx.font = "400 20px Arial, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("Présentez ce QR code le jour J", canvas.width / 2, 980);
+
+            const slug = (data.payload.name || "invite").replace(/[^\w\-]+/g, "_").slice(0, 40);
+            const link = document.createElement("a");
+            link.download = `carte-acces-${slug}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+            showToast("Carte téléchargée.");
+        } catch (e) {
+            showToast("Téléchargement impossible — réessayez.");
+        }
+    }
+
+    function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.arcTo(x + width, y, x + width, y + height, radius);
+        ctx.arcTo(x + width, y + height, x, y + height, radius);
+        ctx.arcTo(x, y + height, x, y, radius);
+        ctx.arcTo(x, y, x + width, y, radius);
+        ctx.closePath();
+        if (fill) ctx.fill();
+        if (stroke) ctx.stroke();
+    }
+
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+        const words = String(text || "").split(" ");
+        let line = "";
+        let drawY = y;
+        for (let i = 0; i < words.length; i += 1) {
+            const test = `${line}${words[i]} `;
+            if (ctx.measureText(test).width > maxWidth && i > 0) {
+                ctx.fillText(line, x, drawY);
+                line = `${words[i]} `;
+                drawY += lineHeight;
+            } else {
+                line = test;
+            }
+        }
+        ctx.fillText(line, x, drawY);
     }
 
     function validatePhone(phone) {
@@ -366,6 +556,9 @@ const GuestExperience = (() => {
                 adults: document.getElementById("rsvp-adults")?.value || "1",
                 children: document.getElementById("rsvp-children")?.value || "0",
                 message: (document.getElementById("rsvp-message")?.value || "").trim(),
+                drinkChoices: typeof window.collectSelectedDrinks === "function"
+                    ? window.collectSelectedDrinks()
+                    : [],
                 sentAt: new Date().toISOString()
             };
 
@@ -397,6 +590,7 @@ const GuestExperience = (() => {
                         adults: payload.adults,
                         children: payload.children,
                         message: payload.message,
+                        drinkChoices: payload.drinkChoices,
                         inviteToken: token || ""
                     });
                 } catch (e) {}
@@ -434,6 +628,7 @@ const GuestExperience = (() => {
     function bindHandlers() {
         window.confirmPresence = openRsvp;
         window.submitRsvp = submitRsvp;
+        window.downloadConfirmationPass = downloadConfirmationPass;
 
         const form = document.getElementById("rsvp-form");
         if (form) {

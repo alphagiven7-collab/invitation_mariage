@@ -74,7 +74,12 @@ function getConfigDefaults() {
         metaDescription: cfg?.metaDescription || cfg?.title || "",
         backgroundMusicUrl: cfg?.ambiance?.musicUrl || cfg?.backgroundMusicUrl || "",
         backgroundMusicVolume: cfg?.ambiance?.volume ?? 0.35,
-        backgroundMusicEnabled: cfg?.ambiance?.enabled !== false
+        backgroundMusicEnabled: cfg?.ambiance?.enabled !== false,
+        drinkMenuOptions: cfg?.drinkMenuOptions || [
+            "Champagne", "Vin rouge", "Vin blanc", "Jus de fruits", "Eau", "Soft"
+        ],
+        confirmationCouplePhoto1: cfg?.confirmationCouplePhoto1 || "",
+        confirmationCouplePhoto2: cfg?.confirmationCouplePhoto2 || ""
     };
 }
 
@@ -114,7 +119,10 @@ const DEFAULT_STATE = {
     metaDescription: "Invitation officielle au mariage de Josue et Divine.",
     backgroundMusicUrl: "",
     backgroundMusicVolume: 0.35,
-    backgroundMusicEnabled: true
+    backgroundMusicEnabled: true,
+    drinkMenuOptions: ["Champagne", "Vin rouge", "Vin blanc", "Jus de fruits", "Eau", "Soft"],
+    confirmationCouplePhoto1: "",
+    confirmationCouplePhoto2: ""
 };
 
 let toastTimer = null;
@@ -280,7 +288,10 @@ function readFormState() {
         metaDescription: document.getElementById("metaDescription").value.trim(),
         backgroundMusicUrl: document.getElementById("backgroundMusicUrl").value.trim(),
         backgroundMusicVolume: Number(document.getElementById("backgroundMusicVolume").value) / 100,
-        backgroundMusicEnabled: document.getElementById("backgroundMusicEnabled").checked
+        backgroundMusicEnabled: document.getElementById("backgroundMusicEnabled").checked,
+        drinkMenuOptions: parseList(document.getElementById("drinkMenuOptions").value, 12),
+        confirmationCouplePhoto1: document.getElementById("confirmationCouplePhoto1").value.trim(),
+        confirmationCouplePhoto2: document.getElementById("confirmationCouplePhoto2").value.trim()
     };
 }
 
@@ -337,7 +348,10 @@ function toDashboardPayload(formState) {
         dressImages: formState.dressImages,
         supportEmail: formState.supportEmail,
         rsvpLink: formState.rsvpLink,
-        metaDescription: formState.metaDescription
+        metaDescription: formState.metaDescription,
+        drinkMenuOptions: formState.drinkMenuOptions,
+        confirmationCouplePhoto1: formState.confirmationCouplePhoto1,
+        confirmationCouplePhoto2: formState.confirmationCouplePhoto2
     };
 }
 
@@ -515,6 +529,9 @@ function hydrateForm(state) {
     const volPct = Math.round((state.backgroundMusicVolume ?? 0.35) * 100);
     document.getElementById("backgroundMusicVolume").value = String(volPct);
     document.getElementById("music-volume-label").textContent = String(volPct);
+    document.getElementById("drinkMenuOptions").value = (state.drinkMenuOptions || []).join(", ");
+    document.getElementById("confirmationCouplePhoto1").value = state.confirmationCouplePhoto1 || "";
+    document.getElementById("confirmationCouplePhoto2").value = state.confirmationCouplePhoto2 || "";
 
     const photos = state.bestPhotos || state.bestGridImages || state.bestMarqueeImages || [];
     document.getElementById("bestPhotos").value = Array.isArray(photos) ? photos.join(", ") : "";
@@ -551,6 +568,10 @@ function wireMusicControls() {
         const src = urlField?.value.trim();
         if (!src) {
             showToast("Ajoutez une URL ou importez un fichier audio.");
+            return;
+        }
+        if (window.BackgroundMusic && BackgroundMusic.parseYouTubeId && BackgroundMusic.parseYouTubeId(src)) {
+            showToast("Lien YouTube détecté — ouvrez l'invitation et touchez ♪ pour écouter.");
             return;
         }
         if (!preview) return;

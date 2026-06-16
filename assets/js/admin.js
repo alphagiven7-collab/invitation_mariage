@@ -45,6 +45,9 @@ function openEditModal(guest) {
     document.getElementById("edit-guest-adults").value = guest.adults ?? 1;
     document.getElementById("edit-guest-children").value = guest.children ?? 0;
     document.getElementById("edit-guest-qr-approved").checked = !!guest.qrApproved;
+    document.getElementById("edit-guest-access-code").value = guest.accessCode || "";
+    document.getElementById("edit-guest-table").value = guest.tableNumber || "";
+    document.getElementById("edit-guest-profile-photo").value = guest.profilePhotoUrl || "";
     document.getElementById("edit-modal-subtitle").textContent =
         `Lien actuel : ${GuestManager.buildInviteLink(guest).slice(0, 60)}…`;
     const modal = document.getElementById("edit-guest-modal");
@@ -316,7 +319,10 @@ window.addEventListener("DOMContentLoaded", async () => {
             status: document.getElementById("edit-guest-status").value,
             adults: Number(document.getElementById("edit-guest-adults").value) || 0,
             children: Number(document.getElementById("edit-guest-children").value) || 0,
-            qrApproved: document.getElementById("edit-guest-qr-approved").checked
+            qrApproved: document.getElementById("edit-guest-qr-approved").checked,
+            accessCode: document.getElementById("edit-guest-access-code").value.trim(),
+            tableNumber: document.getElementById("edit-guest-table").value.trim(),
+            profilePhotoUrl: document.getElementById("edit-guest-profile-photo").value.trim()
         });
         if (!updated) {
             showToast("Erreur : un autre invité porte déjà ce nom");

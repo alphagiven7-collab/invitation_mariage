@@ -666,6 +666,12 @@
                 const confirmLabel = document.getElementById('confirm-presence-label');
                 if (confirmLabel) confirmLabel.textContent = state.reserveText;
             }
+            renderRsvpDrinkOptions(state.drinkMenuOptions);
+            window.__eventConfirmationMeta = {
+                couplePhotoLeft: state.confirmationCouplePhoto1 || state.aboutImage || '',
+                couplePhotoRight: state.confirmationCouplePhoto2 || state.heroImage || '',
+                drinkMenuOptions: state.drinkMenuOptions || []
+            };
             if (state.mainText) document.getElementById('invite-main-text').textContent = state.mainText;
             if (state.day) document.getElementById('event-day').textContent = state.day;
             if (state.monthYear) document.getElementById('event-month-year').textContent = state.monthYear;
@@ -1206,6 +1212,7 @@
                 return;
             }
             document.getElementById('best-photos-modal').classList.remove('hidden');
+            document.body.classList.add('best-gallery-open');
             document.body.style.overflow = 'hidden';
             setBestGallerySlide(0);
             startBestGalleryAutoplay();
@@ -1213,8 +1220,36 @@
 
         function closeBestPhotosGallery() {
             document.getElementById('best-photos-modal').classList.add('hidden');
+            document.body.classList.remove('best-gallery-open');
             document.body.style.overflow = 'auto';
             stopBestGalleryAutoplay();
+        }
+
+        function renderRsvpDrinkOptions(options) {
+            const section = document.getElementById('rsvp-drinks-section');
+            const root = document.getElementById('rsvp-drink-options');
+            if (!section || !root) return;
+            const list = (Array.isArray(options) ? options : [])
+                .map((item) => String(item || '').trim())
+                .filter(Boolean);
+            if (!list.length) {
+                section.classList.add('hidden');
+                root.innerHTML = '';
+                return;
+            }
+            section.classList.remove('hidden');
+            root.innerHTML = list.map((label, index) => `
+                <label class="rsvp-drink-option">
+                    <input type="checkbox" name="rsvp-drink" value="${label.replace(/"/g, '&quot;')}" class="rounded border-gray-300 text-pink-500 focus:ring-pink-200">
+                    <span>${label}</span>
+                </label>
+            `).join('');
+        }
+
+        function collectSelectedDrinks() {
+            return Array.from(document.querySelectorAll('#rsvp-drink-options input[name="rsvp-drink"]:checked'))
+                .map((el) => el.value)
+                .filter(Boolean);
         }
 
         // Système de modales (Pages)
@@ -1308,7 +1343,7 @@
             }
 
             if ('serviceWorker' in navigator && !isPreviewMode) {
-                navigator.serviceWorker.register('../sw.js?v=19').catch(() => {});
+                navigator.serviceWorker.register('../sw.js?v=20').catch(() => {});
             }
 
             defaultCustomizationState = getCurrentCustomizationState();
@@ -1452,6 +1487,7 @@
         window.resetCustomization = resetCustomization;
         window.openBestPhotosGallery = openBestPhotosGallery;
         window.closeBestPhotosGallery = closeBestPhotosGallery;
+        window.collectSelectedDrinks = collectSelectedDrinks;
         window.changeBestGallerySlide = changeBestGallerySlide;
         window.requestDesignerAccess = requestDesignerAccess;
         window.publishGuestMessage = publishGuestMessage;

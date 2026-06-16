@@ -769,6 +769,141 @@
     border-radius: 16px;
     border: 1px solid #e2e8f0;
 }
+
+/* Galerie « plus belles photos » */
+.best-photos-modal {
+    touch-action: pan-y;
+}
+.best-photos-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+.best-photos-close-btn {
+    position: fixed;
+    top: max(10px, env(safe-area-inset-top, 10px));
+    right: max(10px, env(safe-area-inset-right, 10px));
+    z-index: 150;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 14px 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(15, 23, 42, 0.88);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+}
+.best-photos-close-btn span:first-child {
+    font-size: 22px;
+    line-height: 1;
+    font-weight: 400;
+}
+body.best-gallery-open .app-floating-tools {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Carte confirmation RSVP v2 */
+.confirmation-card-v2 {
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    animation: slideUp 0.5s ease-out;
+}
+.confirmation-card-v2-header {
+    background: linear-gradient(135deg, #0f766e 0%, #059669 45%, #10b981 100%);
+}
+.confirmation-card-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.35);
+    background: rgba(0,0,0,0.2);
+    color: #fff;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+.confirm-couple-photos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.confirm-couple-photo {
+    width: 56px;
+    height: 56px;
+    border-radius: 999px;
+    object-fit: cover;
+    border: 2px solid #fff;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+}
+.confirm-couple-heart {
+    color: #ec4899;
+    font-size: 1.1rem;
+}
+.confirm-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+.confirm-info-item {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 10px 12px;
+    text-align: left;
+}
+.confirm-info-item--wide {
+    grid-column: 1 / -1;
+}
+.confirm-info-label {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+.confirm-info-value {
+    display: block;
+    font-size: 13px;
+    color: #0f172a;
+    line-height: 1.35;
+    word-break: break-word;
+}
+.rsvp-drink-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 12px;
+    cursor: pointer;
+    background: #fff;
+}
+.rsvp-drink-option:has(input:checked) {
+    border-color: #ec4899;
+    background: #fdf2f8;
+}
+.youtube-music-host {
+    position: fixed;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+    left: -9999px;
+    top: -9999px;
+}
 #gate-personal-container #gate-personal-message strong {
     color: #be185d;
     font-weight: 600;

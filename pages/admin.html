@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administration invités</title>
-    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=19">
+    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=20">
     <link rel="stylesheet" href="../assets/css/app.css">
     <link rel="stylesheet" href="../assets/css/admin.css">
 </head>
@@ -196,6 +196,18 @@
                             <span>Accès QR validé (invités sans lien personnel)</span>
                         </label>
                         <p class="text-xs text-slate-500 mt-1">Les invités avec lien personnel (?t=…) reçoivent le QR automatiquement. Cochez ici pour valider manuellement les autres.</p>
+                    </div>
+                    <div class="admin-field">
+                        <label for="edit-guest-access-code">Code d'accès (QR)</label>
+                        <input id="edit-guest-access-code" class="admin-input" placeholder="Ex: A7K9M2P1">
+                    </div>
+                    <div class="admin-field">
+                        <label for="edit-guest-table">Table réservée</label>
+                        <input id="edit-guest-table" class="admin-input" placeholder="Ex: Table 12 — Famille">
+                    </div>
+                    <div class="admin-field admin-field-full">
+                        <label for="edit-guest-profile-photo">Photo profil invité (URL, optionnel)</label>
+                        <input id="edit-guest-profile-photo" class="admin-input" placeholder="https://…">
                     </div>
                 </div>
             </form>

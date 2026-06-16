@@ -17,7 +17,7 @@
     <meta name="twitter:image" id="meta-twitter-image" content="">
     <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#4caf50">
-    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=19">
+    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=20">
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@0.469.0"></script>
     <link rel="stylesheet" href="../assets/css/app.css">
@@ -579,22 +579,26 @@
         </div>
     </div>
 
-    <div id="best-photos-modal" class="fixed inset-0 z-[115] bg-black/90 backdrop-blur-sm hidden">
-        <div class="max-w-3xl mx-auto min-h-screen px-4 py-6 flex flex-col">
-            <div class="flex justify-between items-center mb-4 text-white">
+    <div id="best-photos-modal" class="best-photos-modal fixed inset-0 z-[140] bg-black/92 backdrop-blur-sm hidden" role="dialog" aria-modal="true" aria-label="Galerie du couple">
+        <button type="button" id="best-photos-close-btn" class="best-photos-close-btn" onclick="closeBestPhotosGallery()" aria-label="Fermer la galerie">
+            <span aria-hidden="true">×</span>
+            <span class="best-photos-close-label">Retour</span>
+        </button>
+        <div class="best-photos-backdrop" onclick="closeBestPhotosGallery()" aria-hidden="true"></div>
+        <div class="max-w-3xl mx-auto min-h-screen px-4 py-6 flex flex-col relative z-10 pointer-events-none">
+            <div class="flex justify-between items-center mb-4 text-white pointer-events-auto pt-12 sm:pt-4">
                 <p class="text-xs tracking-widest uppercase text-indigo-200">Galerie du couple</p>
-                <button onclick="closeBestPhotosGallery()" class="bg-white/20 hover:bg-white/30 rounded-full px-4 py-1 text-xs font-semibold transition">Fermer</button>
             </div>
-            <div class="relative flex-1 flex items-center justify-center">
-                <button onclick="changeBestGallerySlide(-1)" class="absolute left-2 z-10 bg-white/15 hover:bg-white/30 text-white rounded-full w-10 h-10 flex items-center justify-center transition">
+            <div class="relative flex-1 flex items-center justify-center pointer-events-auto">
+                <button type="button" onclick="changeBestGallerySlide(-1)" class="absolute left-2 z-10 bg-white/15 hover:bg-white/30 text-white rounded-full w-10 h-10 flex items-center justify-center transition" aria-label="Photo précédente">
                     <i data-lucide="chevron-left" class="w-5 h-5"></i>
                 </button>
                 <img id="best-gallery-main-image" src="" alt="Photo du couple" class="w-full max-h-[72vh] object-contain rounded-2xl shadow-2xl border border-white/20">
-                <button onclick="changeBestGallerySlide(1)" class="absolute right-2 z-10 bg-white/15 hover:bg-white/30 text-white rounded-full w-10 h-10 flex items-center justify-center transition">
+                <button type="button" onclick="changeBestGallerySlide(1)" class="absolute right-2 z-10 bg-white/15 hover:bg-white/30 text-white rounded-full w-10 h-10 flex items-center justify-center transition" aria-label="Photo suivante">
                     <i data-lucide="chevron-right" class="w-5 h-5"></i>
                 </button>
             </div>
-            <div class="mt-4">
+            <div class="mt-4 pointer-events-auto">
                 <p id="best-gallery-caption" class="text-center text-white text-xs mb-2"></p>
                 <div id="best-gallery-dots" class="flex justify-center gap-2 flex-wrap"></div>
             </div>
@@ -640,6 +644,11 @@
                     <div>
                         <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Message</label>
                         <textarea id="rsvp-message" rows="3" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200" placeholder="Votre message aux mariés..."></textarea>
+                    </div>
+                    <div id="rsvp-drinks-section" class="hidden">
+                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-2">Menu des boissons</label>
+                        <p class="text-[11px] text-gray-400 mb-2">Choisissez vos préférences pour le jour J.</p>
+                        <div id="rsvp-drink-options" class="grid grid-cols-2 gap-2"></div>
                     </div>
                     <button id="rsvp-submit-btn" type="submit" class="btn-rsvp btn-with-loader w-full rounded-xl py-3 text-sm font-semibold transition">
                         Envoyer ma réponse RSVP
@@ -817,51 +826,78 @@
     </div>
 
     <!-- Confirmation RSVP avec QR code -->
-    <div id="rsvp-confirmation-modal" class="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm overflow-y-auto hidden">
+    <div id="rsvp-confirmation-modal" class="fixed inset-0 z-[145] bg-black/65 backdrop-blur-sm overflow-y-auto hidden">
         <div class="max-w-md mx-auto min-h-screen px-4 py-8 flex items-center">
-            <div class="w-full confirmation-card rounded-3xl shadow-2xl overflow-hidden">
-                <div class="confirmation-header p-6 text-center text-white">
+            <div class="w-full confirmation-card-v2 rounded-3xl shadow-2xl overflow-hidden">
+                <div class="confirmation-card-v2-header p-6 text-center text-white relative">
+                    <button type="button" onclick="closeModal('rsvp-confirmation-modal')" class="confirmation-card-close" aria-label="Fermer">×</button>
                     <div class="confirmation-seal mx-auto mb-3">✓</div>
                     <h3 id="confirm-title" class="font-serif text-2xl mb-1">Confirmation enregistrée</h3>
                     <p id="confirm-subtitle" class="text-sm text-white/90">Merci pour votre réponse</p>
                 </div>
-                <div class="p-6 text-center bg-white">
-                    <p id="confirm-guest-line" class="font-serif text-lg text-gray-800 mb-2"></p>
-                    <p id="confirm-detail-line" class="text-sm text-gray-600 mb-4"></p>
-                    <div class="confirmation-qr-wrap mx-auto mb-4" id="confirm-qr-wrap">
+                <div id="confirmation-card-export" class="p-6 bg-gradient-to-b from-white to-rose-50/40">
+                    <div id="confirm-couple-photos" class="confirm-couple-photos hidden mb-4">
+                        <img id="confirm-photo-left" src="" alt="" class="confirm-couple-photo">
+                        <div class="confirm-couple-heart" aria-hidden="true">♥</div>
+                        <img id="confirm-photo-right" src="" alt="" class="confirm-couple-photo">
+                    </div>
+                    <p id="confirm-guest-line" class="font-serif text-xl text-gray-800 text-center mb-1"></p>
+                    <p id="confirm-detail-line" class="text-sm text-gray-600 text-center mb-4"></p>
+                    <div id="confirm-info-grid" class="confirm-info-grid hidden mb-4">
+                        <div class="confirm-info-item">
+                            <span class="confirm-info-label">Code d'accès</span>
+                            <strong id="confirm-access-code" class="confirm-info-value"></strong>
+                        </div>
+                        <div class="confirm-info-item">
+                            <span class="confirm-info-label">Table réservée</span>
+                            <strong id="confirm-table-line" class="confirm-info-value"></strong>
+                        </div>
+                        <div class="confirm-info-item confirm-info-item--wide">
+                            <span class="confirm-info-label">Boissons choisies</span>
+                            <strong id="confirm-drinks-line" class="confirm-info-value"></strong>
+                        </div>
+                    </div>
+                    <div class="confirmation-qr-wrap mx-auto mb-3" id="confirm-qr-wrap">
                         <img id="rsvp-qr-image" alt="QR code confirmation" class="mx-auto rounded-xl border border-gray-100 shadow-sm">
                     </div>
-                    <p id="confirm-code-line" class="text-xs font-mono tracking-wider text-emerald-700 bg-emerald-50 inline-block px-4 py-2 rounded-full mb-4"></p>
-                    <p id="confirm-qr-hint" class="text-[11px] text-gray-500 mb-4">Présentez ce QR code le jour J pour un accueil rapide.</p>
+                    <p id="confirm-code-line" class="text-xs font-mono tracking-wider text-emerald-700 bg-emerald-50 inline-block px-4 py-2 rounded-full mb-3 w-full text-center"></p>
+                    <p id="confirm-qr-hint" class="text-[11px] text-gray-500 text-center mb-4">Présentez ce QR code le jour J — accueil rapide à l'entrée.</p>
                     <div id="confirm-pending-wrap" class="hidden mb-4 rounded-xl bg-amber-50 border border-amber-100 px-4 py-3 text-left">
                         <p class="text-xs font-semibold text-amber-800 mb-1">En attente de validation</p>
                         <p id="confirm-pending-text" class="text-[11px] text-amber-700 leading-relaxed">Votre présence est enregistrée. Le QR code d'accès vous sera délivré après confirmation par les mariés.</p>
                     </div>
-                    <button onclick="closeModal('rsvp-confirmation-modal')" class="w-full bg-gray-900 hover:bg-black text-white rounded-xl py-3 text-sm font-semibold transition">Fermer</button>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button type="button" id="confirm-download-btn" onclick="downloadConfirmationPass()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl py-3 text-sm font-semibold transition hidden">
+                            Télécharger ma carte (Jour J)
+                        </button>
+                        <button type="button" onclick="closeModal('rsvp-confirmation-modal')" class="w-full bg-gray-900 hover:bg-black text-white rounded-xl py-3 text-sm font-semibold transition">Fermer</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <div id="youtube-music-host" class="youtube-music-host" aria-hidden="true"></div>
+
     <div id="toast" class="toast"></div>
 
     <!-- Scripts pour l'interactivité -->
-    <script src="../assets/js/button-loading.js?v=19"></script>
-    <script src="../assets/js/media-upload.js?v=19"></script>
-    <script src="../assets/js/supabase-config.js?v=19"></script>
-    <script src="../assets/js/event-config.js?v=19"></script>
-    <script src="../assets/js/cloud-api.js?v=19"></script>
-    <script src="../assets/js/dashboard-sync.js?v=19"></script>
-    <script src="../assets/js/guest-manager.js?v=19"></script>
+    <script src="../assets/js/button-loading.js?v=20"></script>
+    <script src="../assets/js/media-upload.js?v=20"></script>
+    <script src="../assets/js/supabase-config.js?v=20"></script>
+    <script src="../assets/js/event-config.js?v=20"></script>
+    <script src="../assets/js/cloud-api.js?v=20"></script>
+    <script src="../assets/js/dashboard-sync.js?v=20"></script>
+    <script src="../assets/js/guest-manager.js?v=20"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-    <script src="../assets/js/content-blocks.js?v=19"></script>
-    <script src="../assets/js/calendar-export.js?v=19"></script>
-    <script src="../assets/js/background-music.js?v=19"></script>
-    <script src="../assets/js/countdown.js?v=19"></script>
-    <script src="../assets/js/lucide-init.js?v=19"></script>
-    <script src="../assets/js/i18n.js?v=19"></script>
-    <script src="../assets/js/app.js?v=19"></script>
-    <script src="../assets/js/guest-experience.js?v=19"></script>
+    <script src="../assets/js/content-blocks.js?v=20"></script>
+    <script src="../assets/js/calendar-export.js?v=20"></script>
+    <script src="../assets/js/background-music.js?v=20"></script>
+    <script src="../assets/js/countdown.js?v=20"></script>
+    <script src="../assets/js/lucide-init.js?v=20"></script>
+    <script src="../assets/js/i18n.js?v=20"></script>
+    <script src="../assets/js/app.js?v=20"></script>
+    <script src="../assets/js/guest-experience.js?v=20"></script>
     <script>
         // Fallback robuste si app.js ne se charge pas complètement
         (function () {
@@ -1142,6 +1178,15 @@
                 };
             }
 
+            if (typeof window.closeBestPhotosGallery !== "function") {
+                window.closeBestPhotosGallery = function () {
+                    const bestModal = document.getElementById("best-photos-modal");
+                    if (bestModal) bestModal.classList.add("hidden");
+                    document.body.classList.remove("best-gallery-open");
+                    document.body.style.overflow = "auto";
+                };
+            }
+
             if (typeof window.openBestPhotosGallery !== "function") {
                 window.openBestPhotosGallery = function () {
                     const bestModal = document.getElementById("best-photos-modal");
@@ -1150,6 +1195,7 @@
                         fallbackBestImages = collectFallbackBestImages();
                         fallbackBestIndex = 0;
                         bestModal.classList.remove("hidden");
+                        document.body.classList.add("best-gallery-open");
                         document.body.style.overflow = "hidden";
                         renderFallbackBestGallery();
                         return;
@@ -1158,14 +1204,6 @@
                         classicModal.classList.remove("hidden");
                         document.body.style.overflow = "hidden";
                     }
-                };
-            }
-
-            if (typeof window.closeBestPhotosGallery !== "function") {
-                window.closeBestPhotosGallery = function () {
-                    const bestModal = document.getElementById("best-photos-modal");
-                    if (bestModal) bestModal.classList.add("hidden");
-                    document.body.style.overflow = "auto";
                 };
             }
 

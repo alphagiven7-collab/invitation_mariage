@@ -102,6 +102,10 @@ const GuestManager = (() => {
             token: generateToken(),
             status: "pending",
             qrApproved: false,
+            accessCode: "",
+            tableNumber: "",
+            drinkChoices: [],
+            profilePhotoUrl: "",
             adults: 1,
             children: 0,
             rsvpMessage: "",
@@ -149,6 +153,12 @@ const GuestManager = (() => {
         if (patch.email !== undefined) next.email = (patch.email || "").trim();
         if (patch.group !== undefined) next.group = (patch.group || "").trim();
         if (patch.qrApproved !== undefined) next.qrApproved = !!patch.qrApproved;
+        if (patch.accessCode !== undefined) next.accessCode = String(patch.accessCode || "").trim().toUpperCase();
+        if (patch.tableNumber !== undefined) next.tableNumber = String(patch.tableNumber || "").trim();
+        if (patch.drinkChoices !== undefined) {
+            next.drinkChoices = Array.isArray(patch.drinkChoices) ? patch.drinkChoices : [];
+        }
+        if (patch.profilePhotoUrl !== undefined) next.profilePhotoUrl = String(patch.profilePhotoUrl || "").trim();
 
         guests[idx] = next;
         await persistGuests(guests);
@@ -157,7 +167,7 @@ const GuestManager = (() => {
         return guests[idx];
     }
 
-    async function recordRSVP({ guestId, fullName, phone, status, adults, children, message, inviteToken }) {
+    async function recordRSVP({ guestId, fullName, phone, status, adults, children, message, drinkChoices, inviteToken }) {
         await loadGuests(true);
         const guests = await loadGuests();
         let guest = guestId ? guests.find((g) => g.id === guestId) : null;
@@ -173,6 +183,7 @@ const GuestManager = (() => {
         const qrApproved = status === "yes" && isPersonalInvite
             ? true
             : !!(guest.qrApproved);
+        const nextAccessCode = guest.accessCode || guest.token.slice(0, 8).toUpperCase();
 
         const updated = await updateGuest(guest.id, {
             status: status === "yes" ? "yes" : status === "no" ? "no" : "pending",
@@ -180,6 +191,8 @@ const GuestManager = (() => {
             children: Number(children) || 0,
             rsvpMessage: message || "",
             phone: phone || guest.phone,
+            drinkChoices: Array.isArray(drinkChoices) ? drinkChoices : guest.drinkChoices || [],
+            accessCode: nextAccessCode,
             respondedAt: new Date().toISOString(),
             qrApproved
         });
