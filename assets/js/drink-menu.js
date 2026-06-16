@@ -2,44 +2,12 @@
  * Menu des boissons — cartes visuelles, sélection multiple optionnelle
  */
 const DrinkMenu = (() => {
-    const DEFAULT_ITEMS = [
-        {
-            id: "champagne",
-            name: "Champagne",
-            description: "Bulles fines & festive",
-            imageUrl: "https://images.unsplash.com/photo-1519677100109-f976370db247?auto=format&fit=crop&w=500&q=80"
-        },
-        {
-            id: "vin-rouge",
-            name: "Vin rouge",
-            description: "Cépage sélectionné",
-            imageUrl: "https://images.unsplash.com/photo-1510818131224-0016b2e85605?auto=format&fit=crop&w=500&q=80"
-        },
-        {
-            id: "vin-blanc",
-            name: "Vin blanc",
-            description: "Fraîcheur & élégance",
-            imageUrl: "https://images.unsplash.com/photo-1569529466461-2e03124697b8?auto=format&fit=crop&w=500&q=80"
-        },
-        {
-            id: "jus-fruits",
-            name: "Jus de fruits",
-            description: "Mangue, orange, ananas",
-            imageUrl: "https://images.unsplash.com/photo-1613478223719-2ab1183d1777?auto=format&fit=crop&w=500&q=80"
-        },
-        {
-            id: "eau",
-            name: "Eau minérale",
-            description: "Plate ou gazeuse",
-            imageUrl: "https://images.unsplash.com/photo-1548839140-29a7491761af?auto=format&fit=crop&w=500&q=80"
-        },
-        {
-            id: "soft",
-            name: "Soft / soda",
-            description: "Cola, tonic, limonade",
-            imageUrl: "https://images.unsplash.com/photo-1622483767028-3fb1460979ed?auto=format&fit=crop&w=500&q=80"
+    function getDefaults() {
+        if (window.DrinkGenericImages && typeof DrinkGenericImages.getDefaultItems === "function") {
+            return DrinkGenericImages.getDefaultItems();
         }
-    ];
+        return [];
+    }
 
     let menuItems = [];
     let selected = new Set();
@@ -73,7 +41,15 @@ const DrinkMenu = (() => {
             .replace(/"/g, "&quot;");
     }
 
+    function resolveItemImage(item, index) {
+        if (window.DrinkGenericImages && typeof DrinkGenericImages.resolveImageUrl === "function") {
+            return DrinkGenericImages.resolveImageUrl(item, index);
+        }
+        return String(item?.imageUrl || "").trim();
+    }
+
     function normalizeMenu(state) {
+        const defaults = getDefaults();
         if (Array.isArray(state?.drinkMenu) && state.drinkMenu.length) {
             return state.drinkMenu
                 .slice(0, 8)
@@ -81,20 +57,23 @@ const DrinkMenu = (() => {
                     id: item.id || slugify(item.name) || `drink-${index}`,
                     name: String(item.name || "").trim(),
                     description: String(item.description || "").trim(),
-                    imageUrl: String(item.imageUrl || DEFAULT_ITEMS[index % DEFAULT_ITEMS.length].imageUrl).trim()
+                    imageUrl: resolveItemImage(item, index)
                 }))
                 .filter((item) => item.name);
         }
         const legacy = Array.isArray(state?.drinkMenuOptions) ? state.drinkMenuOptions : [];
         if (legacy.length) {
-            return legacy.slice(0, 8).map((name, index) => ({
-                id: slugify(name) || `drink-${index}`,
-                name: String(name).trim(),
-                description: "",
-                imageUrl: DEFAULT_ITEMS[index % DEFAULT_ITEMS.length].imageUrl
-            })).filter((item) => item.name);
+            return legacy.slice(0, 8).map((name, index) => {
+                const id = slugify(name) || `drink-${index}`;
+                return {
+                    id,
+                    name: String(name).trim(),
+                    description: "",
+                    imageUrl: resolveItemImage({ id, name }, index)
+                };
+            }).filter((item) => item.name);
         }
-        return DEFAULT_ITEMS.slice();
+        return defaults.slice();
     }
 
     function loadSelection() {
@@ -120,14 +99,17 @@ const DrinkMenu = (() => {
             container.innerHTML = "";
             return;
         }
-        container.innerHTML = menuItems.map((item) => {
+        container.innerHTML = menuItems.map((item, index) => {
             const checked = selected.has(item.name) ? "checked" : "";
             const selectedClass = selected.has(item.name) ? " is-selected" : "";
+            const fallback = window.DrinkGenericImages
+                ? DrinkGenericImages.fallbackUrl(index)
+                : item.imageUrl;
             return `
                 <label class="drink-card${selectedClass}${compact ? " drink-card--compact" : ""}" data-drink-name="${escapeHtml(item.name)}">
                     <input type="checkbox" class="drink-card-input" name="guest-drink" value="${escapeHtml(item.name)}" ${checked}>
                     <div class="drink-card-media">
-                        <img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.name)}" loading="lazy">
+                        <img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.name)}" loading="lazy" data-fallback="${escapeHtml(fallback)}" onerror="if(this.dataset.fallback&&this.src!==this.dataset.fallback){this.src=this.dataset.fallback;}">
                         <span class="drink-card-check" aria-hidden="true">✓</span>
                     </div>
                     <div class="drink-card-body">
@@ -211,7 +193,7 @@ const DrinkMenu = (() => {
     }
 
     return {
-        DEFAULT_ITEMS,
+        getDefaultItems: getDefaults,
         normalizeMenu,
         apply,
         getSelected,

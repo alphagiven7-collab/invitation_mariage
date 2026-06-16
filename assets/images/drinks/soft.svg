@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Soft soda">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fdf2f8"/>
+      <stop offset="100%" stop-color="#fbcfe8"/>
+    </linearGradient>
+    <linearGradient id="soda" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f472b6"/>
+      <stop offset="100%" stop-color="#db2777"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#bg)"/>
+  <rect x="162" y="75" width="76" height="145" rx="10" fill="#fff" stroke="#d4d4d8" stroke-width="2"/>
+  <rect x="172" y="100" width="56" height="105" rx="6" fill="url(#soda)"/>
+  <rect x="178" y="82" width="44" height="14" rx="4" fill="#e4e4e7"/>
+  <path d="M248 95 L268 75 L272 80 L252 100 Z" fill="#ec4899"/>
+  <circle cx="265" cy="72" r="6" fill="#fff" opacity="0.8"/>
+  <circle cx="275" cy="85" r="4" fill="#fff" opacity="0.6"/>
+  <text x="200" y="255" text-anchor="middle" font-family="Georgia, serif" font-size="22" fill="#be185d">Soft / soda</text>
+</svg>

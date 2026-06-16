@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Vin blanc">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ecfdf5"/>
+      <stop offset="100%" stop-color="#d1fae5"/>
+    </linearGradient>
+    <linearGradient id="wine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fef9c3"/>
+      <stop offset="100%" stop-color="#fde047"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#bg)"/>
+  <ellipse cx="200" cy="248" rx="55" ry="10" fill="#000" opacity="0.08"/>
+  <path d="M155 70 C155 70 145 130 145 165 C145 195 170 215 200 215 C230 215 255 195 255 165 C255 130 245 70 245 70 Z" fill="#fff" stroke="#d4d4d8" stroke-width="2"/>
+  <path d="M165 95 C165 120 160 160 160 170 C160 188 178 200 200 200 C222 200 240 188 240 170 C240 160 235 120 235 95 Z" fill="url(#wine)" opacity="0.9"/>
+  <rect x="196" y="215" width="8" height="28" fill="#e4e4e7"/>
+  <ellipse cx="200" cy="245" rx="28" ry="8" fill="#fff" stroke="#d4d4d8" stroke-width="2"/>
+  <text x="200" y="278" text-anchor="middle" font-family="Georgia, serif" font-size="22" fill="#065f46">Vin blanc</text>
+</svg>

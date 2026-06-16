@@ -1,8 +1,8 @@
-const CACHE = "invitation-v25";
+const CACHE = "invitation-v26";
 const PRECACHE = [
-    "./assets/css/tailwind.min.css?v=25",
-    "./assets/css/app.css?v=25",
-    "./assets/css/drink-menu.css?v=25"
+    "./assets/css/tailwind.min.css?v=26",
+    "./assets/css/app.css?v=26",
+    "./assets/css/drink-menu.css?v=26"
 ];
 
 self.addEventListener("install", (e) => {

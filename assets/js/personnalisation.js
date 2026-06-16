@@ -20,15 +20,6 @@ const PRACTICAL_ICONS = [
     { value: "info", label: "Info" }
 ];
 
-const DEFAULT_DRINK_MENU = [
-    { id: "champagne", name: "Champagne", description: "Bulles fines & festive", imageUrl: "https://images.unsplash.com/photo-1519677100109-f976370db247?auto=format&fit=crop&w=500&q=80" },
-    { id: "vin-rouge", name: "Vin rouge", description: "Cépage sélectionné", imageUrl: "https://images.unsplash.com/photo-1510818131224-0016b2e85605?auto=format&fit=crop&w=500&q=80" },
-    { id: "vin-blanc", name: "Vin blanc", description: "Fraîcheur & élégance", imageUrl: "https://images.unsplash.com/photo-1569529466461-2e03124697b8?auto=format&fit=crop&w=500&q=80" },
-    { id: "jus-fruits", name: "Jus de fruits", description: "Mangue, orange, ananas", imageUrl: "https://images.unsplash.com/photo-1613478223719-2ab1183d1777?auto=format&fit=crop&w=500&q=80" },
-    { id: "eau", name: "Eau minérale", description: "Plate ou gazeuse", imageUrl: "https://images.unsplash.com/photo-1548839140-29a7491761af?auto=format&fit=crop&w=500&q=80" },
-    { id: "soft", name: "Soft / soda", description: "Cola, tonic, limonade", imageUrl: "https://images.unsplash.com/photo-1622483767028-3fb1460979ed?auto=format&fit=crop&w=500&q=80" }
-];
-
 function slugifyDrink(text) {
     return (text || "")
         .normalize("NFD")
@@ -38,28 +29,46 @@ function slugifyDrink(text) {
         .replace(/(^-|-$)/g, "");
 }
 
+function getDefaultDrinkMenu() {
+    if (window.DrinkGenericImages && typeof DrinkGenericImages.getDefaultItems === "function") {
+        return DrinkGenericImages.getDefaultItems();
+    }
+    return [];
+}
+
+function resolveDrinkImage(item, index) {
+    if (window.DrinkGenericImages && typeof DrinkGenericImages.resolveImageUrl === "function") {
+        return DrinkGenericImages.resolveImageUrl(item, index);
+    }
+    return String(item?.imageUrl || "").trim();
+}
+
 function normalizeDrinkMenuState(state) {
     if (window.DrinkMenu && typeof DrinkMenu.normalizeMenu === "function") {
         return DrinkMenu.normalizeMenu(state || {});
     }
+    const defaults = getDefaultDrinkMenu();
     if (Array.isArray(state?.drinkMenu) && state.drinkMenu.length) {
         return state.drinkMenu.slice(0, 8).map((item, index) => ({
             id: item.id || slugifyDrink(item.name) || `drink-${index}`,
             name: String(item.name || "").trim(),
             description: String(item.description || "").trim(),
-            imageUrl: String(item.imageUrl || DEFAULT_DRINK_MENU[index % DEFAULT_DRINK_MENU.length].imageUrl).trim()
+            imageUrl: resolveDrinkImage(item, index)
         })).filter((item) => item.name);
     }
     const legacy = Array.isArray(state?.drinkMenuOptions) ? state.drinkMenuOptions : [];
     if (legacy.length) {
-        return legacy.slice(0, 8).map((name, index) => ({
-            id: slugifyDrink(name) || `drink-${index}`,
-            name: String(name).trim(),
-            description: "",
-            imageUrl: DEFAULT_DRINK_MENU[index % DEFAULT_DRINK_MENU.length].imageUrl
-        })).filter((item) => item.name);
+        return legacy.slice(0, 8).map((name, index) => {
+            const id = slugifyDrink(name) || `drink-${index}`;
+            return {
+                id,
+                name: String(name).trim(),
+                description: "",
+                imageUrl: resolveDrinkImage({ id, name }, index)
+            };
+        }).filter((item) => item.name);
     }
-    return DEFAULT_DRINK_MENU.map((item) => ({ ...item }));
+    return defaults.map((item) => ({ ...item }));
 }
 
 function toDateTimeLocalValue(iso) {
@@ -120,7 +129,7 @@ function getConfigDefaults() {
         drinkMenuTitle: cfg?.drinkMenuTitle || "Menu des boissons",
         drinkMenuSubtitle: cfg?.drinkMenuSubtitle || "Sélectionnez vos préférences pour le jour J (optionnel, plusieurs choix possibles).",
         drinkMenu: normalizeDrinkMenuState(cfg),
-        drinkMenuOptions: cfg?.drinkMenuOptions || DEFAULT_DRINK_MENU.map((item) => item.name),
+        drinkMenuOptions: cfg?.drinkMenuOptions || getDefaultDrinkMenu().map((item) => item.name),
         confirmationCouplePhoto1: cfg?.confirmationCouplePhoto1 || "",
         confirmationCouplePhoto2: cfg?.confirmationCouplePhoto2 || ""
     };
@@ -165,8 +174,8 @@ const DEFAULT_STATE = {
     backgroundMusicEnabled: true,
     drinkMenuTitle: "Menu des boissons",
     drinkMenuSubtitle: "Sélectionnez vos préférences pour le jour J (optionnel, plusieurs choix possibles).",
-    drinkMenu: DEFAULT_DRINK_MENU.map((item) => ({ ...item })),
-    drinkMenuOptions: DEFAULT_DRINK_MENU.map((item) => item.name),
+    drinkMenu: [],
+    drinkMenuOptions: ["Champagne", "Vin rouge", "Vin blanc", "Jus de fruits", "Eau", "Soft"],
     confirmationCouplePhoto1: "",
     confirmationCouplePhoto2: ""
 };
@@ -1048,7 +1057,9 @@ window.addEventListener("DOMContentLoaded", async () => {
             showToast("Maximum 8 boissons.");
             return;
         }
-        const fallbackImage = DEFAULT_DRINK_MENU[count % DEFAULT_DRINK_MENU.length]?.imageUrl || "";
+        const fallbackImage = window.DrinkGenericImages
+            ? DrinkGenericImages.fallbackUrl(count)
+            : (getDefaultDrinkMenu()[count]?.imageUrl || "");
         root.appendChild(buildDrinkRow({ name: "", description: "", imageUrl: fallbackImage }, count));
     });
 
