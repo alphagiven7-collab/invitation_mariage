@@ -223,6 +223,21 @@ const ContentBlocks = (() => {
         if (cfg.subtitle) out.subtitle = cfg.subtitle;
         if (cfg.coupleLeft) out.coupleLeft = cfg.coupleLeft;
         if (cfg.coupleRight) out.coupleRight = cfg.coupleRight;
+        if (cfg.welcomeMessage) out.welcomeMessage = cfg.welcomeMessage;
+        if (cfg.gateHint) out.gateHint = cfg.gateHint;
+        if (cfg.inviteIntro) out.inviteIntro = cfg.inviteIntro;
+        if (cfg.inviteSecondary) out.inviteSecondary = cfg.inviteSecondary;
+        if (cfg.reserveText) out.reserveText = cfg.reserveText;
+        if (cfg.rsvpDeadlineText) out.rsvpDeadlineText = cfg.rsvpDeadlineText;
+        if (cfg.rsvpButtonColor) out.rsvpButtonColor = cfg.rsvpButtonColor;
+        if (cfg.aboutTitle) out.aboutTitle = cfg.aboutTitle;
+        if (cfg.aboutStory1) out.aboutStory1 = cfg.aboutStory1;
+        if (cfg.aboutStory2) out.aboutStory2 = cfg.aboutStory2;
+        if (cfg.branding?.primaryColor) out.primaryColor = cfg.branding.primaryColor;
+        if (cfg.branding?.accentColor) out.accentColor = cfg.branding.accentColor;
+        if (cfg.links?.donation) out.donationLink = cfg.links.donation;
+        if (cfg.links?.supportEmail) out.supportEmail = cfg.links.supportEmail;
+        if (cfg.metaDescription) out.metaDescription = cfg.metaDescription;
         return out;
     }
 

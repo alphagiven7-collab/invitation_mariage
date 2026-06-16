@@ -53,6 +53,21 @@ function getConfigDefaults() {
         subtitle: cfg?.subtitle || "Josue et Divine",
         coupleLeft: cfg?.coupleLeft || "Divine",
         coupleRight: cfg?.coupleRight || "Josue",
+        welcomeMessage: cfg?.welcomeMessage || "",
+        gateHint: cfg?.gateHint || "",
+        inviteIntro: cfg?.inviteIntro || "C'est avec une grande joie que {couple} vous invitent à célébrer leur mariage.",
+        inviteSecondary: cfg?.inviteSecondary || "Ils seraient honorés de vous compter parmi leurs invités pour célébrer cette union sacrée et partager le bonheur de leur engagement.",
+        reserveText: cfg?.reserveText || "Confirmer ma présence",
+        rsvpDeadlineText: cfg?.rsvpDeadlineText || (cfg?.rsvpDeadline ? `Merci de confirmer avant le ${cfg.rsvpDeadline}` : ""),
+        rsvpButtonColor: cfg?.rsvpButtonColor || cfg?.branding?.accentColor || "#ec4899",
+        aboutTitle: cfg?.aboutTitle || "Notre Histoire",
+        aboutStory1: cfg?.aboutStory1 || "",
+        aboutStory2: cfg?.aboutStory2 || "",
+        aboutImage: cfg?.branding?.aboutImage || "",
+        donationLink: cfg?.links?.donation || "",
+        supportEmail: cfg?.links?.supportEmail || "",
+        rsvpLink: cfg?.links?.rsvp || "",
+        metaDescription: cfg?.metaDescription || cfg?.title || "",
         backgroundMusicUrl: cfg?.ambiance?.musicUrl || cfg?.backgroundMusicUrl || "",
         backgroundMusicVolume: cfg?.ambiance?.volume ?? 0.35,
         backgroundMusicEnabled: cfg?.ambiance?.enabled !== false
@@ -74,6 +89,21 @@ const DEFAULT_STATE = {
         "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=700&q=80"
     ],
     countdownDate: "2026-04-30T19:30",
+    welcomeMessage: "Avec amour, nous vous ouvrons cette enveloppe de bonheur.",
+    gateHint: "Veuillez saisir votre nom pour découvrir votre invitation personnelle.",
+    inviteIntro: "C'est avec une grande joie que {couple} vous invitent à célébrer leur mariage.",
+    inviteSecondary: "Ils seraient honorés de vous compter parmi leurs invités pour célébrer cette union sacrée et partager le bonheur de leur engagement.",
+    reserveText: "Confirmer ma présence",
+    rsvpDeadlineText: "Merci de confirmer avant le 25 avril 2026",
+    rsvpButtonColor: "#ec4899",
+    aboutTitle: "Notre Histoire",
+    aboutStory1: "",
+    aboutStory2: "",
+    aboutImage: "",
+    donationLink: "https://www.paypal.com",
+    supportEmail: "contact@josue-divine.com",
+    rsvpLink: "",
+    metaDescription: "Invitation officielle au mariage de Josue et Divine.",
     backgroundMusicUrl: "",
     backgroundMusicVolume: 0.35,
     backgroundMusicEnabled: true
@@ -218,6 +248,21 @@ function readFormState() {
         practicalInfo: readPracticalFromEditor(),
         coupleLeft: document.getElementById("coupleNameLeft").value.trim(),
         coupleRight: document.getElementById("coupleNameRight").value.trim(),
+        inviteIntro: document.getElementById("inviteIntro").value.trim(),
+        inviteSecondary: document.getElementById("inviteSecondary").value.trim(),
+        welcomeMessage: document.getElementById("welcomeMessage").value.trim(),
+        gateHint: document.getElementById("gateHint").value.trim(),
+        reserveText: document.getElementById("reserveText").value.trim(),
+        rsvpDeadlineText: document.getElementById("rsvpDeadlineText").value.trim(),
+        rsvpButtonColor: document.getElementById("rsvpButtonColor").value,
+        aboutTitle: document.getElementById("aboutTitle").value.trim(),
+        aboutStory1: document.getElementById("aboutStory1").value.trim(),
+        aboutStory2: document.getElementById("aboutStory2").value.trim(),
+        aboutImage: document.getElementById("aboutImage").value.trim(),
+        donationLink: document.getElementById("donationLink").value.trim(),
+        supportEmail: document.getElementById("supportEmail").value.trim(),
+        rsvpLink: document.getElementById("rsvpLink").value.trim(),
+        metaDescription: document.getElementById("metaDescription").value.trim(),
         backgroundMusicUrl: document.getElementById("backgroundMusicUrl").value.trim(),
         backgroundMusicVolume: Number(document.getElementById("backgroundMusicVolume").value) / 100,
         backgroundMusicEnabled: document.getElementById("backgroundMusicEnabled").checked
@@ -256,7 +301,22 @@ function toDashboardPayload(formState) {
         practicalInfo: formState.practicalInfo,
         backgroundMusicUrl: formState.backgroundMusicUrl,
         backgroundMusicVolume: formState.backgroundMusicVolume,
-        backgroundMusicEnabled: formState.backgroundMusicEnabled
+        backgroundMusicEnabled: formState.backgroundMusicEnabled,
+        inviteIntro: formState.inviteIntro,
+        inviteSecondary: formState.inviteSecondary,
+        welcomeMessage: formState.welcomeMessage,
+        gateHint: formState.gateHint,
+        reserveText: formState.reserveText,
+        rsvpDeadlineText: formState.rsvpDeadlineText,
+        rsvpButtonColor: formState.rsvpButtonColor,
+        aboutTitle: formState.aboutTitle,
+        aboutStory1: formState.aboutStory1,
+        aboutStory2: formState.aboutStory2,
+        aboutImage: formState.aboutImage,
+        donationLink: formState.donationLink,
+        supportEmail: formState.supportEmail,
+        rsvpLink: formState.rsvpLink,
+        metaDescription: formState.metaDescription
     };
 }
 
@@ -385,6 +445,21 @@ function hydrateForm(state) {
     }
     document.getElementById("coupleNameLeft").value = state.coupleLeft || "";
     document.getElementById("coupleNameRight").value = state.coupleRight || "";
+    document.getElementById("inviteIntro").value = state.inviteIntro || "";
+    document.getElementById("inviteSecondary").value = state.inviteSecondary || "";
+    document.getElementById("welcomeMessage").value = state.welcomeMessage || "";
+    document.getElementById("gateHint").value = state.gateHint || "";
+    document.getElementById("reserveText").value = state.reserveText || "";
+    document.getElementById("rsvpDeadlineText").value = state.rsvpDeadlineText || "";
+    document.getElementById("rsvpButtonColor").value = state.rsvpButtonColor || "#ec4899";
+    document.getElementById("aboutTitle").value = state.aboutTitle || "";
+    document.getElementById("aboutStory1").value = state.aboutStory1 || "";
+    document.getElementById("aboutStory2").value = state.aboutStory2 || "";
+    document.getElementById("aboutImage").value = state.aboutImage || "";
+    document.getElementById("donationLink").value = state.donationLink || "";
+    document.getElementById("supportEmail").value = state.supportEmail || "";
+    document.getElementById("rsvpLink").value = state.rsvpLink || "";
+    document.getElementById("metaDescription").value = state.metaDescription || "";
     document.getElementById("message").value = state.mainText || state.message || "";
     document.getElementById("primaryColor").value = state.primaryColor || "#4caf50";
     document.getElementById("accentColor").value = state.accentColor || "#ec4899";
@@ -418,6 +493,7 @@ function hydrateForm(state) {
     renderSinglePreview("heroImage", "preview-heroImage");
     renderSinglePreview("welcomeImage", "preview-welcomeImage");
     renderSinglePreview("mapImage", "preview-mapImage");
+    renderSinglePreview("aboutImage", "preview-aboutImage");
 }
 
 function wireMusicControls() {
@@ -565,30 +641,48 @@ function wirePreviewAutoRefresh() {
 }
 
 function applyPreview() {
-    const payload = toDashboardPayload(readFormState());
-    persistDashboard(payload, { cloudMessage: false }).then(() => {
-        refreshLivePreview();
-        showToast("Aperçu appliqué.");
-    });
+    const btn = document.getElementById("apply-preview-btn");
+    const run = () => {
+        const payload = toDashboardPayload(readFormState());
+        return persistDashboard(payload, { cloudMessage: false }).then(() => {
+            refreshLivePreview();
+            showToast("Aperçu appliqué.");
+        });
+    };
+    if (window.ButtonLoading && btn) {
+        ButtonLoading.whileLoading(btn, run(), "Application…");
+    } else {
+        run();
+    }
 }
 
 async function saveSettings(e) {
     e.preventDefault();
-    const state = readFormState();
-    const payload = toDashboardPayload(state);
-    await persistDashboard(payload);
+    const saveBtn = document.getElementById("save-settings-btn");
+    const run = async () => {
+        const state = readFormState();
+        const payload = toDashboardPayload(state);
+        await persistDashboard(payload);
 
-    if (window.WeddingDB && typeof WeddingDB.updateSettings === "function") {
-        WeddingDB.updateSettings({
-            title: state.title,
-            subtitle: state.subtitle,
-            message: state.mainText,
-            primaryColor: state.primaryColor,
-            accentColor: state.accentColor,
-            heroImage: state.heroImage,
-            welcomeImage: state.welcomeImage,
-            bestPhotos: state.bestPhotos
-        });
+        if (window.WeddingDB && typeof WeddingDB.updateSettings === "function") {
+            WeddingDB.updateSettings({
+                title: state.title,
+                subtitle: state.subtitle,
+                message: state.mainText,
+                primaryColor: state.primaryColor,
+                accentColor: state.accentColor,
+                heroImage: state.heroImage,
+                welcomeImage: state.welcomeImage,
+                bestPhotos: state.bestPhotos
+            });
+        }
+        refreshLivePreview();
+    };
+
+    if (window.ButtonLoading && saveBtn) {
+        await ButtonLoading.whileLoading(saveBtn, run(), "Sauvegarde…");
+    } else {
+        await run();
     }
 }
 
@@ -621,9 +715,28 @@ function initScrollSpy() {
     if (links[0]) links[0].classList.add("active");
 }
 
+function wireNavLinks() {
+    if (!window.EventConfig || !EventConfig.preserveEventQuery) return;
+    const q = EventConfig.preserveEventQuery();
+    ["link-view-invitation", "link-open-invitation"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.href = `./invitation.html${q}`;
+    });
+    const admin = document.getElementById("link-admin");
+    if (admin) admin.href = `./admin.html${q}`;
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
     await EventConfig.init();
+    const eventId = getEventId();
+    if (window.AuthGuard && !AuthGuard.requireAdmin(eventId)) return;
+
+    wireNavLinks();
     updateCloudStatus(null);
+
+    document.getElementById("perso-logout-btn")?.addEventListener("click", () => {
+        if (window.AuthGuard) AuthGuard.logout();
+    });
 
     const cfg = EventConfig.getConfig();
     const state = await loadStateFromSync();
@@ -638,12 +751,12 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("add-program-step").addEventListener("click", () => {
         const root = document.getElementById("program-editor");
         const count = root.querySelectorAll(".perso-dynamic-item").length;
-        root.appendChild(buildProgramRow({ time: "",, title: "",, color: PROGRAM_COLORS[count % PROGRAM_COLORS.length].value }, count));
+        root.appendChild(buildProgramRow({ time: "", title: "", color: PROGRAM_COLORS[count % PROGRAM_COLORS.length].value }, count));
     });
     document.getElementById("add-practical-item").addEventListener("click", () => {
         const root = document.getElementById("practical-editor");
         const count = root.querySelectorAll(".perso-dynamic-item").length;
-        root.appendChild(buildPracticalRow({ icon: "info", title: "",, text: "" }, count));
+        root.appendChild(buildPracticalRow({ icon: "info", title: "", text: "" }, count));
     });
 
     document.getElementById("subtitle").addEventListener("input", () => {
@@ -661,10 +774,12 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("heroImage").addEventListener("input", () => renderSinglePreview("heroImage", "preview-heroImage"));
     document.getElementById("welcomeImage").addEventListener("input", () => renderSinglePreview("welcomeImage", "preview-welcomeImage"));
     document.getElementById("mapImage").addEventListener("input", () => renderSinglePreview("mapImage", "preview-mapImage"));
+    document.getElementById("aboutImage").addEventListener("input", () => renderSinglePreview("aboutImage", "preview-aboutImage"));
 
     await wireUploader("upload-hero", "heroImage", "preview-heroImage");
     await wireUploader("upload-welcome", "welcomeImage", "preview-welcomeImage");
     await wireUploader("upload-map", "mapImage", "preview-mapImage");
+    await wireUploader("upload-about", "aboutImage", "preview-aboutImage");
     await wireUploader("upload-best", "bestPhotos", null, true, 12);
 
     initScrollSpy();

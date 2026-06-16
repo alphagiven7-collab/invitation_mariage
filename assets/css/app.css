@@ -814,3 +814,49 @@ body.dark-mode .countdown-status-celebrate {
     background-color: #f0fdf4 !important;
     border-color: #86efac !important;
 }
+
+/* Boutons RSVP — rose par défaut, personnalisable via --rsvp-color */
+.btn-rsvp {
+    background: linear-gradient(to right, var(--rsvp-from, #f43f5e), var(--rsvp-to, #db2777)) !important;
+    color: #fff !important;
+    border: none;
+}
+.btn-rsvp:hover:not(:disabled) {
+    filter: brightness(1.05);
+}
+.btn-rsvp:focus-visible {
+    outline: 2px solid var(--rsvp-from, #f43f5e);
+    outline-offset: 2px;
+}
+.btn-rsvp.is-loading {
+    opacity: 0.92;
+    cursor: wait;
+}
+.btn-rsvp .btn-rsvp-icon {
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--rsvp-from, #f43f5e);
+}
+
+.btn-spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.5rem;
+    vertical-align: -0.15em;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: btn-spin 0.65s linear infinite;
+}
+@keyframes btn-spin {
+    to { transform: rotate(360deg); }
+}
+button.is-loading .btn-spinner {
+    margin-right: 0.45rem;
+}
+.dash-btn.is-loading,
+.perso-add-btn.is-loading {
+    opacity: 0.85;
+    cursor: wait;
+}
+

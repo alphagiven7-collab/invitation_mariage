@@ -49,15 +49,15 @@
                 </div>
                 <p class="text-[11px] uppercase tracking-[0.25em] text-rose-400 mb-2">Invitation du coeur</p>
                 <h1 class="font-serif text-2xl text-gray-800 mb-1" id="welcome-gate-title">Josue &amp; Divine</h1>
-                <p class="text-[12px] text-gray-600 mb-1">Avec amour, nous vous ouvrons cette enveloppe de bonheur.</p>
-                <p class="text-[12px] text-gray-500 mb-5">Veuillez saisir votre nom pour découvrir votre invitation personnelle.</p>
+                <p id="welcome-gate-message" class="text-[12px] text-gray-600 mb-1">Avec amour, nous vous ouvrons cette enveloppe de bonheur.</p>
+                <p id="welcome-gate-hint" class="text-[12px] text-gray-500 mb-5">Veuillez saisir votre nom pour découvrir votre invitation personnelle.</p>
             </div>
             <div id="gate-personal-container" class="hidden">
                 <div class="gate-personal-seal mx-auto mb-3">💌</div>
                 <p class="text-[11px] uppercase tracking-[0.25em] text-rose-400 mb-2">Invitation personnelle</p>
                 <p id="gate-personal-greeting" class="font-serif text-2xl text-gray-800 mb-2"></p>
                 <p id="gate-personal-message" class="text-[13px] text-gray-600 leading-relaxed mb-3 px-1"></p>
-                <p class="text-[11px] text-rose-500/90 mb-5 italic">Merci de confirmer avant le 25 avril 2026</p>
+                <p id="gate-rsvp-deadline" class="text-[11px] text-rose-500/90 mb-5 italic">Merci de confirmer avant le 25 avril 2026</p>
                 <button onclick="openMainSite()" class="w-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white rounded-xl p-3 text-xs font-semibold tracking-wide transition">
                     Découvrir mon invitation
                 </button>
@@ -111,17 +111,17 @@
                     Cher/Chere <span id="display-guest-name" class="text-gray-800 font-semibold">Invite(e)</span>,
                 </p>
 
-                <p class="text-[13px] leading-relaxed mb-4 text-gray-600">
+                <p id="invite-intro-paragraph" class="text-[13px] leading-relaxed mb-4 text-gray-600">
                     C'est avec une grande joie que <strong id="invite-couple-display" class="text-gray-800">Josue et Divine</strong> vous invitent à célébrer leur mariage.
                 </p>
-                <p class="text-[13px] leading-relaxed mb-4 text-gray-600">
+                <p id="invite-secondary-text" class="text-[13px] leading-relaxed mb-4 text-gray-600">
                     Ils seraient honorés de vous compter parmi leurs invités pour célébrer cette union sacrée et partager le bonheur de leur engagement.
                 </p>
                 <p id="invite-main-text" class="text-[13px] leading-relaxed mb-6 text-gray-600">
                     La cérémonie, suivie d'une réception, se tiendra le <strong class="text-gray-800">jeudi 30 avril 2026 à partir de 19h30</strong> au <strong class="text-gray-800">Sultani River</strong>. <span id="invitation-main-text">Votre présence à leurs côtés, dans ce cadre mémorable au bord du fleuve, témoignera de l'affection que vous leur portez et rendra cette journée inoubliable.</span>
                 </p>
 
-                <button id="reserve-deadline-btn" onclick="confirmPresence()" class="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white rounded-xl p-4 shadow-lg transition transform hover:scale-[1.02]">
+                <button id="reserve-deadline-btn" onclick="confirmPresence()" class="btn-rsvp w-full rounded-xl p-4 shadow-lg transition transform hover:scale-[1.02]">
                     <span id="reserve-deadline-text" class="text-sm font-bold uppercase tracking-widest">Confirmer ma présence</span>
                 </button>
             </div>
@@ -329,11 +329,11 @@
         <section class="px-4 mt-6 space-y-3">
             
             <!-- Confirmer ma présence -->
-            <button id="confirm-presence-btn" onclick="confirmPresence()" class="w-full bg-[#4CAF50] hover:bg-[#45a049] text-white rounded-xl shadow p-4 flex items-center justify-center space-x-2 transition">
-                <span class="w-7 h-7 rounded-full bg-white/95 text-emerald-700 flex items-center justify-center">
+            <button id="confirm-presence-btn" onclick="confirmPresence()" class="btn-rsvp w-full rounded-xl shadow p-4 flex items-center justify-center space-x-2 transition">
+                <span class="btn-rsvp-icon w-7 h-7 rounded-full flex items-center justify-center">
                     <i data-lucide="check-circle-2" class="w-4 h-4"></i>
                 </span>
-                <span class="font-semibold text-sm">Confirmer ma présence</span>
+                <span id="confirm-presence-label" class="font-semibold text-sm">Confirmer ma présence</span>
             </button>
 
             <!-- Galerie / Livre d'Or -->
@@ -583,25 +583,25 @@
     <div id="rsvp-modal" class="fixed inset-0 z-[105] bg-black/55 backdrop-blur-sm overflow-y-auto hidden">
         <div class="max-w-md mx-auto min-h-screen px-4 py-8 flex items-start">
             <div class="w-full bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
-                <div class="bg-gradient-to-r from-emerald-500 to-green-600 p-4 text-white">
+                <div class="bg-gradient-to-r from-rose-500 to-pink-600 p-4 text-white">
                     <div class="flex items-center justify-between">
                         <h3 class="font-serif text-xl">Formulaire RSVP</h3>
                         <button onclick="closeModal('rsvp-modal')" class="text-xs bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full transition">Fermer</button>
                     </div>
-                    <p class="text-[11px] text-white/90 mt-1">Merci de confirmer votre présence avant le 25 Avril.</p>
+                    <p id="rsvp-modal-deadline" class="text-[11px] text-white/90 mt-1">Merci de confirmer votre présence avant le 25 avril.</p>
                 </div>
                 <form id="rsvp-form" class="p-4 space-y-3">
                     <div>
                         <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Nom complet</label>
-                        <input id="rsvp-name" type="text" required class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-emerald-300" placeholder="Votre nom">
+                        <input id="rsvp-name" type="text" required class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200" placeholder="Votre nom">
                     </div>
                     <div>
                         <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Téléphone</label>
-                        <input id="rsvp-phone" type="tel" required class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-emerald-300" placeholder="+243 ...">
+                        <input id="rsvp-phone" type="tel" required class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200" placeholder="+243 ...">
                     </div>
                     <div>
                         <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Présence</label>
-                        <select id="rsvp-status" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-emerald-300">
+                        <select id="rsvp-status" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200">
                             <option value="yes">Je serai présent(e)</option>
                             <option value="no">Je ne pourrai pas être présent(e)</option>
                         </select>
@@ -609,18 +609,18 @@
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Adultes</label>
-                            <input id="rsvp-adults" type="number" min="1" max="10" value="1" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-emerald-300">
+                            <input id="rsvp-adults" type="number" min="1" max="10" value="1" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200">
                         </div>
                         <div>
                             <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Enfants</label>
-                            <input id="rsvp-children" type="number" min="0" max="10" value="0" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-emerald-300">
+                            <input id="rsvp-children" type="number" min="0" max="10" value="0" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200">
                         </div>
                     </div>
                     <div>
                         <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Message</label>
-                        <textarea id="rsvp-message" rows="3" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-emerald-300" placeholder="Votre message aux mariés..."></textarea>
+                        <textarea id="rsvp-message" rows="3" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200" placeholder="Votre message aux mariés..."></textarea>
                     </div>
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-3 text-sm font-semibold transition">
+                    <button id="rsvp-submit-btn" type="submit" class="btn-rsvp w-full rounded-xl py-3 text-sm font-semibold transition">
                         Envoyer ma réponse RSVP
                     </button>
                 </form>
@@ -821,20 +821,21 @@
     <div id="toast" class="toast"></div>
 
     <!-- Scripts pour l'interactivité -->
-    <script src="../assets/js/supabase-config.js?v=10"></script>
-    <script src="../assets/js/event-config.js?v=10"></script>
-    <script src="../assets/js/cloud-api.js?v=10"></script>
-    <script src="../assets/js/dashboard-sync.js?v=10"></script>
-    <script src="../assets/js/guest-manager.js?v=10"></script>
+    <script src="../assets/js/button-loading.js?v=11"></script>
+    <script src="../assets/js/supabase-config.js?v=11"></script>
+    <script src="../assets/js/event-config.js?v=11"></script>
+    <script src="../assets/js/cloud-api.js?v=11"></script>
+    <script src="../assets/js/dashboard-sync.js?v=11"></script>
+    <script src="../assets/js/guest-manager.js?v=11"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-    <script src="../assets/js/content-blocks.js?v=10"></script>
-    <script src="../assets/js/calendar-export.js?v=10"></script>
-    <script src="../assets/js/background-music.js?v=10"></script>
-    <script src="../assets/js/countdown.js?v=10"></script>
-    <script src="../assets/js/lucide-init.js?v=10"></script>
-    <script src="../assets/js/i18n.js?v=10"></script>
-    <script src="../assets/js/app.js?v=10"></script>
-    <script src="../assets/js/guest-experience.js?v=10"></script>
+    <script src="../assets/js/content-blocks.js?v=11"></script>
+    <script src="../assets/js/calendar-export.js?v=11"></script>
+    <script src="../assets/js/background-music.js?v=11"></script>
+    <script src="../assets/js/countdown.js?v=11"></script>
+    <script src="../assets/js/lucide-init.js?v=11"></script>
+    <script src="../assets/js/i18n.js?v=11"></script>
+    <script src="../assets/js/app.js?v=11"></script>
+    <script src="../assets/js/guest-experience.js?v=11"></script>
     <script>
         // Fallback robuste si app.js ne se charge pas complètement
         (function () {
@@ -1013,7 +1014,10 @@
                     const accessBtn = document.getElementById("designer-access-btn");
                     if (accessBtn) accessBtn.textContent = "Concepteur actif";
                     safeToast("Mode concepteur activé");
-                    window.location.href = "./personnalisation.html";
+                    const persoQ = window.EventConfig && EventConfig.preserveEventQuery
+                        ? EventConfig.preserveEventQuery()
+                        : (window.location.search || "?event=yanick-keren");
+                    window.location.href = "./personnalisation.html" + persoQ;
                 } else {
                     safeToast("Code incorrect");
                 }
@@ -1146,7 +1150,10 @@
             const customizeBtn = document.getElementById("designer-customize-btn");
             if (customizeBtn) {
                 customizeBtn.onclick = function () {
-                    window.location.href = "./personnalisation.html";
+                    const persoQ = window.EventConfig && EventConfig.preserveEventQuery
+                        ? EventConfig.preserveEventQuery()
+                        : (window.location.search || "?event=yanick-keren");
+                    window.location.href = "./personnalisation.html" + persoQ;
                 };
             }
 

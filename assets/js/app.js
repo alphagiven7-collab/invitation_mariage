@@ -491,6 +491,52 @@
             return { left: s, right: "" };
         }
 
+        function escapeHtml(str) {
+            return (str || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        function formatCoupleLabel(state) {
+            if (state.coupleLeft || state.coupleRight) {
+                return [state.coupleLeft, state.coupleRight].filter(Boolean).join(" et ");
+            }
+            return state.subtitle || "";
+        }
+
+        function shadeHexColor(hex, amount = -18) {
+            const raw = (hex || "#ec4899").replace("#", "");
+            if (raw.length !== 6) return hex || "#db2777";
+            const num = parseInt(raw, 16);
+            const r = Math.max(0, Math.min(255, ((num >> 16) & 255) + amount));
+            const g = Math.max(0, Math.min(255, ((num >> 8) & 255) + amount));
+            const b = Math.max(0, Math.min(255, (num & 255) + amount));
+            return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+        }
+
+        function applyRsvpButtonColors(color) {
+            const from = color || "#ec4899";
+            document.documentElement.style.setProperty("--rsvp-from", from);
+            document.documentElement.style.setProperty("--rsvp-to", shadeHexColor(from, -22));
+        }
+
+        function applyInviteIntroParagraph(state) {
+            const el = document.getElementById("invite-intro-paragraph");
+            if (!el) return;
+            const couple = formatCoupleLabel(state);
+            if (state.inviteIntro) {
+                el.innerHTML = state.inviteIntro.replace(
+                    /\{couple\}/gi,
+                    `<strong id="invite-couple-display" class="text-gray-800">${escapeHtml(couple)}</strong>`
+                );
+            } else if (couple) {
+                el.innerHTML =
+                    `C'est avec une grande joie que <strong id="invite-couple-display" class="text-gray-800">${escapeHtml(couple)}</strong> vous invitent à célébrer leur mariage.`;
+            }
+        }
+
         async function syncAndApplyDashboardState(dashboardState, eventId, cfg) {
             if (window.DashboardSync && DashboardSync.syncIdentityFromConfig) {
                 const sync = DashboardSync.syncIdentityFromConfig(dashboardState, cfg);
@@ -528,11 +574,24 @@
             if (state.subtitle) document.getElementById('hero-subtitle').textContent = state.subtitle;
             if (state.coupleLeft) document.getElementById('couple-name-left').textContent = state.coupleLeft;
             if (state.coupleRight) document.getElementById('couple-name-right').textContent = state.coupleRight;
-            if (state.coupleLeft || state.coupleRight) {
-                const display = document.getElementById('invite-couple-display');
-                if (display) {
-                    display.textContent = [state.coupleLeft, state.coupleRight].filter(Boolean).join(' et ');
-                }
+            applyInviteIntroParagraph(state);
+            if (state.inviteSecondary) {
+                const sec = document.getElementById('invite-secondary-text');
+                if (sec) sec.textContent = state.inviteSecondary;
+            }
+            if (state.welcomeMessage) {
+                const wm = document.getElementById('welcome-gate-message');
+                if (wm) wm.textContent = state.welcomeMessage;
+            }
+            if (state.gateHint) {
+                const gh = document.getElementById('welcome-gate-hint');
+                if (gh) gh.textContent = state.gateHint;
+            }
+            if (state.rsvpDeadlineText) {
+                const dl = document.getElementById('gate-rsvp-deadline');
+                if (dl) dl.textContent = state.rsvpDeadlineText;
+                const modalDl = document.getElementById('rsvp-modal-deadline');
+                if (modalDl) modalDl.textContent = state.rsvpDeadlineText;
             }
             if (state.subtitle) {
                 const gateTitle = document.getElementById('welcome-gate-title');
@@ -541,7 +600,11 @@
                 }
                 document.title = state.title || document.title;
             }
-            if (state.reserveText) document.getElementById('reserve-deadline-text').textContent = state.reserveText;
+            if (state.reserveText) {
+                document.getElementById('reserve-deadline-text').textContent = state.reserveText;
+                const confirmLabel = document.getElementById('confirm-presence-label');
+                if (confirmLabel) confirmLabel.textContent = state.reserveText;
+            }
             if (state.mainText) document.getElementById('invite-main-text').textContent = state.mainText;
             if (state.day) document.getElementById('event-day').textContent = state.day;
             if (state.monthYear) document.getElementById('event-month-year').textContent = state.monthYear;
@@ -592,12 +655,11 @@
             const accentColor = state.accentColor || '#ec4899';
             document.documentElement.style.setProperty('--primary-color', primaryColor);
             document.documentElement.style.setProperty('--accent-color', accentColor);
-            document.getElementById('confirm-presence-btn').style.backgroundColor = primaryColor;
+            applyRsvpButtonColors(state.rsvpButtonColor || accentColor);
             document.getElementById('queue-btn').style.backgroundColor = primaryColor;
             document.getElementById('couple-name-right').style.color = primaryColor;
             document.getElementById('donation-btn').style.backgroundColor = accentColor;
             document.getElementById('couple-name-left').style.color = accentColor;
-            document.getElementById('reserve-deadline-btn').style.borderColor = accentColor;
 
             const donationUrl = normalizeUrl(state.donationLink || 'https://www.paypal.com');
             const mapUrl = normalizeUrl(state.mapLink || 'https://maps.google.com/?q=Sultani+River+Kinshasa');
@@ -626,9 +688,10 @@
 
         function openCustomizer() {
             if (!isDesignerMode) return showToast('Acces reserve au concepteur');
-            populateCustomizerFields(getCurrentCustomizationState());
-            document.getElementById('customizer-page').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
+            const q = window.EventConfig && EventConfig.preserveEventQuery
+                ? EventConfig.preserveEventQuery()
+                : `?event=${EventConfig.getEventId ? EventConfig.getEventId() : 'yanick-keren'}`;
+            window.location.href = `./personnalisation.html${q}`;
         }
 
         function closeCustomizer() {
@@ -745,68 +808,78 @@
 
         async function submitRsvp(event) {
             event.preventDefault();
-            const payload = {
-                name: document.getElementById('rsvp-name').value.trim(),
-                phone: document.getElementById('rsvp-phone').value.trim(),
-                status: document.getElementById('rsvp-status').value,
-                adults: document.getElementById('rsvp-adults').value,
-                children: document.getElementById('rsvp-children').value,
-                message: document.getElementById('rsvp-message').value.trim(),
-                sentAt: new Date().toISOString()
-            };
-            if (!payload.name || payload.name.length < 2) {
-                showToast('Nom obligatoire (2 caractères minimum).');
-                return;
-            }
-            if (!validatePhone(payload.phone)) {
-                showToast('Téléphone invalide (9 chiffres minimum).');
-                return;
-            }
-            localStorage.setItem('wedding_rsvp_data', JSON.stringify(payload));
-            const rsvpList = readLocalJson(rsvpListKey, []);
-            rsvpList.unshift(payload);
-            localStorage.setItem(rsvpListKey, JSON.stringify(rsvpList));
-            localStorage.setItem('wedding_rsvp_status', payload.status);
+            const submitBtn = document.getElementById('rsvp-submit-btn') || event.submitter;
 
-            if (window.GuestManager) {
+            const run = async () => {
+                const payload = {
+                    name: document.getElementById('rsvp-name').value.trim(),
+                    phone: document.getElementById('rsvp-phone').value.trim(),
+                    status: document.getElementById('rsvp-status').value,
+                    adults: document.getElementById('rsvp-adults').value,
+                    children: document.getElementById('rsvp-children').value,
+                    message: document.getElementById('rsvp-message').value.trim(),
+                    sentAt: new Date().toISOString()
+                };
+                if (!payload.name || payload.name.length < 2) {
+                    showToast('Nom obligatoire (2 caractères minimum).');
+                    return;
+                }
+                if (!validatePhone(payload.phone)) {
+                    showToast('Téléphone invalide (9 chiffres minimum).');
+                    return;
+                }
+                localStorage.setItem('wedding_rsvp_data', JSON.stringify(payload));
+                const rsvpList = readLocalJson(rsvpListKey, []);
+                rsvpList.unshift(payload);
+                localStorage.setItem(rsvpListKey, JSON.stringify(rsvpList));
+                localStorage.setItem('wedding_rsvp_status', payload.status);
+
+                if (window.GuestManager) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const token = urlParams.get('t');
+                    const guestByToken = token ? await GuestManager.findByToken(token) : null;
+                    await GuestManager.recordRSVP({
+                        guestId: guestByToken ? guestByToken.id : null,
+                        fullName: payload.name,
+                        phone: payload.phone,
+                        status: payload.status,
+                        adults: payload.adults,
+                        children: payload.children,
+                        message: payload.message
+                    });
+                }
+
+                if (window.CloudAPI && EventConfig.isReady()) {
+                    CloudAPI.track(EventConfig.getEventId(), 'rsvp_submit', { status: payload.status });
+                }
+
+                const externalRsvpLink = (document.getElementById('rsvp-form').dataset.externalLink || '').trim();
+                closeModal('rsvp-modal');
+
+                const confirmCode = window.GuestExperience
+                    ? GuestExperience.buildConfirmCode(currentGuestProfile, payload)
+                    : buildConfirmationCode(currentGuestProfile, payload);
                 const urlParams = new URLSearchParams(window.location.search);
                 const token = urlParams.get('t');
-                const guestByToken = token ? await GuestManager.findByToken(token) : null;
-                await GuestManager.recordRSVP({
-                    guestId: guestByToken ? guestByToken.id : null,
-                    fullName: payload.name,
-                    phone: payload.phone,
-                    status: payload.status,
-                    adults: payload.adults,
-                    children: payload.children,
-                    message: payload.message
-                });
-            }
+                if (token) {
+                    localStorage.setItem(`wedding_confirm_${token}`, JSON.stringify({ payload, code: confirmCode }));
+                }
 
-            if (window.CloudAPI && EventConfig.isReady()) {
-                CloudAPI.track(EventConfig.getEventId(), 'rsvp_submit', { status: payload.status });
-            }
+                if (window.GuestExperience) {
+                    GuestExperience.showConfirmation(payload, confirmCode);
+                } else {
+                    showRsvpConfirmation(payload, confirmCode);
+                }
 
-            const externalRsvpLink = (document.getElementById('rsvp-form').dataset.externalLink || '').trim();
-            closeModal('rsvp-modal');
+                if (externalRsvpLink) {
+                    setTimeout(() => window.open(externalRsvpLink, '_blank'), 400);
+                }
+            };
 
-            const confirmCode = window.GuestExperience
-                ? GuestExperience.buildConfirmCode(currentGuestProfile, payload)
-                : buildConfirmationCode(currentGuestProfile, payload);
-            const urlParams = new URLSearchParams(window.location.search);
-            const token = urlParams.get('t');
-            if (token) {
-                localStorage.setItem(`wedding_confirm_${token}`, JSON.stringify({ payload, code: confirmCode }));
-            }
-
-            if (window.GuestExperience) {
-                GuestExperience.showConfirmation(payload, confirmCode);
+            if (window.ButtonLoading && submitBtn) {
+                await ButtonLoading.whileLoading(submitBtn, run(), 'Envoi en cours…');
             } else {
-                showRsvpConfirmation(payload, confirmCode);
-            }
-
-            if (externalRsvpLink) {
-                setTimeout(() => window.open(externalRsvpLink, '_blank'), 400);
+                await run();
             }
         }
 
@@ -1062,7 +1135,7 @@
             }
 
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('../sw.js?v=10').catch(() => {});
+                navigator.serviceWorker.register('../sw.js?v=11').catch(() => {});
             }
 
             defaultCustomizationState = getCurrentCustomizationState();

@@ -269,69 +269,78 @@ const GuestExperience = (() => {
 
     async function submitRsvp(event) {
         event.preventDefault();
+        const submitBtn = document.getElementById("rsvp-submit-btn") || event.submitter;
 
-        prefillRsvp();
+        const run = async () => {
+            prefillRsvp();
 
-        const payload = {
-            name: (document.getElementById("rsvp-name")?.value || "").trim(),
-            phone: (document.getElementById("rsvp-phone")?.value || "").trim(),
-            status: document.getElementById("rsvp-status")?.value || "yes",
-            adults: document.getElementById("rsvp-adults")?.value || "1",
-            children: document.getElementById("rsvp-children")?.value || "0",
-            message: (document.getElementById("rsvp-message")?.value || "").trim(),
-            sentAt: new Date().toISOString()
+            const payload = {
+                name: (document.getElementById("rsvp-name")?.value || "").trim(),
+                phone: (document.getElementById("rsvp-phone")?.value || "").trim(),
+                status: document.getElementById("rsvp-status")?.value || "yes",
+                adults: document.getElementById("rsvp-adults")?.value || "1",
+                children: document.getElementById("rsvp-children")?.value || "0",
+                message: (document.getElementById("rsvp-message")?.value || "").trim(),
+                sentAt: new Date().toISOString()
+            };
+
+            if (!payload.name || payload.name.length < 2) {
+                showToast("Nom obligatoire (2 caractères minimum).");
+                return;
+            }
+            if (!validatePhone(payload.phone)) {
+                showToast("Téléphone invalide (9 chiffres minimum).");
+                return;
+            }
+
+            localStorage.setItem("wedding_rsvp_data", JSON.stringify(payload));
+            localStorage.setItem("wedding_rsvp_status", payload.status);
+
+            if (window.GuestManager) {
+                const token = getParams().get("t");
+                let guestByToken = null;
+                if (token) {
+                    try { guestByToken = await GuestManager.findByToken(token); } catch (e) {}
+                }
+                try {
+                    await GuestManager.recordRSVP({
+                        guestId: guestByToken ? guestByToken.id : null,
+                        fullName: payload.name,
+                        phone: payload.phone,
+                        status: payload.status,
+                        adults: payload.adults,
+                        children: payload.children,
+                        message: payload.message
+                    });
+                } catch (e) {}
+            }
+
+            if (window.CloudAPI && EventConfig && EventConfig.isReady && EventConfig.isReady()) {
+                try {
+                    CloudAPI.track(getEventId(), "rsvp_submit", { status: payload.status });
+                } catch (e) {}
+            }
+
+            if (typeof window.closeModal === "function") {
+                window.closeModal("rsvp-modal");
+            } else {
+                document.getElementById("rsvp-modal")?.classList.add("hidden");
+            }
+
+            const confirmCode = buildConfirmCode(profile, payload);
+            const token = getParams().get("t");
+            if (token) {
+                localStorage.setItem(`wedding_confirm_${token}`, JSON.stringify({ payload, code: confirmCode }));
+            }
+
+            showConfirmation(payload, confirmCode);
         };
 
-        if (!payload.name || payload.name.length < 2) {
-            showToast("Nom obligatoire (2 caractères minimum).");
-            return;
-        }
-        if (!validatePhone(payload.phone)) {
-            showToast("Téléphone invalide (9 chiffres minimum).");
-            return;
-        }
-
-        localStorage.setItem("wedding_rsvp_data", JSON.stringify(payload));
-        localStorage.setItem("wedding_rsvp_status", payload.status);
-
-        if (window.GuestManager) {
-            const token = getParams().get("t");
-            let guestByToken = null;
-            if (token) {
-                try { guestByToken = await GuestManager.findByToken(token); } catch (e) {}
-            }
-            try {
-                await GuestManager.recordRSVP({
-                    guestId: guestByToken ? guestByToken.id : null,
-                    fullName: payload.name,
-                    phone: payload.phone,
-                    status: payload.status,
-                    adults: payload.adults,
-                    children: payload.children,
-                    message: payload.message
-                });
-            } catch (e) {}
-        }
-
-        if (window.CloudAPI && EventConfig && EventConfig.isReady && EventConfig.isReady()) {
-            try {
-                CloudAPI.track(getEventId(), "rsvp_submit", { status: payload.status });
-            } catch (e) {}
-        }
-
-        if (typeof window.closeModal === "function") {
-            window.closeModal("rsvp-modal");
+        if (window.ButtonLoading && submitBtn) {
+            await ButtonLoading.whileLoading(submitBtn, run(), "Envoi en cours…");
         } else {
-            document.getElementById("rsvp-modal")?.classList.add("hidden");
+            await run();
         }
-
-        const confirmCode = buildConfirmCode(profile, payload);
-        const token = getParams().get("t");
-        if (token) {
-            localStorage.setItem(`wedding_confirm_${token}`, JSON.stringify({ payload, code: confirmCode }));
-        }
-
-        showConfirmation(payload, confirmCode);
     }
 
     function bindHandlers() {
