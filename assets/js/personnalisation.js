@@ -28,6 +28,13 @@ function toDateTimeLocalValue(iso) {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+function parseCoupleFromSubtitle(subtitle) {
+    const s = (subtitle || "").trim();
+    const m = s.match(/^(.+?)\s+(?:et|&|\+)\s+(.+)$/i);
+    if (m) return { left: m[1].trim(), right: m[2].trim() };
+    return { left: s, right: "" };
+}
+
 function getConfigDefaults() {
     const cfg = window.EventConfig && EventConfig.getConfig ? EventConfig.getConfig() : null;
     const blocks = window.ContentBlocks ? ContentBlocks.getDefaultsFromConfig(cfg) : {};
@@ -44,6 +51,10 @@ function getConfigDefaults() {
         venueLng: blocks.venueLng || "",
         mapLink: blocks.mapLink || cfg?.links?.map || "",
         mapImage: blocks.mapImage || "",
+        title: cfg?.title || "Mariage de Yanick et Keren",
+        subtitle: cfg?.subtitle || "Yanick et Keren",
+        coupleLeft: "Keren",
+        coupleRight: "Yanick",
         backgroundMusicUrl: cfg?.ambiance?.musicUrl || cfg?.backgroundMusicUrl || "",
         backgroundMusicVolume: cfg?.ambiance?.volume ?? 0.35,
         backgroundMusicEnabled: cfg?.ambiance?.enabled !== false
@@ -53,6 +64,8 @@ function getConfigDefaults() {
 const DEFAULT_STATE = {
     title: "Mariage de Yanick et Keren",
     subtitle: "Yanick et Keren",
+    coupleLeft: "Keren",
+    coupleRight: "Yanick",
     mainText: "La cérémonie, suivie d'une réception, se tiendra le jeudi 30 avril 2026 à partir de 19h30.",
     welcomeImage: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
     heroImage: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=80",
@@ -192,6 +205,8 @@ function readFormState() {
         practicalSectionTitle: document.getElementById("practicalSectionTitle").value.trim(),
         program: readProgramFromEditor(),
         practicalInfo: readPracticalFromEditor(),
+        coupleLeft: document.getElementById("coupleNameLeft").value.trim(),
+        coupleRight: document.getElementById("coupleNameRight").value.trim(),
         backgroundMusicUrl: document.getElementById("backgroundMusicUrl").value.trim(),
         backgroundMusicVolume: Number(document.getElementById("backgroundMusicVolume").value) / 100,
         backgroundMusicEnabled: document.getElementById("backgroundMusicEnabled").checked
@@ -203,6 +218,8 @@ function toDashboardPayload(formState) {
     return {
         title: formState.title,
         subtitle: formState.subtitle,
+        coupleLeft: formState.coupleLeft,
+        coupleRight: formState.coupleRight,
         mainText: formState.mainText,
         welcomeImage: formState.welcomeImage,
         heroImage: formState.heroImage,
@@ -350,6 +367,13 @@ function renderPracticalEditor(items) {
 function hydrateForm(state) {
     document.getElementById("title").value = state.title || "";
     document.getElementById("subtitle").value = state.subtitle || "";
+    if (!state.coupleLeft && !state.coupleRight && state.subtitle) {
+        const parsed = parseCoupleFromSubtitle(state.subtitle);
+        state.coupleLeft = state.coupleLeft || parsed.left;
+        state.coupleRight = state.coupleRight || parsed.right;
+    }
+    document.getElementById("coupleNameLeft").value = state.coupleLeft || "";
+    document.getElementById("coupleNameRight").value = state.coupleRight || "";
     document.getElementById("message").value = state.mainText || state.message || "";
     document.getElementById("primaryColor").value = state.primaryColor || "#4caf50";
     document.getElementById("accentColor").value = state.accentColor || "#ec4899";
@@ -609,6 +633,17 @@ window.addEventListener("DOMContentLoaded", async () => {
         const root = document.getElementById("practical-editor");
         const count = root.querySelectorAll(".perso-dynamic-item").length;
         root.appendChild(buildPracticalRow({ icon: "info", title: "",, text: "" }, count));
+    });
+
+    document.getElementById("subtitle").addEventListener("input", () => {
+        const left = document.getElementById("coupleNameLeft");
+        const right = document.getElementById("coupleNameRight");
+        if (!left.value.trim() && !right.value.trim()) {
+            const p = parseCoupleFromSubtitle(document.getElementById("subtitle").value);
+            left.value = p.left;
+            right.value = p.right;
+        }
+        schedulePreviewRefresh();
     });
 
     document.getElementById("bestPhotos").addEventListener("input", () => renderPreview(parseList(document.getElementById("bestPhotos").value, 12)));

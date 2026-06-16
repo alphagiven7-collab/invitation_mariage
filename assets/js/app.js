@@ -484,11 +484,41 @@
             document.getElementById('custom-meta-description').value = state.metaDescription || '';
         }
 
+        function parseCoupleFromSubtitle(subtitle) {
+            const s = (subtitle || "").trim();
+            const m = s.match(/^(.+?)\s+(?:et|&|\+)\s+(.+)$/i);
+            if (m) return { left: m[1].trim(), right: m[2].trim() };
+            return { left: s, right: "" };
+        }
+
+        function enrichDashboardCoupleNames(state) {
+            if (!state) return state;
+            if ((!state.coupleLeft || !state.coupleRight) && state.subtitle) {
+                const p = parseCoupleFromSubtitle(state.subtitle);
+                if (!state.coupleLeft) state.coupleLeft = p.left;
+                if (!state.coupleRight) state.coupleRight = p.right;
+            }
+            return state;
+        }
+
         function applyCustomizationState(state) {
             if (state.title) document.getElementById('hero-title').textContent = state.title;
             if (state.subtitle) document.getElementById('hero-subtitle').textContent = state.subtitle;
             if (state.coupleLeft) document.getElementById('couple-name-left').textContent = state.coupleLeft;
             if (state.coupleRight) document.getElementById('couple-name-right').textContent = state.coupleRight;
+            if (state.coupleLeft || state.coupleRight) {
+                const display = document.getElementById('invite-couple-display');
+                if (display) {
+                    display.textContent = [state.coupleLeft, state.coupleRight].filter(Boolean).join(' et ');
+                }
+            }
+            if (state.subtitle) {
+                const gateTitle = document.getElementById('welcome-gate-title');
+                if (gateTitle) {
+                    gateTitle.textContent = state.subtitle.replace(/\s+et\s+/i, ' & ');
+                }
+                document.title = state.title || document.title;
+            }
             if (state.reserveText) document.getElementById('reserve-deadline-text').textContent = state.reserveText;
             if (state.mainText) document.getElementById('invite-main-text').textContent = state.mainText;
             if (state.day) document.getElementById('event-day').textContent = state.day;
@@ -1028,7 +1058,9 @@
                         localStorage.removeItem(scopedDashboardKey);
                         localStorage.removeItem(dashboardStateKey);
                         dashboardState = await DashboardSync.load(EventConfig.getEventId(), defaults);
-                    } else {
+                    }
+                    dashboardState = enrichDashboardCoupleNames(dashboardState);
+                    if (!hasLocalCursorImages && dashboardState) {
                         applyCustomizationState(dashboardState);
                     }
                 } catch (e) {
@@ -1045,6 +1077,7 @@
                             localStorage.removeItem(dashboardStateKey);
                             dashboardState = null;
                         } else {
+                            dashboardState = enrichDashboardCoupleNames(dashboardState);
                             applyCustomizationState(dashboardState);
                         }
                     } catch (e) {}
