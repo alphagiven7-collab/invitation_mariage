@@ -326,8 +326,8 @@
         /* Porte d'entrée en mode sombre */
         body.dark-mode #welcome-gate .welcome-envelope-shell {
             background:
-                linear-gradient(140deg, rgba(30, 41, 59, 0.97), rgba(15, 23, 42, 0.98)),
-                repeating-linear-gradient(-35deg, rgba(148, 163, 184, 0.06) 0 10px, rgba(15, 23, 42, 0.06) 10px 20px);
+                linear-gradient(145deg, rgba(30, 41, 59, 0.94) 0%, rgba(15, 23, 42, 0.92) 100%),
+                url("https://images.unsplash.com/photo-1568667256549-094345857637?auto=format&fit=crop&w=900&q=85") center center / cover no-repeat;
             border-color: rgba(148, 163, 184, 0.22);
             box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
         }
