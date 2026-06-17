@@ -315,6 +315,24 @@
     margin: 0;
 }
 
+.centre-page-link--preview {
+    flex-wrap: wrap;
+}
+
+.centre-page-thumb {
+    width: 4.5rem;
+    height: 3rem;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    flex-shrink: 0;
+    border: 1px solid rgba(17, 24, 39, 0.08);
+}
+
+.centre-page-link--preview .centre-page-meta {
+    flex: 1;
+    min-width: 8rem;
+}
+
 .centre-pages { display: grid; gap: 0.55rem; }
 
 .centre-page-link {

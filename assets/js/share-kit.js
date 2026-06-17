@@ -10,6 +10,46 @@
     const WA_DISPLAY = "+243 845 370 370";
     const BRAND = "Michelline";
     const CHECKLIST_KEY = "michelline_share_kit_checks";
+    const PREVIEW_BASE = "../assets/images/previews/";
+
+    /** Liens publics — URL + image d'aperçu de la page destination */
+    const PUBLIC_LINKS = {
+        hub: {
+            url: SITE_BASE + "/",
+            label: "Accueil public",
+            desc: "Hub Michelline — porte d'entrée du site",
+            preview: "preview-accueil.png",
+            copyKey: "hub",
+        },
+        short: {
+            url: SHORT_URL,
+            label: "Lien court o.html",
+            desc: "Redirige vers les offres — idéal bio & statuts",
+            preview: "preview-offres.png",
+            copyKey: "short",
+        },
+        offres: {
+            url: OFFRES_URL,
+            label: "Page offres complète",
+            desc: "Tarifs 25 / 50 / 75 $ · numérique & cartes",
+            preview: "preview-offres.png",
+            copyKey: "offres",
+        },
+        kit: {
+            url: SITE_BASE + "/pages/partager.html",
+            label: "Kit promotion",
+            desc: "QR, visuels, textes — outils de partage",
+            preview: "preview-kit.png",
+            copyKey: "kit",
+        },
+        demo: {
+            url: DEMO_URL,
+            label: "Démo invitation live",
+            desc: "Enveloppe · RSVP · QR · menu boissons",
+            preview: "preview-demo.png",
+            copyKey: "demo",
+        },
+    };
 
     const HASHTAGS = "#MariageRDC #WeddingKinshasa #InvitationDigitale #Michelline #Mariage2026 #RDC #Afrique #MariageCongolais #SaveTheDate";
 
@@ -301,6 +341,8 @@
                 else if (key === "offres") copyText(OFFRES_URL);
                 else if (key === "demo") copyText(DEMO_URL);
                 else if (key === "wa") copyText(`https://wa.me/${WA_PHONE}`);
+                else if (key === "hub") copyText(SITE_BASE + "/");
+                else if (key === "kit") copyText(SITE_BASE + "/pages/partager.html");
                 else if (key === "hashtags") copyText(HASHTAGS);
                 else if (key === "daily") {
                     const dayKey = DAILY_STATUS[new Date().getDay()];
@@ -411,6 +453,19 @@
         });
     }
 
+    function wirePreviewDownloads() {
+        document.querySelectorAll("[data-preview-download]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const file = btn.getAttribute("data-preview-download");
+                const link = document.createElement("a");
+                link.href = PREVIEW_BASE + file + "?v=47";
+                link.download = file;
+                link.click();
+                toast("Image aperçu téléchargée");
+            });
+        });
+    }
+
     function initHashtags() {
         const el = document.getElementById("share-hashtags");
         if (el) el.textContent = HASHTAGS;
@@ -423,9 +478,10 @@
         wireWaShare();
         wireDownloads();
         wireChecklist();
+        wirePreviewDownloads();
         initHashtags();
         initDailyStatus();
     });
 
-    window.ShareKit = { OFFRES_URL, SHORT_URL, DEMO_URL, CAPTIONS, copyText };
+    window.ShareKit = { OFFRES_URL, SHORT_URL, DEMO_URL, PUBLIC_LINKS, CAPTIONS, copyText };
 })();

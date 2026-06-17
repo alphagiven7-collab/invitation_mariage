@@ -292,6 +292,76 @@
 
 .share-tips strong { color: #92400e; }
 
+.share-public-links {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.share-public-link {
+    border: 1px solid rgba(236, 72, 153, 0.12);
+    border-radius: 0.85rem;
+    overflow: hidden;
+    background: #fafafa;
+}
+
+.share-public-link-img-wrap {
+    display: block;
+    line-height: 0;
+    background: #e5e7eb;
+}
+
+.share-public-link-img-wrap img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    display: block;
+}
+
+.share-public-link-body {
+    padding: 0.85rem 0.9rem 1rem;
+}
+
+.share-public-link-body h3 {
+    font-family: "Playfair Display", serif;
+    font-size: 0.875rem;
+    color: #1f2937;
+    margin: 0 0 0.2rem;
+}
+
+.share-public-link-body h3 code {
+    font-family: ui-monospace, monospace;
+    font-size: 0.75rem;
+    color: #be185d;
+    background: #fdf2f8;
+    padding: 0.05rem 0.3rem;
+    border-radius: 0.25rem;
+}
+
+.share-public-link-desc {
+    font-size: 0.625rem;
+    color: #9ca3af;
+    margin: 0 0 0.5rem;
+}
+
+.share-public-link-body .share-link-box {
+    margin-bottom: 0.6rem;
+}
+
+.share-public-link-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.share-qr-title {
+    font-family: "Playfair Display", serif;
+    font-size: 0.9rem;
+    color: #1f2937;
+    margin: 1.15rem 0 0.25rem;
+}
+
 .share-block {
     padding: 1rem 1rem 0;
 }
