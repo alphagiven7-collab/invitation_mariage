@@ -1,4 +1,11 @@
 /* Kit promotion — page partager.html */
+.share-page,
+.share-page *,
+.share-page *::before,
+.share-page *::after {
+    box-sizing: border-box;
+}
+
 .share-page {
     font-family: "Montserrat", system-ui, sans-serif;
     background: #e8e8ec;
@@ -136,7 +143,22 @@
     background: #fff;
     color: #db2777;
     border: 1px solid rgba(236, 72, 153, 0.3);
-    margin-top: 0.5rem;
+}
+
+.share-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    align-items: stretch;
+}
+
+.share-stack .share-btn {
+    margin-top: 0;
+}
+
+.share-stack a.share-btn {
+    display: flex;
 }
 
 .share-qr-wrap {
@@ -198,6 +220,7 @@
     font-size: 0.6875rem;
     color: #6b7280;
     padding: 1rem;
+    margin: 0 1rem;
     text-decoration: underline;
     text-underline-offset: 3px;
 }
