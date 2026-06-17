@@ -10,9 +10,9 @@
     const WA_DISPLAY = "+243 845 370 370";
 
     const CAPTIONS = {
-        whatsapp: `💍 Michelline — invitations digital + impression physique\n✅ RSVP mobile · QR jour J · modèles imprimés\n📦 Digital dès 50 $ · Impression dès 0,80 $/ex.\n👉 ${SHORT_URL}\n📱 Devis : ${WA_DISPLAY}`,
-        instagram: `Votre mariage mérite une invitation à la hauteur 💌\n\nDigital : RSVP, WhatsApp, QR code\nPhysique : cartes imprimées premium\n\nTarifs → lien en bio\nRDC & Afrique 🌍\n\n#MariageRDC #WeddingKinshasa #InvitationDigitale #Michelline #Mariage2026`,
-        facebook: `Michelline — invitations digitales & impressions physiques pour votre mariage (RDC & Afrique).\n\n✓ Enveloppe personnalisée + RSVP mobile\n✓ QR code jour J\n✓ Cartes imprimées dès 0,80 $/ex.\n✓ Forfaits digital : 50 · 100 · 150 $\n\nDémo live et tarifs : ${SHORT_URL}\nWhatsApp : ${WA_DISPLAY}`
+        whatsapp: `💍 Michelline — invitations digital + impression physique\n✅ RSVP mobile · QR jour J · modèles imprimés\n👉 ${SHORT_URL}\n📱 Devis : ${WA_DISPLAY}`,
+        instagram: `Votre mariage mérite une invitation à la hauteur 💌\n\nDigital : RSVP, WhatsApp, QR code\nPhysique : cartes imprimées premium\n\nTarifs sur le lien en bio\nRDC & Afrique 🌍\n\n#MariageRDC #WeddingKinshasa #InvitationDigitale #Michelline #Mariage2026`,
+        facebook: `Michelline — invitations digitales & impressions physiques pour votre mariage (RDC & Afrique).\n\n✓ Enveloppe personnalisée + RSVP mobile\n✓ QR code jour J\n✓ Cartes imprimées sur mesure\n\nTarifs et démo : ${SHORT_URL}\nWhatsApp : ${WA_DISPLAY}`
     };
 
     function qrImgUrl(data, size) {
@@ -100,10 +100,8 @@
         ctx.fillText("RSVP · QR · WhatsApp", w / 2, 440);
 
         ctx.fillStyle = "#db2777";
-        ctx.font = "700 42px Montserrat, sans-serif";
-        ctx.fillText("Digital : 50 · 100 · 150 $", w / 2, 520);
-        ctx.font = "600 32px Montserrat, sans-serif";
-        ctx.fillText("Impression : dès 0,80 $ / ex.", w / 2, 575);
+        ctx.font = "600 28px Montserrat, sans-serif";
+        ctx.fillText("Digital & impressions", w / 2, 520);
 
         const qrSize = 280;
         const qrX = (w - qrSize) / 2;

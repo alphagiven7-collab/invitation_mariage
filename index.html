@@ -3,64 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#4caf50">
-    <title>Michelline — Invitations digitales</title>
+    <meta name="theme-color" content="#ec4899">
+    <title>Michelline — Invitations digitales &amp; impressions</title>
+    <meta name="description" content="Michelline — Invitations digitales et impressions physiques. RSVP, QR, WhatsApp. RDC &amp; Afrique.">
+    <meta property="og:title" content="Michelline — Invitations digital &amp; impressions">
+    <meta property="og:description" content="RSVP mobile, QR code, WhatsApp. Digital et cartes imprimées. RDC &amp; Afrique.">
+    <meta property="og:image" content="https://alphagiven7-collab.github.io/invitation_mariage/assets/images/michelline-og-offres.png">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@400;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
         body {
             margin: 0;
             min-height: 100vh;
+            min-height: 100dvh;
             font-family: "Montserrat", system-ui, sans-serif;
             background: linear-gradient(160deg, #fdf2f8 0%, #eef4ff 50%, #fafafa 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 1.25rem;
+            padding: 1rem;
             color: #1f2937;
         }
         .hub {
             width: 100%;
             max-width: 22rem;
-            background: rgba(255,255,255,0.95);
+            background: rgba(255,255,255,0.97);
             border-radius: 1.25rem;
-            padding: 1.75rem 1.25rem;
+            overflow: hidden;
             text-align: center;
-            box-shadow: 0 20px 50px rgba(17,24,39,0.1);
+            box-shadow: 0 20px 50px rgba(17,24,39,0.12);
             border: 1px solid rgba(236,72,153,0.15);
+        }
+        .hub-visual {
+            display: block;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 1200 / 630;
+            object-fit: cover;
+            border-bottom: 1px solid rgba(236,72,153,0.12);
+        }
+        .hub-body {
+            padding: 1.25rem 1.15rem 1.5rem;
         }
         .hub-brand {
             font-family: "Great Vibes", cursive;
-            font-size: 2.5rem;
-            margin: 0 0 0.25rem;
+            font-size: 2.35rem;
+            margin: 0 0 0.15rem;
             line-height: 1.1;
+            color: #1f2937;
         }
         .hub-tag {
             font-size: 0.625rem;
             letter-spacing: 0.22em;
             text-transform: uppercase;
-            color: #9ca3af;
-            margin: 0 0 1.25rem;
+            color: #db2777;
+            margin: 0 0 0.85rem;
+            font-weight: 600;
         }
-        .hub p {
+        .hub-desc {
             font-size: 0.8125rem;
             color: #6b7280;
             line-height: 1.55;
-            margin: 0 0 1.25rem;
+            margin: 0 0 1.1rem;
         }
+        .hub-desc strong { color: #374151; }
         .hub-actions {
             display: flex;
             flex-direction: column;
-            gap: 0.65rem;
+            gap: 0.6rem;
         }
         .hub-btn {
             display: block;
-            padding: 0.9rem 1rem;
+            padding: 0.88rem 1rem;
             border-radius: 9999px;
-            font-size: 0.75rem;
+            font-size: 0.6875rem;
             font-weight: 700;
             letter-spacing: 0.08em;
             text-transform: uppercase;
@@ -77,9 +94,10 @@
             border: 1px solid rgba(17,24,39,0.12);
         }
         .hub-note {
-            margin-top: 1rem;
+            margin-top: 0.85rem;
             font-size: 0.625rem;
             color: #9ca3af;
+            line-height: 1.45;
         }
     </style>
     <script>
@@ -96,15 +114,25 @@
 </head>
 <body>
     <div class="hub">
-        <h1 class="hub-brand">Michelline</h1>
-        <p class="hub-tag">RDC &amp; Afrique</p>
-        <p>Invitations <strong>digitales</strong> et <strong>impressions physiques</strong> — RSVP, QR code, modèles imprimés.</p>
-        <div class="hub-actions">
-            <a class="hub-btn hub-btn--primary" href="./pages/offres.html?v=37">Voir les offres &amp; tarifs</a>
-            <a class="hub-btn hub-btn--secondary" href="./pages/partager.html?v=37">Kit promotion (QR, visuels)</a>
-            <a class="hub-btn hub-btn--secondary" href="./pages/invitation.html?event=yanick-keren&amp;v=37">Démo invitation</a>
+        <img
+            class="hub-visual"
+            src="./assets/images/michelline-og-offres.png?v=38"
+            alt="Michelline — Invitations digital et impressions, RDC et Afrique"
+            width="1200"
+            height="630"
+            loading="eager"
+        >
+        <div class="hub-body">
+            <h1 class="hub-brand">Michelline</h1>
+            <p class="hub-tag">RDC &amp; Afrique</p>
+            <p class="hub-desc">Invitations <strong>digitales</strong> et <strong>impressions physiques</strong> — RSVP, QR code, modèles imprimés.</p>
+            <div class="hub-actions">
+                <a class="hub-btn hub-btn--primary" href="./pages/offres.html?v=38">Voir les offres &amp; tarifs</a>
+                <a class="hub-btn hub-btn--secondary" href="./pages/partager.html?v=38">Kit promotion (QR, visuels)</a>
+                <a class="hub-btn hub-btn--secondary" href="./pages/invitation.html?event=yanick-keren&amp;v=38">Démo invitation</a>
+            </div>
+            <p class="hub-note">Lien court : …/o.html · Digital &amp; impression · Devis WhatsApp +243 845 370 370</p>
         </div>
-        <p class="hub-note">Lien court : …/o.html · Digital 50·100·150 $ · Print dès 0,80 $/ex.</p>
     </div>
 </body>
 </html>
