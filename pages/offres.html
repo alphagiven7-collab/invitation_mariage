@@ -2,184 +2,164 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Michelline — Invitations digitales d'exception</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="color-scheme" content="light">
+    <title>Michelline — Invitations digitales</title>
     <meta name="description" content="Michelline — Invitations digitales premium. RSVP, QR code, WhatsApp. Kinshasa &amp; diaspora.">
-    <meta name="theme-color" content="#eef4ff">
-    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=30">
-    <link rel="stylesheet" href="../assets/css/offres.css?v=30">
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#4caf50">
+    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=31">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/app.css?v=31">
+    <link rel="stylesheet" href="../assets/css/offres.css?v=31">
 </head>
-<body class="michelline-page">
-    <div class="michelline-grain" aria-hidden="true"></div>
-    <div class="michelline-glow michelline-glow--a" aria-hidden="true"></div>
-    <div class="michelline-glow michelline-glow--b" aria-hidden="true"></div>
+<body class="offres-page antialiased text-gray-800">
 
-    <header class="michelline-nav">
-        <div class="michelline-nav-inner">
-            <a href="#" class="michelline-logo" aria-label="Michelline">
-                <span class="michelline-logo-name">Michelline</span>
-                <span class="michelline-logo-tag">Invitations d'exception</span>
-            </a>
-            <nav class="michelline-nav-links" aria-label="Navigation">
-                <a class="michelline-nav-link hide-mobile" href="#galerie">Galerie</a>
-                <a class="michelline-nav-link hide-mobile" href="#forfaits">Forfaits</a>
-                <a class="michelline-nav-link" href="./invitation.html?event=yanick-keren" target="_blank" rel="noopener">Démo</a>
-                <a id="nav-whatsapp" class="michelline-btn michelline-btn--gradient" href="https://wa.me/243845370370" target="_blank" rel="noopener">Contact</a>
-            </nav>
-        </div>
-    </header>
+    <main class="offres-shell">
+        <!-- Hero — même esprit que l'invitation -->
+        <header class="offres-hero hero-bg">
+            <div class="offres-hero-inner">
+                <p class="offres-overline">Kinshasa &amp; diaspora</p>
+                <h1 class="font-serif offres-hero-title">Michelline</h1>
+                <span class="offres-heart" aria-hidden="true">♥</span>
+                <p class="offres-hero-tag">Invitations digitales d'exception</p>
+            </div>
+        </header>
 
-    <div class="michelline-inner">
-        <!-- Hero -->
-        <section class="michelline-hero-v2">
-            <div class="michelline-hero-split">
-                <div class="michelline-hero-copy">
-                    <p class="michelline-ornament">Kinshasa &amp; diaspora</p>
-                    <h1>Votre invitation, <em>belle &amp; digitale</em></h1>
-                    <p class="michelline-hero-lead">
+        <!-- Carte d'accroche -->
+        <section class="offres-block offres-block--overlap">
+            <article class="invitation-card invitation-card--floral glass-card rounded-2xl text-center offres-intro-card">
+                <div class="invitation-card-floral invitation-card-floral--tl" aria-hidden="true"></div>
+                <div class="invitation-card-floral invitation-card-floral--br" aria-hidden="true"></div>
+                <div class="invitation-card-inner">
+                    <p class="invite-card-overline">Votre mariage, en digital</p>
+                    <h2 class="invite-card-title offres-script-title">Offres</h2>
+                    <p class="offres-lead">
                         Enveloppe personnalisée, RSVP sur mobile, partage WhatsApp —
-                        Michelline habille votre mariage de rose et de bleu ciel.
+                        le même soin que nos invitations, pour votre événement.
                     </p>
-                    <div class="michelline-hero-actions michelline-hero-actions--left">
-                        <a id="cta-hero-whatsapp" class="michelline-btn michelline-btn--gradient cta-whatsapp" href="#" data-pack="">Devis WhatsApp</a>
-                        <a class="michelline-btn michelline-btn--rose-outline" href="#forfaits">Voir les forfaits</a>
+                    <div class="offres-hero-actions">
+                        <a id="cta-hero-whatsapp" class="btn-rsvp offres-btn cta-whatsapp" href="#" data-pack="">Devis WhatsApp</a>
+                        <a class="offres-btn-secondary" href="#forfaits">Voir les forfaits</a>
                     </div>
                 </div>
-                <div class="michelline-hero-visual" aria-hidden="true">
-                    <div class="michelline-mosaic michelline-mosaic--compact">
-                        <div class="michelline-mosaic-main">
-                            <img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=85" alt="" loading="eager">
+            </article>
+        </section>
+
+        <!-- Aperçu démo — scroll horizontal mobile -->
+        <section id="galerie" class="offres-block">
+            <p class="offres-section-label">Aperçu</p>
+            <div class="offres-demo-scroll" role="list">
+                <a class="offres-demo-card offres-demo-card--live" href="./invitation.html?event=yanick-keren" target="_blank" rel="noopener" role="listitem">
+                    <span class="offres-demo-badge">Démo live</span>
+                    <p class="offres-demo-names font-cursive">Josue &amp; Divine</p>
+                    <span class="offres-demo-cta">Ouvrir →</span>
+                </a>
+                <figure class="offres-demo-card offres-demo-card--photo" role="listitem">
+                    <img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy">
+                </figure>
+                <figure class="offres-demo-card offres-demo-card--photo" role="listitem">
+                    <img src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=400&q=80" alt="" loading="lazy">
+                </figure>
+            </div>
+        </section>
+
+        <!-- 4 points clés — liste compacte -->
+        <section id="avantages" class="offres-block">
+            <article class="glass-card rounded-2xl offres-points-card">
+                <p class="offres-section-label">Pourquoi Michelline ?</p>
+                <ul class="offres-points">
+                    <li>
+                        <span class="offres-point-icon">💌</span>
+                        <div>
+                            <strong>Personnelle</strong>
+                            <p>Lien unique par invité · WhatsApp en 1 clic</p>
                         </div>
-                        <div class="michelline-phone">
-                            <div class="michelline-phone-notch"></div>
-                            <div class="michelline-phone-screen">
-                                <img src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=600&q=85" alt="">
-                                <div class="michelline-phone-overlay">
-                                    <strong>Josue &amp; Divine</strong>
-                                </div>
-                            </div>
+                    </li>
+                    <li>
+                        <span class="offres-point-icon">✓</span>
+                        <div>
+                            <strong>RSVP live</strong>
+                            <p>Confirmations en direct, sans Excel</p>
                         </div>
-                    </div>
-                </div>
-            </div>
+                    </li>
+                    <li>
+                        <span class="offres-point-icon">📱</span>
+                        <div>
+                            <strong>QR jour J</strong>
+                            <p>Accès, table et boissons (Premium+)</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="offres-point-icon">✦</span>
+                        <div>
+                            <strong>Accompagnée</strong>
+                            <p>On configure tout avec vous</p>
+                        </div>
+                    </li>
+                </ul>
+            </article>
         </section>
 
-        <!-- Galerie courte -->
-        <section id="galerie" class="michelline-section michelline-section--tight">
-            <div class="michelline-gallery michelline-gallery--compact">
-                <figure class="michelline-gallery-card">
-                    <img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=700&q=85" alt="Mariage" loading="lazy">
-                </figure>
-                <figure class="michelline-gallery-card michelline-gallery-card--invite">
-                    <div class="michelline-invite-preview">
-                        <p class="michelline-invite-preview-over">Vous êtes invité(e)</p>
-                        <h3>Mariage</h3>
-                        <p class="michelline-invite-preview-names">Rose &amp; Bleu</p>
-                        <span class="michelline-invite-preview-btn">RSVP</span>
+        <!-- Forfaits -->
+        <section id="forfaits" class="offres-block">
+            <p class="offres-section-label">Forfaits</p>
+            <h2 class="font-serif offres-section-title">Choisissez votre formule</h2>
+
+            <div class="offres-plans">
+                <article class="offres-plan glass-card rounded-2xl">
+                    <div class="offres-plan-head">
+                        <h3>Essentiel</h3>
+                        <span class="offres-plan-limit">80 invités</span>
                     </div>
-                </figure>
-                <figure class="michelline-gallery-card">
-                    <img src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=700&q=85" alt="Réception" loading="lazy">
-                </figure>
-                <figure class="michelline-gallery-card">
-                    <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=700&q=85" alt="Élégance" loading="lazy">
-                </figure>
-            </div>
-        </section>
-
-        <!-- En bref : 4 points clés -->
-        <section id="avantages" class="michelline-section michelline-section--rose-bg michelline-section--tight">
-            <div class="michelline-section-head michelline-section-head--compact">
-                <h2 class="michelline-section-title">Pourquoi Michelline ?</h2>
-                <p class="michelline-section-desc">L'invitation numérique, sans complication — clé en main pour vous, magique pour vos invités.</p>
-            </div>
-            <div class="michelline-pillars">
-                <article class="michelline-pillar">
-                    <span class="michelline-pillar-icon">💌</span>
-                    <h3>Personnelle</h3>
-                    <p>Lien unique par invité, prénom, photos — partage WhatsApp en 1 clic.</p>
-                </article>
-                <article class="michelline-pillar">
-                    <span class="michelline-pillar-icon">✓</span>
-                    <h3>RSVP live</h3>
-                    <p>Confirmations en direct, sans tableaux Excel ni relances manuelles.</p>
-                </article>
-                <article class="michelline-pillar">
-                    <span class="michelline-pillar-icon">📱</span>
-                    <h3>QR jour J</h3>
-                    <p>Accès, table et boissons sur une carte élégante (Premium+).</p>
-                </article>
-                <article class="michelline-pillar">
-                    <span class="michelline-pillar-icon">✦</span>
-                    <h3>Accompagnée</h3>
-                    <p>On configure tout avec vous — vous gardez la sérénité.</p>
-                </article>
-            </div>
-        </section>
-
-        <!-- Forfaits simplifiés -->
-        <section id="forfaits" class="michelline-section">
-            <div class="michelline-section-head michelline-section-head--compact">
-                <p class="michelline-section-label">Forfaits</p>
-                <h2 class="michelline-section-title">Choisissez votre formule</h2>
-            </div>
-
-            <div class="michelline-pricing">
-                <article class="michelline-plan michelline-plan--lite">
-                    <h3>Essentiel</h3>
-                    <span class="michelline-plan-limit">80 invitations</span>
-                    <div class="michelline-plan-price">
-                        <div class="michelline-plan-price-main">80 – 120 $</div>
-                    </div>
-                    <ul class="michelline-plan-list-short">
+                    <p class="offres-plan-price">80 – 120 $</p>
+                    <ul class="offres-plan-list">
                         <li>Invitation + RSVP + sync cloud</li>
                         <li>Programme, GPS, calendrier</li>
                         <li>Liens WhatsApp · 5 photos</li>
                     </ul>
-                    <a class="michelline-btn michelline-btn--outline michelline-btn--full cta-whatsapp" data-pack="Essentiel" href="#">Choisir</a>
+                    <a class="offres-btn-outline cta-whatsapp" data-pack="Essentiel" href="#">Choisir</a>
                 </article>
 
-                <article class="michelline-plan michelline-plan--featured michelline-plan--lite">
-                    <span class="michelline-plan-badge">Populaire</span>
-                    <h3>Premium</h3>
-                    <span class="michelline-plan-limit">200 invitations</span>
-                    <div class="michelline-plan-price">
-                        <div class="michelline-plan-price-main">150 – 250 $</div>
+                <article class="offres-plan offres-plan--featured invitation-card invitation-card--floral rounded-2xl">
+                    <span class="offres-plan-badge">Populaire</span>
+                    <div class="offres-plan-head">
+                        <h3>Premium</h3>
+                        <span class="offres-plan-limit">200 invités</span>
                     </div>
-                    <ul class="michelline-plan-list-short">
+                    <p class="offres-plan-price">150 – 250 $</p>
+                    <ul class="offres-plan-list">
                         <li>Tout Essentiel + design avancé</li>
                         <li>Menu boissons · QR · musique</li>
                         <li>Livre d'or · setup 45 min</li>
                     </ul>
-                    <a class="michelline-btn michelline-btn--gradient michelline-btn--full cta-whatsapp" data-pack="Premium" href="#">Choisir</a>
+                    <a class="btn-rsvp offres-btn cta-whatsapp" data-pack="Premium" href="#">Choisir Premium</a>
                 </article>
 
-                <article class="michelline-plan michelline-plan--lite">
-                    <h3>Platinum</h3>
-                    <span class="michelline-plan-limit">500 invitations</span>
-                    <div class="michelline-plan-price">
-                        <div class="michelline-plan-price-main">300 – 500 $</div>
+                <article class="offres-plan glass-card rounded-2xl">
+                    <div class="offres-plan-head">
+                        <h3>Platinum</h3>
+                        <span class="offres-plan-limit">500 invités</span>
                     </div>
-                    <ul class="michelline-plan-list-short">
+                    <p class="offres-plan-price">300 – 500 $</p>
+                    <ul class="offres-plan-list">
                         <li>Tout Premium · setup complet</li>
                         <li>Relances J-7 &amp; J-1</li>
                         <li>Support jour J · domaine custom</li>
                     </ul>
-                    <a class="michelline-btn michelline-btn--outline michelline-btn--full cta-whatsapp" data-pack="Platinum" href="#">Choisir</a>
+                    <a class="offres-btn-outline cta-whatsapp" data-pack="Platinum" href="#">Choisir</a>
                 </article>
             </div>
 
-            <details class="michelline-details-compare">
-                <summary>Voir le détail des fonctionnalités par forfait</summary>
-                <div class="michelline-compare-wrap">
-                    <table class="michelline-compare" aria-label="Comparatif">
+            <details class="offres-details">
+                <summary>Détail des fonctionnalités</summary>
+                <div class="offres-compare-wrap">
+                    <table class="offres-compare" aria-label="Comparatif forfaits">
                         <thead>
                             <tr>
                                 <th></th>
-                                <th>Essentiel</th>
-                                <th class="col-featured">Premium</th>
-                                <th>Platinum</th>
+                                <th>Ess.</th>
+                                <th class="col-featured">Prem.</th>
+                                <th>Plat.</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -187,33 +167,39 @@
                             <tr><td>RSVP + GPS</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
                             <tr><td>Menu boissons</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
                             <tr><td>Carte QR</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-                            <tr><td>Setup Michelline</td><td class="no">—</td><td>45 min</td><td class="yes">Complet</td></tr>
-                            <tr><td>Relances WhatsApp</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+                            <tr><td>Setup</td><td class="no">—</td><td>45 min</td><td>Complet</td></tr>
+                            <tr><td>Relances</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
                         </tbody>
                     </table>
                 </div>
             </details>
 
-            <p class="michelline-note">Acompte 50 % · solde à J-7 · Airtel Money, M-Pesa, PayPal</p>
+            <p class="offres-note">Acompte 50 % · solde à J-7 · Airtel, M-Pesa, PayPal</p>
         </section>
 
-        <!-- CTA final -->
-        <section class="michelline-cta michelline-cta--compact">
-            <h2>Une question ? Écrivez-nous.</h2>
-            <p>Date + nombre d'invités → réponse sous 24 h.</p>
-            <a id="cta-footer-whatsapp" class="michelline-btn michelline-btn--gradient cta-whatsapp" href="#" data-pack="">WhatsApp +243 845 370 370</a>
-            <p class="michelline-cta-demo">
-                <a href="./invitation.html?event=yanick-keren" target="_blank" rel="noopener">Ou ouvrir la démo live →</a>
-            </p>
+        <!-- CTA -->
+        <section class="offres-block offres-block--last">
+            <article class="offres-cta-card rounded-2xl text-center">
+                <h2 class="font-serif">Une question ?</h2>
+                <p>Date + nombre d'invités → réponse sous 24 h.</p>
+                <a id="cta-footer-whatsapp" class="btn-rsvp offres-btn cta-whatsapp" href="#" data-pack="">WhatsApp +243 845 370 370</a>
+                <a class="offres-demo-link" href="./invitation.html?event=yanick-keren" target="_blank" rel="noopener">Voir la démo live →</a>
+            </article>
+            <footer class="offres-footer">
+                <p class="font-cursive offres-footer-brand">Michelline</p>
+                <p>Invitations digitales · Kinshasa &amp; diaspora</p>
+            </footer>
         </section>
 
-        <footer class="michelline-footer">
-            <p class="michelline-footer-brand">Michelline</p>
-            <p class="michelline-footer-copy">Invitations digitales · Kinshasa &amp; diaspora</p>
-        </footer>
-    </div>
+        <!-- Espace pour la barre fixe mobile -->
+        <div class="offres-sticky-spacer" aria-hidden="true"></div>
+    </main>
 
-    <a class="michelline-btn michelline-btn--gradient michelline-float-offers" href="#forfaits" aria-label="Forfaits">Forfaits</a>
+    <!-- Barre fixe mobile — accès rapide -->
+    <nav class="offres-sticky-bar" aria-label="Actions rapides">
+        <a class="offres-sticky-link" href="#forfaits">Forfaits</a>
+        <a id="nav-whatsapp" class="btn-rsvp offres-sticky-wa cta-whatsapp" href="#" data-pack="">WhatsApp</a>
+    </nav>
 
     <script>
     (function () {
