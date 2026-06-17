@@ -6,29 +6,91 @@
     const SESSION_KEY = "michelline_objectifs_ok";
     const CHECKLIST_KEY = "michelline_objectifs_checks";
 
+    function normalizeCode(value) {
+        return String(value || "")
+            .trim()
+            .toUpperCase()
+            .replace(/\s+/g, "")
+            .replace(/_/g, "-");
+    }
+
+    const CODE_NORM = normalizeCode(CODE);
+
     function isUnlocked() {
-        return sessionStorage.getItem(SESSION_KEY) === "1";
+        try {
+            return sessionStorage.getItem(SESSION_KEY) === "1";
+        } catch {
+            return false;
+        }
     }
 
     function unlock() {
-        sessionStorage.setItem(SESSION_KEY, "1");
+        try {
+            sessionStorage.setItem(SESSION_KEY, "1");
+        } catch {
+            /* mode privé strict — session per onglet seulement via body class */
+        }
     }
 
     function lock() {
-        sessionStorage.removeItem(SESSION_KEY);
+        try {
+            sessionStorage.removeItem(SESSION_KEY);
+        } catch {
+            /* ignore */
+        }
+        document.body.classList.remove("objectifs-unlocked");
     }
 
     function showMain() {
-        document.getElementById("objectifs-gate").hidden = true;
-        document.getElementById("objectifs-main").hidden = false;
+        const gate = document.getElementById("objectifs-gate");
+        const main = document.getElementById("objectifs-main");
+        if (!gate || !main) return;
+
+        document.body.classList.add("objectifs-unlocked");
+        gate.hidden = true;
+        gate.setAttribute("aria-hidden", "true");
+        main.hidden = false;
+        main.removeAttribute("aria-hidden");
         restoreChecklist();
     }
 
     function showGate() {
-        document.getElementById("objectifs-gate").hidden = false;
-        document.getElementById("objectifs-main").hidden = true;
-        document.getElementById("objectifs-code").value = "";
-        document.getElementById("objectifs-gate-error").hidden = true;
+        const gate = document.getElementById("objectifs-gate");
+        const main = document.getElementById("objectifs-main");
+        const input = document.getElementById("objectifs-code");
+        const errorEl = document.getElementById("objectifs-gate-error");
+        if (!gate || !main) return;
+
+        document.body.classList.remove("objectifs-unlocked");
+        gate.hidden = false;
+        gate.removeAttribute("aria-hidden");
+        main.hidden = true;
+        main.setAttribute("aria-hidden", "true");
+        if (input) input.value = "";
+        if (errorEl) errorEl.hidden = true;
+    }
+
+    function showError(message) {
+        const errorEl = document.getElementById("objectifs-gate-error");
+        if (!errorEl) return;
+        errorEl.textContent = message;
+        errorEl.hidden = false;
+    }
+
+    function tryUnlock() {
+        const input = document.getElementById("objectifs-code");
+        if (!input) return;
+
+        const val = normalizeCode(input.value);
+        const alt = val.replace(/-/g, "");
+
+        if (val === CODE_NORM || alt === CODE_NORM.replace(/-/g, "")) {
+            unlock();
+            showMain();
+            return;
+        }
+
+        showError("Code incorrect — utilisez : MICHELLINE-PLAN-30J");
     }
 
     function saveChecklist() {
@@ -36,41 +98,84 @@
         document.querySelectorAll(".objectifs-checklist input[type=checkbox]").forEach((cb) => {
             states.push(cb.checked ? "1" : "0");
         });
-        localStorage.setItem(CHECKLIST_KEY, states.join(""));
+        try {
+            localStorage.setItem(CHECKLIST_KEY, states.join(""));
+        } catch {
+            /* ignore */
+        }
     }
 
     function restoreChecklist() {
-        const raw = localStorage.getItem(CHECKLIST_KEY);
+        let raw = "";
+        try {
+            raw = localStorage.getItem(CHECKLIST_KEY) || "";
+        } catch {
+            return;
+        }
         if (!raw) return;
         document.querySelectorAll(".objectifs-checklist input[type=checkbox]").forEach((cb, i) => {
             cb.checked = raw[i] === "1";
         });
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-        if (isUnlocked()) showMain();
-
-        document.getElementById("objectifs-unlock").addEventListener("click", () => {
-            const val = document.getElementById("objectifs-code").value.trim();
-            if (val === CODE) {
-                unlock();
-                showMain();
-            } else {
-                document.getElementById("objectifs-gate-error").hidden = false;
-            }
-        });
-
-        document.getElementById("objectifs-code").addEventListener("keydown", (e) => {
-            if (e.key === "Enter") document.getElementById("objectifs-unlock").click();
-        });
-
-        document.getElementById("objectifs-logout").addEventListener("click", () => {
-            lock();
-            showGate();
-        });
-
+    function bindChecklist() {
         document.querySelectorAll(".objectifs-checklist input[type=checkbox]").forEach((cb) => {
             cb.addEventListener("change", saveChecklist);
         });
+    }
+
+    function init() {
+        const form = document.getElementById("objectifs-gate-form");
+        const unlockBtn = document.getElementById("objectifs-unlock");
+        const input = document.getElementById("objectifs-code");
+        const logout = document.getElementById("objectifs-logout");
+
+        if (isUnlocked()) {
+            showMain();
+        } else {
+            showGate();
+        }
+
+        if (form) {
+            form.addEventListener("submit", (e) => {
+                e.preventDefault();
+                tryUnlock();
+            });
+        }
+
+        if (unlockBtn && !form) {
+            unlockBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                tryUnlock();
+            });
+        }
+
+        if (input) {
+            input.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    tryUnlock();
+                }
+            });
+        }
+
+        if (logout) {
+            logout.addEventListener("click", () => {
+                lock();
+                showGate();
+            });
+        }
+
+        bindChecklist();
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", init);
+    } else {
+        init();
+    }
+
+    window.addEventListener("pageshow", (e) => {
+        if (e.persisted && isUnlocked()) showMain();
     });
 })();

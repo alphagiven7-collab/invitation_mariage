@@ -14,6 +14,19 @@
     margin: 0;
 }
 
+#objectifs-main[hidden],
+#objectifs-gate[hidden] {
+    display: none !important;
+}
+
+.objectifs-page.objectifs-unlocked #objectifs-gate {
+    display: none !important;
+}
+
+.objectifs-page.objectifs-unlocked #objectifs-main {
+    display: block !important;
+}
+
 .objectifs-gate {
     min-height: 100vh;
     display: flex;
