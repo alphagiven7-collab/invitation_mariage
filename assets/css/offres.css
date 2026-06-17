@@ -1,4 +1,8 @@
-/* Michelline — page offres (mobile-first, style invitation) */
+.offres-intro-card .invitation-card-inner {
+    position: relative;
+    z-index: 2;
+}
+
 
 :root {
     --offres-hero-image: url("https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=85");
