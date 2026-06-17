@@ -576,23 +576,172 @@
     box-shadow: 0 -8px 24px rgba(17, 24, 39, 0.06);
 }
 
-.offres-sticky-link {
-    flex: 0 0 auto;
+.offres-lead strong {
+    color: #1f2937;
+    font-weight: 600;
+}
+
+.offres-offer-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.offres-offer-tab {
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 2.75rem;
-    padding: 0 1rem;
-    border-radius: 0.75rem;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
+    min-height: 2.5rem;
+    padding: 0.5rem 0.65rem;
+    border-radius: 9999px;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     text-decoration: none;
-    color: #374151;
-    background: #fff;
-    border: 1px solid rgba(17, 24, 39, 0.1);
+    color: #6b7280;
+    background: rgba(243, 244, 246, 0.95);
+    border: 1px solid rgba(17, 24, 39, 0.08);
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
+
+.offres-offer-tab--active,
+.offres-offer-tab:hover {
+    color: #db2777;
+    background: rgba(253, 242, 248, 0.98);
+    border-color: rgba(236, 72, 153, 0.28);
+}
+
+.offres-section-desc {
+    font-size: 0.75rem;
+    line-height: 1.55;
+    color: #6b7280;
+    text-align: center;
+    margin: -0.5rem 0 1rem;
+    text-wrap: pretty;
+}
+
+.offres-block--print {
+    padding-top: 0.25rem;
+}
+
+.offres-print-models {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.offres-print-card {
+    position: relative;
+    overflow: hidden;
+    padding: 0;
+}
+
+.offres-print-card--featured {
+    border: 1px solid rgba(236, 72, 153, 0.28) !important;
+}
+
+.offres-print-visual {
+    position: relative;
+    margin: 0;
+    height: 9.5rem;
+    overflow: hidden;
+}
+
+.offres-print-visual img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.offres-print-tag {
+    position: absolute;
+    top: 0.6rem;
+    left: 0.6rem;
+    font-size: 0.5625rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #fff;
+    background: rgba(17, 24, 39, 0.55);
+    backdrop-filter: blur(6px);
+    border-radius: 999px;
+    padding: 0.25rem 0.55rem;
+}
+
+.offres-print-body {
+    padding: 1rem;
+}
+
+.offres-print-body h3 {
+    font-family: "Playfair Display", serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.35rem;
+}
+
+.offres-print-desc {
+    font-size: 0.6875rem;
+    line-height: 1.5;
+    color: #6b7280;
+    margin: 0 0 0.65rem;
+}
+
+.offres-print-price {
+    font-size: 0.75rem;
+    color: #374151;
+    margin: 0 0 0.25rem;
+}
+
+.offres-print-price strong {
+    font-family: "Playfair Display", serif;
+    font-size: 1.25rem;
+    color: #db2777;
+    font-weight: 600;
+}
+
+.offres-print-price span {
+    font-size: 0.6875rem;
+    color: #9ca3af;
+}
+
+.offres-print-min {
+    font-size: 0.625rem;
+    color: #9ca3af;
+    margin: 0 0 0.85rem;
+}
+
+.offres-print-combo {
+    margin-top: 1rem;
+    padding: 1.15rem 1rem;
+    text-align: center;
+    background:
+        radial-gradient(circle at 90% 10%, rgba(236, 72, 153, 0.08), transparent 45%),
+        #fff !important;
+}
+
+.offres-print-combo-title {
+    font-size: 1.1rem;
+    color: #1f2937;
+    margin: 0.35rem 0 0.5rem;
+}
+
+.offres-print-combo-text {
+    font-size: 0.75rem;
+    line-height: 1.55;
+    color: #6b7280;
+    margin: 0 0 1rem;
+}
+
+.offres-sticky-link {
+    flex: 1;
+    padding: 0 0.5rem;
+    font-size: 0.625rem;
+}
+
 
 .offres-sticky-wa {
     flex: 1;

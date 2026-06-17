@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="color-scheme" content="light">
-    <title>Michelline — Invitations digitales</title>
-    <meta name="description" content="Michelline — Invitations digitales premium. RSVP, QR code, WhatsApp. RDC &amp; Afrique.">
+    <title>Michelline — Invitations digitales &amp; impressions</title>
+    <meta name="description" content="Michelline — Invitations digitales et impressions physiques. RSVP, QR, modèles imprimés. RDC &amp; Afrique.">
     <meta name="theme-color" content="#4caf50">
-    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=34">
+    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=35">
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/app.css?v=34">
-    <link rel="stylesheet" href="../assets/css/offres.css?v=34">
+    <link rel="stylesheet" href="../assets/css/app.css?v=35">
+    <link rel="stylesheet" href="../assets/css/offres.css?v=35">
 </head>
 <body class="offres-page antialiased text-gray-800">
 
@@ -21,7 +21,7 @@
                 <p class="offres-overline">RDC &amp; Afrique</p>
                 <h1 class="font-serif offres-hero-title">Michelline</h1>
                 <span class="offres-heart" aria-hidden="true">♥</span>
-                <p class="offres-hero-tag">Invitations digitales d'exception</p>
+                <p class="offres-hero-tag">Digital &amp; impressions physiques</p>
             </div>
         </header>
 
@@ -31,15 +31,20 @@
                 <div class="invitation-card-floral invitation-card-floral--tl" aria-hidden="true"></div>
                 <div class="invitation-card-floral invitation-card-floral--br" aria-hidden="true"></div>
                 <div class="invitation-card-inner">
-                    <p class="invite-card-overline">Votre mariage, en digital</p>
+                    <p class="invite-card-overline">Deux façons de vous inviter</p>
                     <h2 class="invite-card-title offres-script-title">Offres</h2>
                     <p class="offres-lead">
-                        Enveloppe personnalisée, RSVP sur mobile, partage WhatsApp —
-                        le même soin que nos invitations, pour votre événement.
+                        <strong>Digital</strong> — enveloppe personnalisée, RSVP mobile, WhatsApp et QR code.<br>
+                        <strong>Physique</strong> — cartes imprimées, modèles au choix, livraison soignée.<br>
+                        Combinez les deux pour une expérience complète.
                     </p>
+                    <div class="offres-offer-tabs" role="tablist" aria-label="Type d'offre">
+                        <a class="offres-offer-tab offres-offer-tab--active" href="#forfaits-digital">Digital</a>
+                        <a class="offres-offer-tab" href="#impression-physique">Impression</a>
+                    </div>
                     <div class="offres-hero-actions">
                         <a id="cta-hero-whatsapp" class="btn-rsvp offres-btn cta-whatsapp" href="#" data-pack="">Devis WhatsApp</a>
-                        <a class="offres-btn-secondary" href="#forfaits">Voir les forfaits</a>
+                        <a class="offres-btn-secondary" href="#forfaits-digital">Voir les forfaits</a>
                     </div>
                 </div>
             </article>
@@ -100,10 +105,11 @@
             </article>
         </section>
 
-        <!-- Forfaits -->
-        <section id="forfaits" class="offres-block">
-            <p class="offres-section-label">Forfaits</p>
-            <h2 class="font-serif offres-section-title">Choisissez votre formule</h2>
+        <!-- Forfaits digital -->
+        <section id="forfaits-digital" class="offres-block">
+            <p class="offres-section-label">Offre digital</p>
+            <h2 class="font-serif offres-section-title">Forfaits en ligne</h2>
+            <p class="offres-section-desc">Invitation web, RSVP, liens invités — idéal pour WhatsApp et la diaspora.</p>
 
             <div class="offres-plans">
                 <article class="offres-plan glass-card rounded-2xl">
@@ -177,6 +183,67 @@
             <p class="offres-note">Acompte 50 % · solde à J-7 · Airtel, M-Pesa, PayPal</p>
         </section>
 
+        <!-- Impressions physiques -->
+        <section id="impression-physique" class="offres-block offres-block--print">
+            <p class="offres-section-label">Offre physique</p>
+            <h2 class="font-serif offres-section-title">Impressions &amp; modèles</h2>
+            <p class="offres-section-desc">Cartes et enveloppes imprimées — papier premium, finitions soignées, remise à Kinshasa ou expédition RDC.</p>
+
+            <div class="offres-print-models">
+                <article class="offres-print-card glass-card rounded-2xl">
+                    <figure class="offres-print-visual">
+                        <img src="https://images.unsplash.com/photo-1513889929100-d79431423261?auto=format&fit=crop&w=500&q=80" alt="Modèle Classique" loading="lazy">
+                        <span class="offres-print-tag">Modèle 1</span>
+                    </figure>
+                    <div class="offres-print-body">
+                        <h3>Classique</h3>
+                        <p class="offres-print-desc">Carte blanche, typographie serif, noms en rose et bleu. Enveloppe incluse.</p>
+                        <p class="offres-print-price"><strong>0,80 $</strong> <span>/ impression</span></p>
+                        <p class="offres-print-min">Minimum 50 ex. · créa graphique +15 $</p>
+                        <a class="offres-btn-outline cta-whatsapp" data-pack="Impression Classique" data-type="print" href="#">Commander</a>
+                    </div>
+                </article>
+
+                <article class="offres-print-card offres-print-card--featured invitation-card invitation-card--floral rounded-2xl">
+                    <span class="offres-plan-badge">Populaire</span>
+                    <figure class="offres-print-visual">
+                        <img src="https://images.unsplash.com/photo-1606800052052-a08af034886a?auto=format&fit=crop&w=500&q=80" alt="Modèle Élégance" loading="lazy">
+                        <span class="offres-print-tag">Modèle 2</span>
+                    </figure>
+                    <div class="offres-print-body">
+                        <h3>Élégance Rose</h3>
+                        <p class="offres-print-desc">Fond floral léger, ruban doré, cachet cire optionnel. Finition mate premium.</p>
+                        <p class="offres-print-price"><strong>1,20 $</strong> <span>/ impression</span></p>
+                        <p class="offres-print-min">Minimum 50 ex. · créa graphique +20 $</p>
+                        <a class="btn-rsvp offres-btn cta-whatsapp" data-pack="Impression Élégance Rose" data-type="print" href="#">Commander</a>
+                    </div>
+                </article>
+
+                <article class="offres-print-card glass-card rounded-2xl">
+                    <figure class="offres-print-visual">
+                        <img src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=500&q=80" alt="Modèle Prestige" loading="lazy">
+                        <span class="offres-print-tag">Modèle 3</span>
+                    </figure>
+                    <div class="offres-print-body">
+                        <h3>Prestige Doré</h3>
+                        <p class="offres-print-desc">Papier texturé, dorure à chaud, pochette lin. Le haut de gamme pour votre mariage.</p>
+                        <p class="offres-print-price"><strong>1,80 $</strong> <span>/ impression</span></p>
+                        <p class="offres-print-min">Minimum 30 ex. · créa graphique +30 $</p>
+                        <a class="offres-btn-outline cta-whatsapp" data-pack="Impression Prestige Doré" data-type="print" href="#">Commander</a>
+                    </div>
+                </article>
+            </div>
+
+            <article class="glass-card rounded-2xl offres-print-combo">
+                <p class="offres-section-label">Combo recommandé</p>
+                <h3 class="font-serif offres-print-combo-title">Digital + Physique</h3>
+                <p class="offres-print-combo-text">Forfait digital + impressions au tarif modèle — remise <strong>−10 %</strong> sur l'impression si commandé avec un forfait en ligne.</p>
+                <a class="btn-rsvp offres-btn cta-whatsapp" data-pack="Combo Digital + Physique" href="#">Demander un devis combo</a>
+            </article>
+
+            <p class="offres-note">Délai impression : 5–10 j · épreuve PDF avant tirage · livraison Kinshasa incluse (hors provinces)</p>
+        </section>
+
         <!-- CTA -->
         <section class="offres-block offres-block--last">
             <article class="offres-cta-card rounded-2xl text-center">
@@ -187,7 +254,7 @@
             </article>
             <footer class="offres-footer">
                 <p class="font-cursive offres-footer-brand">Michelline</p>
-                <p>Invitations digitales · RDC &amp; Afrique</p>
+                <p>Digital &amp; impressions · RDC &amp; Afrique</p>
             </footer>
         </section>
 
@@ -197,7 +264,8 @@
 
     <!-- Barre fixe mobile — accès rapide -->
     <nav class="offres-sticky-bar" aria-label="Actions rapides">
-        <a class="offres-sticky-link" href="#forfaits">Forfaits</a>
+        <a class="offres-sticky-link" href="#forfaits-digital">Digital</a>
+        <a class="offres-sticky-link" href="#impression-physique">Imprimer</a>
         <a id="nav-whatsapp" class="btn-rsvp offres-sticky-wa cta-whatsapp" href="#" data-pack="">WhatsApp</a>
     </nav>
 
@@ -205,10 +273,15 @@
     (function () {
         const WHATSAPP_PHONE = "243845370370";
         const BRAND_NAME = "Michelline";
-        function buildWhatsAppUrl(pack) {
-            const text = pack
-                ? `Bonjour ${BRAND_NAME}, forfait ${pack}. Date : ___. Invités : ___.`
-                : `Bonjour ${BRAND_NAME}, devis invitation digitale. Date : ___. Invités : ___.`;
+        function buildWhatsAppUrl(pack, type) {
+            let text;
+            if (type === "print") {
+                text = `Bonjour ${BRAND_NAME}, modèle ${pack}. Quantité : ___ ex. Date mariage : ___.`;
+            } else if (pack) {
+                text = `Bonjour ${BRAND_NAME}, forfait ${pack}. Date : ___. Invités : ___.`;
+            } else {
+                text = `Bonjour ${BRAND_NAME}, devis (digital et/ou impression). Date : ___. Invités : ___.`;
+            }
             return `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(text)}`;
         }
         function wireWhatsAppLinks() {
@@ -217,7 +290,9 @@
             document.getElementById("cta-footer-whatsapp").href = defaultUrl;
             document.getElementById("nav-whatsapp").href = defaultUrl;
             document.querySelectorAll(".cta-whatsapp").forEach((el) => {
-                el.href = el.getAttribute("data-pack") ? buildWhatsAppUrl(el.getAttribute("data-pack")) : defaultUrl;
+                const pack = el.getAttribute("data-pack") || "";
+                const type = el.getAttribute("data-type") || "";
+                el.href = pack ? buildWhatsAppUrl(pack, type) : defaultUrl;
                 el.target = "_blank";
                 el.rel = "noopener";
             });
