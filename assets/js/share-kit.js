@@ -84,15 +84,12 @@
 
         ctx.textAlign = "center";
         ctx.fillStyle = "#1e3a6e";
-        ctx.font = "700 88px Georgia, serif";
-        ctx.fillText("MG", w / 2, 175);
-        ctx.fillStyle = "#db2777";
-        ctx.font = "500 32px Montserrat, sans-serif";
-        ctx.fillText("service", w / 2, 220);
+        ctx.font = "italic 64px Georgia, 'Great Vibes', serif";
+        ctx.fillText("MG service", w / 2, 195);
 
         ctx.fillStyle = "#6b7280";
         ctx.font = "600 22px Montserrat, sans-serif";
-        ctx.fillText("RDC & AFRIQUE", w / 2, 270);
+        ctx.fillText("RDC & AFRIQUE", w / 2, 250);
 
         ctx.fillStyle = "#1f2937";
         ctx.font = "600 36px Montserrat, sans-serif";

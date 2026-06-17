@@ -1,103 +1,54 @@
-/* MG service — identité visuelle */
+/* MG service — calligraphie seule */
 .mg-logo {
     display: inline-flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.35rem;
     text-decoration: none;
     color: inherit;
 }
 
-.mg-logo-mark {
-    display: block;
-    width: 3.75rem;
-    height: 3.75rem;
-    flex-shrink: 0;
-}
-
-.mg-logo-name {
-    font-family: "Playfair Display", Georgia, serif;
-    font-size: 1.35rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    line-height: 1.1;
+.mg-calligraphy {
+    font-family: "Great Vibes", "Segoe Script", cursive;
+    font-size: 1.45rem;
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: 0.02em;
     color: inherit;
+    white-space: nowrap;
 }
 
-.mg-logo-name em {
-    font-style: normal;
-    font-family: "Montserrat", system-ui, sans-serif;
-    font-size: 0.72em;
-    font-weight: 500;
-    letter-spacing: 0.18em;
-    text-transform: lowercase;
-    color: #db2777;
-    margin-left: 0.15em;
+.mg-logo--calligraphy-only {
+    gap: 0;
 }
 
-.mg-logo--hero .mg-logo-mark {
-    width: 4.5rem;
-    height: 4.5rem;
-    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.25));
-}
-
-.mg-logo--hero .mg-logo-name {
-    font-size: 1.65rem;
+/* Hero — plus petit, sur photo */
+.mg-logo--hero.mg-logo--calligraphy-only .mg-calligraphy {
+    font-size: 1.75rem;
     color: #fff;
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.45);
 }
 
-.mg-logo--hero .mg-logo-name em {
-    color: #fbcfe8;
-}
-
-.mg-logo--light .mg-logo-name {
+/* Accueil / clair */
+.mg-logo--light .mg-calligraphy {
     color: #1f2937;
 }
 
-.mg-logo--light .mg-logo-name em {
-    color: #db2777;
+/* Footer */
+.mg-logo--footer .mg-calligraphy {
+    font-size: 1.25rem;
 }
 
-.mg-logo--footer .mg-logo-mark {
-    width: 2.75rem;
-    height: 2.75rem;
-}
-
-.mg-logo--footer .mg-logo-name {
-    font-size: 1.15rem;
-}
-
-.mg-logo--compact {
-    flex-direction: row;
-    gap: 0.55rem;
-}
-
-.mg-logo--compact .mg-logo-mark {
-    width: 2.5rem;
-    height: 2.5rem;
-}
-
-.mg-logo--compact .mg-logo-name {
-    font-size: 1rem;
-    text-align: left;
-}
-
-.mg-logo--compact .mg-logo-tagline {
-    display: block;
-    font-family: "Montserrat", sans-serif;
-    font-size: 0.5625rem;
-    font-weight: 500;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: #9ca3af;
-    margin-top: 0.15rem;
-}
-
-.mg-logo--on-dark .mg-logo-name {
+/* Kit promo — fond sombre */
+.mg-logo--on-dark .mg-calligraphy {
     color: #fff;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
 }
 
-.mg-logo--on-dark .mg-logo-name em {
-    color: #f9a8d4;
+/* Ancien mark SVG — masqué si présent */
+.mg-logo-mark {
+    display: none !important;
+}
+
+.mg-logo-name {
+    display: none !important;
 }
