@@ -1,8 +1,24 @@
 # Scripts WhatsApp — prospection & vente
 
 > Contact WhatsApp : **+243 845 370 370** · Marque **Michelline**  
-> Démo : https://alphagiven7-collab.github.io/invitation_mariage/pages/invitation.html?event=yanick-keren  
-> Offres : https://alphagiven7-collab.github.io/invitation_mariage/pages/offres.html
+> **Lien court offres :** https://alphagiven7-collab.github.io/invitation_mariage/o.html  
+> **Page offres :** https://alphagiven7-collab.github.io/invitation_mariage/pages/offres.html  
+> **Kit promotion (QR, visuels, textes) :** https://alphagiven7-collab.github.io/invitation_mariage/pages/partager.html  
+> **Démo :** https://alphagiven7-collab.github.io/invitation_mariage/pages/invitation.html?event=yanick-keren  
+
+---
+
+## Tarifs actuels (2026)
+
+| Offre | Prix |
+|-------|------|
+| Digital Essentiel | 50 $ |
+| Digital Premium | 100 $ |
+| Digital Platinum | 150 $ |
+| Impression Classique | 0,80 $ / ex. (min. 50) |
+| Impression Élégance Rose | 1,20 $ / ex. |
+| Impression Prestige Doré | 1,80 $ / ex. |
+| Combo digital + physique | −10 % sur l'impression |
 
 ---
 
@@ -11,19 +27,19 @@
 ```
 Bonjour [Prénom] 👋
 
-Je suis [Votre nom], spécialisé(e) en invitations digitales premium pour mariages.
+Je suis [Votre nom], Michelline — invitations digital & impressions pour mariages (RDC & Afrique).
 
-Au lieu d'une simple carte papier, vos invités reçoivent :
-💌 Une enveloppe personnalisée avec leur prénom
-✅ Un RSVP en 30 secondes sur mobile
-📱 Un QR code le jour J (accès + table)
+Vos invités reçoivent :
+💌 Enveloppe digitale personnalisée + RSVP en 30 sec
+📱 QR code le jour J (accès + table)
+🖨️ Ou cartes imprimées premium (dès 0,80 $/ex.)
 
-Voici une démo live :
-[Lien démo]
+Démo live : [Lien démo]
+Tarifs : [Lien court o.html]
 
-Forfaits à partir de 80 $ — setup clé en main.
+Digital dès 50 $ · Combo digital + papier −10 %
 
-Souhaitez-vous un devis pour votre date du [Date] ?
+Devis pour votre date du [Date] ?
 ```
 
 ---
@@ -33,16 +49,16 @@ Souhaitez-vous un devis pour votre date du [Date] ?
 ```
 Bonjour [Prénom], petit rappel amical 😊
 
-Votre mariage approche — avez-vous déjà pensé à l'invitation digitale ?
+Votre mariage approche — invitation digital, papier, ou les deux ?
 
-Nos couples apprécient surtout :
-• Les relances RSVP automatiques (plus de "j'ai oublié de répondre")
-• Le partage WhatsApp en 1 clic à toute la liste
+• RSVP en direct (fini Excel)
+• Partage WhatsApp en 1 clic
+• Impressions dès 0,80 $/ex.
 
 Démo : [Lien démo]
-Tarifs : [Lien offres]
+Tarifs : [Lien court]
 
-Je reste dispo pour un appel de 10 min si vous voulez.
+Appel de 10 min si vous voulez ?
 ```
 
 ---
@@ -54,19 +70,20 @@ Merci [Prénom] pour ces infos 🙏
 
 Voici votre proposition :
 
-📦 Forfait PREMIUM — [Prix] $
-• Invitation personnalisée + RSVP
-• Jusqu'à [N] invités
-• Menu boissons + QR code invité
-• Setup accompagné (1 session visio)
-• Livraison sous [X] jours
+📦 Forfait PREMIUM — 100 $
+• Invitation web + RSVP + sync cloud
+• Jusqu'à 200 invités
+• Menu boissons + QR + musique
+• Setup 45 min
+
+🖨️ Option impression Élégance Rose : [N] ex. × 1,20 $ = [Total] $
 
 💳 Acompte 50 % : [Montant] $ pour démarrer
 Solde à J-7
 
-Paiement : Airtel Money / M-Pesa / virement / PayPal
+Paiement : Airtel Money / M-Pesa / PayPal
 
-Dès réception de l'acompte, on lance la personnalisation 🎉
+Dès réception, on lance ! 🎉
 ```
 
 ---
@@ -76,17 +93,17 @@ Dès réception de l'acompte, on lance la personnalisation 🎉
 ```
 Bonjour [Prénom],
 
-Je développe une plateforme d'invitation digitale clé en main (RSVP, QR, admin invités) — pensée pour le marché africain (WhatsApp, mobile-first).
+Michelline = invitations digital + impression, clé en main (RSVP, QR, admin invités) — mobile-first, WhatsApp, marché africain.
 
-Je cherche 2–3 wedding planners partenaires à Kinshasa pour une offre white-label :
+Je cherche 2–3 planners partenaires RDC & Afrique :
 
 ✓ Vous gardez la relation client
-✓ Nous gérons la technique (setup, liens, sync cloud)
-✓ Votre commission : [15–25] % ou tarif agence fixe
+✓ Nous gérons technique + impression
+✓ Commission : 15–25 %
 
-Démo organisateur + invité : [Lien démo]
+Démo : [Lien démo] · Tarifs : [Lien court]
 
-Seriez-vous ouvert(e) à un café de 20 min cette semaine ?
+Café de 20 min cette semaine ?
 ```
 
 ---
@@ -96,33 +113,31 @@ Seriez-vous ouvert(e) à un café de 20 min cette semaine ?
 ```
 Merci pour votre temps [Prénom] 🙌
 
-Comme discuté, voici le récap partenaire :
+Récap partenaire :
+• Partenaire Pro : 49–79 $/mois — 3 mariages actifs
+• Vous : prospection · Nous : plateforme + print
+• Pilote −30 % sur le 1er mariage
 
-• Partenaire Pro : [49–79] $/mois — jusqu'à 3 mariages actifs
-• Vous : prospection + relation couple
-• Nous : plateforme, import invités, support technique
-
-Prochain mariage dans votre pipeline : [Date] ?
-On peut faire un pilote à tarif réduit (-30 %) pour valider ensemble.
+Prochain événement : [Date] ?
 ```
 
 ---
 
-## 6. Photographe / décorateur — partenariat referral
+## 6. Photographe / décorateur — referral
 
 ```
 Bonjour [Prénom],
 
-Je propose des invitations digitales premium à vos couples mariés.
+Michelline : invitations digital + cartes imprimées pour vos couples.
 
-Idée partenariat simple :
-→ Vous recommandez notre service après la réservation photo/déco
-→ Le couple reçoit -10 % sur l'invitation
-→ Vous recevez [10–15] % de commission par filleul
+Partenariat :
+→ Vous recommandez après réservation photo/déco
+→ Couple : −10 %
+→ Vous : 10–15 % commission
 
-Démo 2 min : [Lien démo]
+Démo : [Lien démo] · Kit promo : [Lien partager]
 
-Intéressé(e) ? Je vous envoie un flyer PDF pour vos clients.
+Intéressé(e) ?
 ```
 
 ---
@@ -132,31 +147,31 @@ Intéressé(e) ? Je vous envoie un flyer PDF pour vos clients.
 ### « C'est trop cher »
 
 ```
-Je comprends. Comparé à une carte imprimée + enveloppes + distribution, l'invitation digitale revient souvent moins cher — surtout avec 100+ invités.
+Je comprends. L'Essentiel digital est à 50 $ — RSVP, liens WhatsApp, programme.
 
-Et vous gagnez le suivi RSVP en temps réel (plus de tableaux Excel).
+L'impression papier est à la carte (dès 0,80 $/ex.) si le budget est serré.
 
-On peut partir sur l'Essentiel à 80 $ si le budget est serré — je vous montre ce qui est inclus ?
+On peut aussi faire digital pour la diaspora + quelques cartes premium pour la cérémonie.
 ```
 
 ### « Mes invités ne sont pas tech »
 
 ```
-Justement, c'est pensé pour ça 😊
-L'invité reçoit un lien WhatsApp, tape son nom, confirme en 2 clics.
-Aucune app, aucun compte.
+C'est pensé pour ça 😊
+Lien WhatsApp → prénom → confirmer en 2 clics. Aucune app.
 
-Nos invités les plus âgés passent très bien — c'est du mobile simple.
+Et pour les invités locaux, on peut ajouter des cartes imprimées.
 ```
 
-### « On a déjà Zola / Joy »
+### « On veut du papier uniquement »
 
 ```
-Zola est excellent pour le marché US/Europe.
+Parfait ! 3 modèles :
+• Classique — 0,80 $/ex.
+• Élégance Rose — 1,20 $/ex.
+• Prestige Doré — 1,80 $/ex.
 
-Notre force : WhatsApp natif, mobile RDC, QR jour J, menu boissons, admin en français — et un accompagnement humain (pas juste un template).
-
-Vous voulez comparer sur la démo ? [Lien démo]
+Épreuve PDF avant tirage. Livraison Kinshasa incluse.
 ```
 
 ---
@@ -166,39 +181,55 @@ Vous voulez comparer sur la démo ? [Lien démo]
 ```
 Bonjour [Prénom] 💍
 
-J'espère que l'invitation fait son effet !
+L'invitation fait son effet ?
 
-Deux petites faveurs si vous êtes satisfait(e) :
-1️⃣ Un avis WhatsApp ou une phrase que je peux partager (sans nom si vous préférez)
-2️⃣ Recommandation à un couple — vous recevez [10] % ou une réduction sur un futur événement
+Si vous êtes satisfait(e) :
+1️⃣ Un avis ou témoignage (anonyme OK)
+2️⃣ Parrainage couple → 10 % ou réduction future
 
-Merci encore pour votre confiance 🙏
+Merci pour votre confiance 🙏
 ```
 
 ---
 
 ## 9. Messages courts (statut WhatsApp Business)
 
-**Statut 1 — Démo**
+**Statut 1 — Offres**
 ```
-🎊 Invitation digitale premium — RSVP + QR sur mobile
-👉 [Lien démo]
-Devis gratuit par message
+💍 Michelline — digital + impression
+👉 [Lien court o.html]
+Digital 50·100·150 $ · Print dès 0,80 $/ex.
+Devis : +243 845 370 370
 ```
 
-**Statut 2 — Promo lancement**
+**Statut 2 — Démo**
 ```
-🚀 -20 % sur le forfait Premium ce mois-ci
-Places limitées : 5 mariages
-Répondez "DEVIS" pour en profiter
+🎊 Voyez l'invitation en action (RSVP + QR)
+👉 [Lien démo]
+Michelline · RDC & Afrique
 ```
+
+**Statut 3 — Promo**
+```
+🚀 Combo digital + papier : −10 % ce mois-ci
+5 places · Répondez DEVIS
+```
+
+---
+
+## 10. Instagram / Facebook (copier depuis kit promo)
+
+Page **partager.html** contient textes et visuel Instagram prêts à copier.
+
+Hashtags : `#MariageRDC #WeddingKinshasa #InvitationDigitale #Michelline #Mariage2026 #RDC #Afrique`
 
 ---
 
 ## Checklist avant envoi
 
-- [ ] Numéro WhatsApp Business configuré + photo pro
-- [ ] Lien démo testé sur mobile
-- [ ] Page offres à jour (`pages/offres.html` — numéro WhatsApp)
-- [ ] Devis PDF ou message structuré prêt
-- [ ] Coordonnées paiement (Airtel / M-Pesa) prêtes
+- [ ] WhatsApp Business configuré + photo pro
+- [ ] Lien court `o.html` testé sur mobile
+- [ ] Kit promo `partager.html` — QR + visuel téléchargé
+- [ ] Démo testée sur mobile
+- [ ] Devis structuré prêt (digital / print / combo)
+- [ ] Paiement Airtel / M-Pesa prêt

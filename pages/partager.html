@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="color-scheme" content="light">
+    <title>Michelline — Kit promotion</title>
+    <meta name="description" content="Kit promotion Michelline — liens, QR codes, visuels Instagram et textes prêts à publier.">
+    <meta name="theme-color" content="#4caf50">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Michelline — Invitations digital &amp; impressions">
+    <meta property="og:description" content="RSVP, QR, WhatsApp. Digital dès 50 $. Impression dès 0,80 $/ex. RDC &amp; Afrique.">
+    <meta property="og:url" content="https://alphagiven7-collab.github.io/invitation_mariage/pages/partager.html">
+    <meta property="og:image" content="https://alphagiven7-collab.github.io/invitation_mariage/assets/images/michelline-og-offres.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/partager.css?v=37">
+</head>
+<body class="share-page">
+
+    <main class="share-shell">
+        <header class="share-hero">
+            <h1 class="share-hero-brand">Michelline</h1>
+            <p>Kit promotion — partagez vos offres en 1 clic</p>
+        </header>
+
+        <!-- Liens -->
+        <section class="share-block">
+            <article class="share-card">
+                <h2>Lien court (à mettre partout)</h2>
+                <p class="share-card-desc">Utilisez ce lien dans vos statuts, bios et messages — il mène directement aux offres.</p>
+                <div class="share-link-row">
+                    <div class="share-link-box">https://alphagiven7-collab.github.io/invitation_mariage/o.html</div>
+                    <button type="button" class="share-btn share-btn--copy" data-copy="short">Copier</button>
+                </div>
+                <button type="button" class="share-btn share-btn--outline" data-copy="offres">Copier lien complet offres</button>
+            </article>
+
+            <article class="share-card">
+                <h2>QR codes</h2>
+                <p class="share-card-desc">Scannez ou imprimez sur flyers, cartes de visite, salons mariage.</p>
+                <div class="share-qr-grid">
+                    <div class="share-qr-wrap">
+                        <img data-qr-target="offres" data-qr-size="200" width="200" height="200" alt="QR offres">
+                        <p class="share-qr-label">Page offres</p>
+                    </div>
+                    <div class="share-qr-wrap">
+                        <img data-qr-target="demo" data-qr-size="200" width="200" height="200" alt="QR démo">
+                        <p class="share-qr-label">Démo live</p>
+                    </div>
+                </div>
+            </article>
+
+            <article class="share-card">
+                <h2>Aperçu réseaux sociaux</h2>
+                <p class="share-card-desc">Voici l’image affichée quand vous partagez le lien sur WhatsApp ou Facebook.</p>
+                <img class="share-preview-og" src="../assets/images/michelline-og-offres.png" alt="Aperçu Michelline Open Graph" width="600" height="315">
+            </article>
+
+            <article class="share-card">
+                <h2>Visuel Instagram (1080×1080)</h2>
+                <p class="share-card-desc">Téléchargez une image carrée avec QR code et tarifs — prête pour votre feed ou story.</p>
+                <button type="button" id="share-download-card" class="share-btn share-btn--rose">Télécharger l’image</button>
+                <canvas id="share-export-canvas" aria-hidden="true"></canvas>
+            </article>
+
+            <article class="share-card share-caption">
+                <h2>Texte WhatsApp / statut</h2>
+                <pre data-caption="whatsapp"></pre>
+                <button type="button" class="share-btn share-btn--copy" data-copy="whatsapp">Copier le texte</button>
+                <a id="share-wa-broadcast" class="share-btn share-btn--rose" href="#">Partager sur WhatsApp</a>
+            </article>
+
+            <article class="share-card share-caption">
+                <h2>Texte Instagram</h2>
+                <pre data-caption="instagram"></pre>
+                <button type="button" class="share-btn share-btn--copy" data-copy="instagram">Copier</button>
+                <p id="share-hashtags" class="share-hashtags"></p>
+            </article>
+
+            <article class="share-card share-caption">
+                <h2>Texte Facebook</h2>
+                <pre data-caption="facebook"></pre>
+                <button type="button" class="share-btn share-btn--copy" data-copy="facebook">Copier</button>
+            </article>
+
+            <article class="share-card">
+                <h2>Liens utiles</h2>
+                <a class="share-btn share-btn--outline" href="./offres.html?v=37">Ouvrir page offres</a>
+                <button type="button" class="share-btn share-btn--outline" data-copy="demo" style="margin-top:0.5rem">Copier lien démo</button>
+                <button type="button" class="share-btn share-btn--outline" data-copy="wa" style="margin-top:0.5rem">Copier lien WhatsApp</button>
+            </article>
+        </section>
+
+        <a class="share-back" href="./offres.html">← Retour aux offres</a>
+    </main>
+
+    <script src="../assets/js/share-kit.js?v=37"></script>
+</body>
+</html>
