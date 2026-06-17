@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#831843">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Michelline — Centre de commande</title>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/michelline-brand.css?v=45">
+    <link rel="stylesheet" href="../assets/css/centre.css?v=45">
+</head>
+<body class="centre-page">
+
+    <div id="centre-gate" class="centre-gate">
+        <div class="centre-gate-card">
+            <span class="michelline-calligraphy centre-gate-brand">Michelline</span>
+            <p class="centre-gate-title">Centre de commande</p>
+            <p class="centre-gate-desc">Votre tableau de bord privé — vision, pages, codes, roadmap et marketing.</p>
+            <form id="centre-gate-form" class="centre-gate-form" autocomplete="off" novalidate>
+                <input id="centre-code" type="password" name="code" class="centre-input" placeholder="Code d'accès" autocomplete="off" autocapitalize="characters" spellcheck="false">
+                <button type="submit" class="centre-btn centre-btn--rose">Entrer</button>
+            </form>
+            <p id="centre-gate-error" class="centre-gate-error" hidden role="alert">Code incorrect</p>
+        </div>
+    </div>
+
+    <main id="centre-main" class="centre-shell" hidden>
+
+        <header class="centre-hero">
+            <div class="centre-hero-inner">
+                <span class="michelline-calligraphy">Michelline</span>
+                <h1>Centre de commande</h1>
+                <p class="centre-hero-tag">Tout le projet au même endroit : pourquoi on existe, où aller, quels codes utiliser, quoi améliorer — et comment vendre sur les réseaux.</p>
+                <div class="centre-hero-actions">
+                    <a class="centre-btn centre-btn--ghost" href="#marketing">Marketing réseaux</a>
+                    <a class="centre-btn centre-btn--ghost" href="./objectifs.html">Plan 30 jours →</a>
+                    <button type="button" id="centre-logout" class="centre-btn centre-btn--ghost">Verrouiller</button>
+                </div>
+            </div>
+        </header>
+
+        <nav class="centre-nav" aria-label="Sections">
+            <a href="#vision">Vision</a>
+            <a href="#pages">Pages</a>
+            <a href="#codes">Codes</a>
+            <a href="#parametres">Paramètres</a>
+            <a href="#roadmap">Roadmap</a>
+            <a href="#futur">Futur</a>
+            <a href="#marketing">Marketing</a>
+        </nav>
+
+        <!-- VISION -->
+        <section id="vision" class="centre-section centre-section--accent">
+            <p class="centre-overline">Pourquoi Michelline existe</p>
+            <h2>Objectif du projet</h2>
+            <p class="centre-lead">
+                <strong>Michelline</strong> aide les couples en RDC et en Afrique (et leur diaspora) à inviter leurs proches avec élégance —
+                d'abord via une <strong>invitation numérique</strong> (WhatsApp, RSVP, GPS, QR jour J), puis en option avec des
+                <strong>cartes physiques</strong> imprimées.
+            </p>
+            <p class="centre-lead">
+                Aujourd'hui, le produit est un <strong>service clé en main</strong> : vous configurez chaque mariage pour le client.
+                L'objectif à moyen terme : un vrai SaaS où le client crée son événement seul — sans perdre la qualité premium.
+            </p>
+            <div class="centre-pillars">
+                <div class="centre-pillar">
+                    <span class="centre-pillar-icon">💌</span>
+                    <div>
+                        <strong>Problème résolu</strong>
+                        <p>Invitations perdues, RSVP en chaos WhatsApp, invités à l'étranger oubliés, jour J sans contrôle d'accès.</p>
+                    </div>
+                </div>
+                <div class="centre-pillar">
+                    <span class="centre-pillar-icon">🎯</span>
+                    <div>
+                        <strong>Client cible</strong>
+                        <p>Couples mariage Kinshasa / RDC, diaspora, wedding planners, salles et photographes partenaires.</p>
+                    </div>
+                </div>
+                <div class="centre-pillar">
+                    <span class="centre-pillar-icon">💰</span>
+                    <div>
+                        <strong>Modèle économique</strong>
+                        <p>Forfaits 25 / 50 / 75 $ (numérique) + impressions + combo −10 %. Marge élevée, peu de coûts fixes.</p>
+                    </div>
+                </div>
+                <div class="centre-pillar">
+                    <span class="centre-pillar-icon">⚡</span>
+                    <div>
+                        <strong>Priorité actuelle</strong>
+                        <p>3 clients payants ce mois · WhatsApp + démo live + page offres. Pas la perfection technique.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGES -->
+        <section id="pages" class="centre-section">
+            <p class="centre-overline">Navigation</p>
+            <h2>Toutes les pages du projet</h2>
+            <p class="centre-lead">Pages <span class="centre-badge centre-badge--pub">Public</span> = partageables · <span class="centre-badge centre-badge--prive">Privé</span> = vous seul · <span class="centre-badge centre-badge--tech">Tech</span> = admin / config</p>
+
+            <h3>Vente &amp; promotion</h3>
+            <div class="centre-pages">
+                <a class="centre-page-link centre-page-link--pub" href="../index.html" target="_blank" rel="noopener">
+                    <span class="centre-page-icon">🏠</span>
+                    <span class="centre-page-meta"><strong>Accueil hub</strong><span>Porte d'entrée · liens offres &amp; démo</span></span>
+                    <span class="centre-badge centre-badge--pub">Public</span>
+                </a>
+                <a class="centre-page-link centre-page-link--pub" href="../o.html" target="_blank" rel="noopener">
+                    <span class="centre-page-icon">🔗</span>
+                    <span class="centre-page-meta"><strong>Lien court o.html</strong><span>Redirige vers les offres — à mettre partout</span></span>
+                    <span class="centre-badge centre-badge--pub">Public</span>
+                </a>
+                <a class="centre-page-link centre-page-link--pub" href="./offres.html" target="_blank" rel="noopener">
+                    <span class="centre-page-icon">💎</span>
+                    <span class="centre-page-meta"><strong>Offres &amp; tarifs</strong><span>Numérique d'abord · cartes physiques · 25/50/75 $</span></span>
+                    <span class="centre-badge centre-badge--pub">Public</span>
+                </a>
+                <a class="centre-page-link centre-page-link--pub" href="./partager.html" target="_blank" rel="noopener">
+                    <span class="centre-page-icon">📣</span>
+                    <span class="centre-page-meta"><strong>Kit promotion</strong><span>QR, visuels Instagram, textes WhatsApp</span></span>
+                    <span class="centre-badge centre-badge--pub">Public</span>
+                </a>
+                <a class="centre-page-link centre-page-link--pub" href="./invitation.html?event=yanick-keren" target="_blank" rel="noopener">
+                    <span class="centre-page-icon">✨</span>
+                    <span class="centre-page-meta"><strong>Démo invitation live</strong><span>Enveloppe, RSVP, QR, menu boissons</span></span>
+                    <span class="centre-badge centre-badge--pub">Public</span>
+                </a>
+            </div>
+
+            <h3>Espace privé (vous)</h3>
+            <div class="centre-pages">
+                <a class="centre-page-link" href="./centre.html">
+                    <span class="centre-page-icon">🎛️</span>
+                    <span class="centre-page-meta"><strong>Centre de commande</strong><span>Cette page — vous êtes ici</span></span>
+                    <span class="centre-badge centre-badge--prive">Privé</span>
+                </a>
+                <a class="centre-page-link" href="./objectifs.html">
+                    <span class="centre-page-icon">📋</span>
+                    <span class="centre-page-meta"><strong>Plan 30 jours</strong><span>Actions semaine par semaine + checklists</span></span>
+                    <span class="centre-badge centre-badge--prive">Privé</span>
+                </a>
+            </div>
+
+            <h3>Administration événements</h3>
+            <div class="centre-pages">
+                <a class="centre-page-link centre-page-link--tech" href="./login.html?event=yanick-keren" target="_blank" rel="noopener">
+                    <span class="centre-page-icon">🔐</span>
+                    <span class="centre-page-meta"><strong>Login admin</strong><span>Accès gestion invités par événement</span></span>
+                    <span class="centre-badge centre-badge--tech">Tech</span>
+                </a>
+                <a class="centre-page-link centre-page-link--tech" href="./admin.html?event=yanick-keren" target="_blank" rel="noopener">
+                    <span class="centre-page-icon">👥</span>
+                    <span class="centre-page-meta"><strong>Admin invités</strong><span>CSV, liens, WhatsApp, relances</span></span>
+                    <span class="centre-badge centre-badge--tech">Tech</span>
+                </a>
+                <a class="centre-page-link centre-page-link--tech" href="./personnalisation.html?event=yanick-keren" target="_blank" rel="noopener">
+                    <span class="centre-page-icon">🎨</span>
+                    <span class="centre-page-meta"><strong>Personnalisation</strong><span>Textes, photos, couleurs, aperçu live</span></span>
+                    <span class="centre-badge centre-badge--tech">Tech</span>
+                </a>
+                <a class="centre-page-link centre-page-link--tech" href="./setup-supabase.html" target="_blank" rel="noopener">
+                    <span class="centre-page-icon">☁️</span>
+                    <span class="centre-page-meta"><strong>Setup Supabase</strong><span>Configuration cloud</span></span>
+                    <span class="centre-badge centre-badge--tech">Tech</span>
+                </a>
+                <a class="centre-page-link centre-page-link--tech" href="./formulaires.html" target="_blank" rel="noopener">
+                    <span class="centre-page-icon">📝</span>
+                    <span class="centre-page-meta"><strong>Formulaires</strong><span>RSVP legacy / tests</span></span>
+                    <span class="centre-badge centre-badge--tech">Tech</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- CODES -->
+        <section id="codes" class="centre-section">
+            <p class="centre-overline">Sécurité</p>
+            <h2>Codes &amp; mots de passe</h2>
+            <p class="centre-lead">Ne partagez jamais ces codes publiquement. Les pages privées utilisent le code <strong>Michelline HQ</strong>.</p>
+            <table class="centre-codes">
+                <thead>
+                    <tr><th>Zone</th><th>Code</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Centre + Objectifs (privé)</td>
+                        <td><code>MICHELLINE-HQ-2026</code></td>
+                        <td><button type="button" class="centre-btn centre-btn--outline centre-btn--sm" data-copy-code="MICHELLINE-HQ-2026">Copier</button></td>
+                    </tr>
+                    <tr>
+                        <td>Centre + Objectifs (ancien)</td>
+                        <td><code>MICHELLINE-PLAN-30J</code></td>
+                        <td><button type="button" class="centre-btn centre-btn--outline centre-btn--sm" data-copy-code="MICHELLINE-PLAN-30J">Copier</button></td>
+                    </tr>
+                    <tr>
+                        <td>Super admin / concepteur</td>
+                        <td><code>YANICK-KEREN-ADMIN</code></td>
+                        <td><button type="button" class="centre-btn centre-btn--outline centre-btn--sm" data-copy-code="YANICK-KEREN-ADMIN">Copier</button></td>
+                    </tr>
+                    <tr>
+                        <td>Client — Yanick &amp; Keren</td>
+                        <td><code>YANICK-CLIENT-2026</code></td>
+                        <td><button type="button" class="centre-btn centre-btn--outline centre-btn--sm" data-copy-code="YANICK-CLIENT-2026">Copier</button></td>
+                    </tr>
+                    <tr>
+                        <td>Client — Conférence tech</td>
+                        <td><code>CONF-TECH-2026</code></td>
+                        <td><button type="button" class="centre-btn centre-btn--outline centre-btn--sm" data-copy-code="CONF-TECH-2026">Copier</button></td>
+                    </tr>
+                    <tr>
+                        <td>Client — Anniversaire Grace</td>
+                        <td><code>GRACE-BDAY-2026</code></td>
+                        <td><button type="button" class="centre-btn centre-btn--outline centre-btn--sm" data-copy-code="GRACE-BDAY-2026">Copier</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="centre-callout">Raccourci privé : <strong>hq.html</strong> → ce centre · Une fois connecté, Objectifs s'ouvre sans ressaisir le code (même session).</div>
+        </section>
+
+        <!-- PARAMETRES -->
+        <section id="parametres" class="centre-section">
+            <p class="centre-overline">Configuration</p>
+            <h2>Paramètres clés</h2>
+            <ul class="centre-settings">
+                <li><span>Marque</span><strong>Michelline</strong></li>
+                <li><span>WhatsApp</span><strong>+243 845 370 370</strong></li>
+                <li><span>Site live</span><strong>alphagiven7-collab.github.io/invitation_mariage</strong></li>
+                <li><span>Lien court offres</span><strong>…/o.html</strong></li>
+                <li><span>Tarifs numériques</span><strong>25 $ · 50 $ · 75 $</strong></li>
+                <li><span>Cartes incluses</span><strong>Premium 30 Classique · Platinum 50 Élégance</strong></li>
+                <li><span>Impression unitaire</span><strong>0,80 · 1,20 · 1,80 $/ex.</strong></li>
+                <li><span>Combo papier</span><strong>−10 % avec forfait digital</strong></li>
+                <li><span>Acompte</span><strong>50 % · solde J-7</strong></li>
+                <li><span>Supabase</span><strong>qotolnmwoceahrnldlbw.supabase.co</strong></li>
+                <li><span>Cache actuel</span><strong>v45</strong></li>
+                <li><span>Repo GitHub</span><strong>alphagiven7-collab/invitation_mariage</strong></li>
+            </ul>
+        </section>
+
+        <!-- ROADMAP -->
+        <section id="roadmap" class="centre-section">
+            <p class="centre-overline">Améliorations long terme</p>
+            <h2>Roadmap produit</h2>
+            <ul class="centre-roadmap">
+                <li><strong>Acquisition clients</strong> — 3 puis 10 mariages payants, témoignages, partenariats planners <span class="centre-roadmap-tag centre-roadmap-tag--now">Maintenant</span></li>
+                <li><strong>Page offres + kit promo</strong> — optimiser conversion mobile, A/B textes WhatsApp <span class="centre-roadmap-tag centre-roadmap-tag--now">Maintenant</span></li>
+                <li><strong>Paiement en ligne</strong> — Airtel Money, M-Pesa, PayPal intégrés au devis <span class="centre-roadmap-tag centre-roadmap-tag--soon">Bientôt</span></li>
+                <li><strong>Console super-admin</strong> — voir tous les événements, valider, quotas <span class="centre-roadmap-tag centre-roadmap-tag--soon">Bientôt</span></li>
+                <li><strong>Inscription client SaaS</strong> — email + mot de passe, création événement self-service <span class="centre-roadmap-tag centre-roadmap-tag--later">Plus tard</span></li>
+                <li><strong>Domaine custom</strong> — mariage-prenom.com par client Platinum <span class="centre-roadmap-tag centre-roadmap-tag--later">Plus tard</span></li>
+                <li><strong>Check-in jour J</strong> — scan QR staff, liste temps réel <span class="centre-roadmap-tag centre-roadmap-tag--later">Plus tard</span></li>
+                <li><strong>White-label planners</strong> — formule B2B mensuelle <span class="centre-roadmap-tag centre-roadmap-tag--later">Plus tard</span></li>
+            </ul>
+        </section>
+
+        <!-- FUTUR -->
+        <section id="futur" class="centre-section centre-section--accent">
+            <p class="centre-overline">Prochaines fonctionnalités</p>
+            <h2>Futures additions prévues</h2>
+            <div class="centre-pillars">
+                <div class="centre-pillar">
+                    <span class="centre-pillar-icon">📲</span>
+                    <div>
+                        <strong>App PWA installable</strong>
+                        <p>Icône Michelline sur l'écran d'accueil client · mode hors-ligne partiel.</p>
+                    </div>
+                </div>
+                <div class="centre-pillar">
+                    <span class="centre-pillar-icon">🤖</span>
+                    <div>
+                        <strong>Relances auto WhatsApp</strong>
+                        <p>J-7 et J-1 depuis admin · templates personnalisés.</p>
+                    </div>
+                </div>
+                <div class="centre-pillar">
+                    <span class="centre-pillar-icon">🖨️</span>
+                    <div>
+                        <strong>Catalogue print élargi</strong>
+                        <p>Plus de modèles enveloppes · commande depuis l'admin.</p>
+                    </div>
+                </div>
+                <div class="centre-pillar">
+                    <span class="centre-pillar-icon">📊</span>
+                    <div>
+                        <strong>Dashboard revenus</strong>
+                        <p>Suivi devis → acompte → solde · dans ce centre.</p>
+                    </div>
+                </div>
+                <div class="centre-pillar">
+                    <span class="centre-pillar-icon">🌍</span>
+                    <div>
+                        <strong>Multi-langue EN</strong>
+                        <p>Invitation bilingue FR/EN pour diaspora.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MARKETING -->
+        <section id="marketing" class="centre-section centre-section--dark">
+            <p class="centre-overline" style="color:#fbcfe8">Passons au concret</p>
+            <h2>Stratégie marketing — réseaux sociaux</h2>
+            <p class="centre-lead">Objectif : <strong>40 conversations WhatsApp / mois</strong> → <strong>3 clients payants</strong>. Canal n°1 = WhatsApp. Canal n°2 = Instagram/Facebook. Canal n°3 = bouche-à-oreille planners.</p>
+
+            <div class="centre-mkt-grid">
+                <article class="centre-mkt-card">
+                    <h3>1 · WhatsApp (priorité absolue)</h3>
+                    <ul>
+                        <li>Statut Business 2×/jour : démo + témoignage + offre</li>
+                        <li>10 messages personnalisés/jour vers couples connus</li>
+                        <li>Lien court <strong>o.html</strong> dans chaque message</li>
+                        <li>Réponse sous 2 h — vitesse = confiance</li>
+                        <li>Scripts prêts : page <strong>Kit promotion</strong></li>
+                    </ul>
+                </article>
+                <article class="centre-mkt-card">
+                    <h3>2 · Instagram &amp; Facebook</h3>
+                    <ul>
+                        <li>3 posts/semaine : enveloppe digitale, RSVP live, cartes physiques</li>
+                        <li>1 Reel/TikTok 15 sec : ouverture enveloppe → RSVP → QR</li>
+                        <li>Hashtags : #MariageRDC #WeddingKinshasa #Michelline #InvitationDigitale</li>
+                        <li>Bio : lien o.html + « Devis WhatsApp +243 845 370 370 »</li>
+                        <li>Télécharger visuel 1080×1080 depuis Kit promotion</li>
+                    </ul>
+                </article>
+                <article class="centre-mkt-card">
+                    <h3>3 · Groupes &amp; partenaires</h3>
+                    <ul>
+                        <li>2 groupes Facebook « mariage RDC » — 1 post/semaine avec démo</li>
+                        <li>Contacter 3 wedding planners avec offre referral 10 %</li>
+                        <li>Flyer QR imprimé pour églises / salons / photographes</li>
+                        <li>Proposer Premium 50 $ (+ 30 cartes) en premier</li>
+                    </ul>
+                </article>
+                <article class="centre-mkt-card">
+                    <h3>4 · Contenu type (rotation hebdo)</h3>
+                    <ol>
+                        <li><strong>Lundi</strong> — Problème : « Vos invités confirment comment ? »</li>
+                        <li><strong>Mardi</strong> — Démo live (capture écran enveloppe)</li>
+                        <li><strong>Mercredi</strong> — Tarif Essentiel 25 $ + RSVP</li>
+                        <li><strong>Jeudi</strong> — Cartes physiques / combo</li>
+                        <li><strong>Vendredi</strong> — Diaspora : lien WhatsApp partout</li>
+                        <li><strong>Samedi</strong> — Témoignage ou avant/après</li>
+                        <li><strong>Dimanche</strong> — CTA doux + numéro WhatsApp</li>
+                    </ol>
+                    <div class="centre-week-plan" aria-hidden="true">
+                        <div class="centre-week-day"><strong>L</strong>Problème</div>
+                        <div class="centre-week-day"><strong>M</strong>Démo</div>
+                        <div class="centre-week-day"><strong>M</strong>25$</div>
+                        <div class="centre-week-day"><strong>J</strong>Print</div>
+                        <div class="centre-week-day"><strong>V</strong>Diaspora</div>
+                        <div class="centre-week-day"><strong>S</strong>Preuve</div>
+                        <div class="centre-week-day"><strong>D</strong>CTA</div>
+                    </div>
+                </article>
+                <article class="centre-mkt-card">
+                    <h3>5 · KPIs à suivre chaque semaine</h3>
+                    <ul>
+                        <li>Vues page offres (objectif 500+/mois)</li>
+                        <li>Messages WhatsApp entrants</li>
+                        <li>Devis envoyés vs closés</li>
+                        <li>Forfait le plus demandé (viser Premium)</li>
+                        <li>Cocher le plan détaillé → <a href="./objectifs.html" style="color:#fbcfe8">Page Objectifs 30 jours</a></li>
+                    </ul>
+                </article>
+            </div>
+            <p class="centre-lead" style="margin-top:1rem;color:rgba(255,255,255,0.75)">
+                <strong>Règle d'or :</strong> ne vendez pas « un site web » — vendez « une invitation qui arrive sur le téléphone de chaque invité, avec confirmation en 30 secondes ».
+            </p>
+            <a class="centre-btn centre-btn--rose" href="./partager.html" target="_blank" rel="noopener" style="margin-top:1rem">Ouvrir le kit promotion →</a>
+        </section>
+
+        <footer class="centre-footer">
+            <p>Michelline · Centre de commande · Privé · non indexé</p>
+        </footer>
+    </main>
+
+    <script src="../assets/js/michelline-private-auth.js?v=45"></script>
+    <script src="../assets/js/centre-page.js?v=45"></script>
+</body>
+</html>
