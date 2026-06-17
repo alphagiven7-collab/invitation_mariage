@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="color-scheme" content="light">
-    <title>Michelline — Kit promotion</title>
-    <meta name="description" content="Kit promotion Michelline — liens, QR codes, visuels Instagram et textes prêts à publier.">
-    <meta name="theme-color" content="#4caf50">
+    <title>Michelline — Kit promotion pro</title>
+    <meta name="description" content="Kit promotion Michelline — liens, QR, visuels Story/Feed, textes rotatifs, DM prospects, checklist hebdo.">
+    <meta name="theme-color" content="#db2777">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Michelline — Invitations digital &amp; impressions">
-    <meta property="og:description" content="RSVP, QR, WhatsApp. Digital et cartes imprimées. RDC &amp; Afrique.">
+    <meta property="og:title" content="Michelline — Invitations numériques">
+    <meta property="og:description" content="RSVP, QR, WhatsApp. Dès 25 $. RDC &amp; Afrique.">
     <meta property="og:url" content="https://alphagiven7-collab.github.io/invitation_mariage/pages/partager.html">
-    <meta property="og:image" content="https://alphagiven7-collab.github.io/invitation_mariage/assets/images/michelline-hero-envelopes.png?v=43">
+    <meta property="og:image" content="https://alphagiven7-collab.github.io/invitation_mariage/assets/images/michelline-hero-envelopes.png">
     <meta name="twitter:card" content="summary_large_image">
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/michelline-brand.css?v=43">
-    <link rel="stylesheet" href="../assets/css/partager.css?v=43">
+    <link rel="stylesheet" href="../assets/css/michelline-brand.css?v=46">
+    <link rel="stylesheet" href="../assets/css/partager.css?v=46">
 </head>
 <body class="share-page">
 
@@ -24,75 +24,229 @@
             <div class="michelline-logo michelline-logo--on-dark michelline-logo--calligraphy-only" aria-label="Michelline">
                 <span class="michelline-calligraphy">Michelline</span>
             </div>
-            <p>Kit promotion — partagez vos offres en 1 clic</p>
+            <p class="share-hero-sub">Kit promotion pro — publiez plus vite, convertissez mieux</p>
         </header>
 
-        <!-- Liens -->
+        <nav class="share-nav" aria-label="Sections kit">
+            <a href="#demarrage">Démarrer</a>
+            <a href="#liens">Liens</a>
+            <a href="#visuels">Visuels</a>
+            <a href="#messages">Textes</a>
+            <a href="#checklist">Checklist</a>
+        </nav>
+
         <section class="share-block">
-            <article class="share-card">
-                <h2>Lien court (à mettre partout)</h2>
-                <p class="share-card-desc">Utilisez ce lien dans vos statuts, bios et messages — il mène directement aux offres.</p>
+
+            <!-- Démarrage rapide -->
+            <article id="demarrage" class="share-card share-card--accent">
+                <h2>Démarrage en 3 étapes</h2>
+                <ol class="share-steps">
+                    <li><strong>Copiez</strong> le lien court <code>o.html</code> dans votre bio WhatsApp &amp; Instagram</li>
+                    <li><strong>Téléchargez</strong> un visuel (Story ou Feed) + publiez avec le texte du jour</li>
+                    <li><strong>Envoyez</strong> 3 messages DM personnalisés (modèle « Prospect » ci-dessous)</li>
+                </ol>
+                <p class="share-tip">💡 Publiez <strong>1 statut/jour</strong> minimum · répondez WhatsApp en moins de 2 h</p>
+            </article>
+
+            <!-- Statut du jour -->
+            <article class="share-card share-card--daily">
+                <h2 id="share-daily-status">Statut du jour</h2>
+                <p class="share-card-desc">Rotation automatique — copiez et collez dans WhatsApp Status</p>
+                <pre id="share-daily-pre" class="share-pre"></pre>
+                <div class="share-row-btns">
+                    <button type="button" class="share-btn share-btn--copy share-btn--inline" data-copy="daily">Copier statut du jour</button>
+                    <a id="share-wa-broadcast" class="share-btn share-btn--rose share-btn--inline" href="#">Publier sur WhatsApp</a>
+                </div>
+            </article>
+
+            <!-- Liens -->
+            <article id="liens" class="share-card">
+                <h2>Liens &amp; QR codes</h2>
+                <p class="share-card-desc">Le lien court <strong>o.html</strong> = votre arme n°1. Mettez-le partout.</p>
                 <div class="share-link-row">
                     <div class="share-link-box">https://alphagiven7-collab.github.io/invitation_mariage/o.html</div>
                     <button type="button" class="share-btn share-btn--copy" data-copy="short">Copier</button>
                 </div>
-                <button type="button" class="share-btn share-btn--outline" data-copy="offres">Copier lien complet offres</button>
-            </article>
-
-            <article class="share-card">
-                <h2>QR codes</h2>
-                <p class="share-card-desc">Scannez ou imprimez sur flyers, cartes de visite, salons mariage.</p>
-                <div class="share-qr-grid">
+                <div class="share-stack">
+                    <button type="button" class="share-btn share-btn--outline" data-copy="offres">Copier lien page offres</button>
+                    <button type="button" class="share-btn share-btn--outline" data-copy="demo">Copier lien démo live</button>
+                    <button type="button" class="share-btn share-btn--outline" data-copy="wa">Copier lien WhatsApp direct</button>
+                </div>
+                <div class="share-qr-grid share-qr-grid--3">
                     <div class="share-qr-wrap">
-                        <img data-qr-target="offres" data-qr-size="200" width="200" height="200" alt="QR offres">
-                        <p class="share-qr-label">Page offres</p>
+                        <img data-qr-target="short" data-qr-size="180" width="180" height="180" alt="QR offres court">
+                        <p class="share-qr-label">Offres (o.html)</p>
+                        <button type="button" class="share-btn share-btn--outline share-btn--tiny" data-qr-download="short">Télécharger QR</button>
                     </div>
                     <div class="share-qr-wrap">
-                        <img data-qr-target="demo" data-qr-size="200" width="200" height="200" alt="QR démo">
+                        <img data-qr-target="demo" data-qr-size="180" width="180" height="180" alt="QR démo">
                         <p class="share-qr-label">Démo live</p>
+                        <button type="button" class="share-btn share-btn--outline share-btn--tiny" data-qr-download="demo">Télécharger QR</button>
+                    </div>
+                    <div class="share-qr-wrap">
+                        <img data-qr-target="offres" data-qr-size="180" width="180" height="180" alt="QR offres complètes">
+                        <p class="share-qr-label">Offres complètes</p>
+                        <button type="button" class="share-btn share-btn--outline share-btn--tiny" data-qr-download="offres">Télécharger QR</button>
                     </div>
                 </div>
             </article>
 
-            <article class="share-card">
-                <h2>Aperçu réseaux sociaux</h2>
-                <p class="share-card-desc">Voici l’image affichée quand vous partagez le lien sur WhatsApp ou Facebook.</p>
-                <img class="share-preview-og" src="../assets/images/michelline-hero-envelopes.png?v=43" alt="Aperçu Michelline" width="600" height="315">
-            </article>
-
-            <article class="share-card">
-                <h2>Visuel Instagram (1080×1080)</h2>
-                <p class="share-card-desc">Téléchargez une image carrée avec QR code — prête pour votre feed ou story.</p>
-                <button type="button" id="share-download-card" class="share-btn share-btn--rose">Télécharger l’image</button>
+            <!-- Visuels -->
+            <article id="visuels" class="share-card">
+                <h2>Visuels prêts à publier</h2>
+                <p class="share-card-desc">Téléchargez, postez sur Instagram, Facebook ou WhatsApp Status — sans Canva.</p>
+                <img class="share-preview-og" src="../assets/images/michelline-hero-envelopes.png?v=46" alt="Aperçu partage Michelline" width="600" height="315">
+                <div class="share-visual-grid">
+                    <div class="share-visual-item">
+                        <span class="share-visual-tag">1080×1080</span>
+                        <p><strong>Feed Instagram</strong> — QR + marque</p>
+                        <button type="button" id="share-download-feed" class="share-btn share-btn--rose">Télécharger</button>
+                    </div>
+                    <div class="share-visual-item">
+                        <span class="share-visual-tag">1080×1920</span>
+                        <p><strong>Story / Reels cover</strong> — vertical + QR</p>
+                        <button type="button" id="share-download-story" class="share-btn share-btn--rose">Télécharger</button>
+                    </div>
+                    <div class="share-visual-item">
+                        <span class="share-visual-tag">1080×1080</span>
+                        <p><strong>Grille tarifs</strong> — 25 / 50 / 75 $</p>
+                        <button type="button" id="share-download-tarifs" class="share-btn share-btn--rose">Télécharger</button>
+                    </div>
+                </div>
                 <canvas id="share-export-canvas" aria-hidden="true"></canvas>
             </article>
 
-            <article class="share-card share-caption">
-                <h2>Texte WhatsApp / statut</h2>
-                <pre data-caption="whatsapp"></pre>
-                <button type="button" class="share-btn share-btn--copy" data-copy="whatsapp">Copier le texte</button>
-                <a id="share-wa-broadcast" class="share-btn share-btn--rose" href="#">Partager sur WhatsApp</a>
+            <!-- Bibliothèque messages -->
+            <article id="messages" class="share-card">
+                <h2>Bibliothèque de textes</h2>
+                <p class="share-card-desc">Choisissez un modèle · remplacez [Prénom] et [Date] · copiez en 1 clic</p>
+
+                <div class="share-msg-tabs" role="tablist">
+                    <button type="button" class="share-msg-tab share-msg-tab--active" data-tab="wa">WhatsApp</button>
+                    <button type="button" class="share-msg-tab" data-tab="ig">Instagram</button>
+                    <button type="button" class="share-msg-tab" data-tab="fb">Facebook</button>
+                    <button type="button" class="share-msg-tab" data-tab="bio">Bio</button>
+                </div>
+
+                <div class="share-msg-panel" data-panel="wa">
+                    <div class="share-caption">
+                        <p class="share-caption-label">Statut / diffusion</p>
+                        <pre data-caption="whatsapp"></pre>
+                        <button type="button" class="share-btn share-btn--copy share-btn--inline" data-copy="whatsapp">Copier</button>
+                    </div>
+                    <div class="share-caption">
+                        <p class="share-caption-label">Mettre en avant la démo</p>
+                        <pre data-caption="whatsapp_demo"></pre>
+                        <button type="button" class="share-btn share-btn--copy share-btn--inline" data-copy="whatsapp_demo">Copier</button>
+                    </div>
+                    <div class="share-caption">
+                        <p class="share-caption-label">Grille tarifs</p>
+                        <pre data-caption="whatsapp_tarifs"></pre>
+                        <button type="button" class="share-btn share-btn--copy share-btn--inline" data-copy="whatsapp_tarifs">Copier</button>
+                    </div>
+                    <div class="share-caption">
+                        <p class="share-caption-label">Cartes imprimées</p>
+                        <pre data-caption="whatsapp_print"></pre>
+                        <button type="button" class="share-btn share-btn--copy share-btn--inline" data-copy="whatsapp_print">Copier</button>
+                    </div>
+                    <div class="share-caption share-caption--highlight">
+                        <p class="share-caption-label">⭐ Message prospect (DM)</p>
+                        <pre data-caption="whatsapp_dm"></pre>
+                        <button type="button" class="share-btn share-btn--copy share-btn--inline" data-copy="whatsapp_dm">Copier</button>
+                    </div>
+                    <div class="share-caption">
+                        <p class="share-caption-label">Relance J+3</p>
+                        <pre data-caption="whatsapp_relance"></pre>
+                        <button type="button" class="share-btn share-btn--copy share-btn--inline" data-copy="whatsapp_relance">Copier</button>
+                    </div>
+                </div>
+
+                <div class="share-msg-panel" data-panel="ig" hidden>
+                    <div class="share-caption">
+                        <p class="share-caption-label">Post feed</p>
+                        <pre data-caption="instagram"></pre>
+                        <button type="button" class="share-btn share-btn--copy share-btn--inline" data-copy="instagram">Copier</button>
+                    </div>
+                    <div class="share-caption">
+                        <p class="share-caption-label">Reel / TikTok (légende courte)</p>
+                        <pre data-caption="instagram_reel"></pre>
+                        <button type="button" class="share-btn share-btn--copy share-btn--inline" data-copy="instagram_reel">Copier</button>
+                    </div>
+                    <div class="share-caption">
+                        <p class="share-caption-label">Story (texte overlay)</p>
+                        <pre data-caption="instagram_story"></pre>
+                        <button type="button" class="share-btn share-btn--copy share-btn--inline" data-copy="instagram_story">Copier</button>
+                    </div>
+                    <p id="share-hashtags" class="share-hashtags"></p>
+                    <button type="button" class="share-btn share-btn--outline" data-copy="hashtags">Copier tous les hashtags</button>
+                </div>
+
+                <div class="share-msg-panel" data-panel="fb" hidden>
+                    <div class="share-caption">
+                        <p class="share-caption-label">Post Facebook</p>
+                        <pre data-caption="facebook"></pre>
+                        <button type="button" class="share-btn share-btn--copy share-btn--inline" data-copy="facebook">Copier</button>
+                    </div>
+                    <div class="share-caption">
+                        <p class="share-caption-label">Groupe mariage RDC</p>
+                        <pre data-caption="group_facebook"></pre>
+                        <button type="button" class="share-btn share-btn--copy share-btn--inline" data-copy="group_facebook">Copier</button>
+                    </div>
+                    <div class="share-caption">
+                        <p class="share-caption-label">TikTok</p>
+                        <pre data-caption="tiktok"></pre>
+                        <button type="button" class="share-btn share-btn--copy share-btn--inline" data-copy="tiktok">Copier</button>
+                    </div>
+                </div>
+
+                <div class="share-msg-panel" data-panel="bio" hidden>
+                    <div class="share-caption">
+                        <p class="share-caption-label">Bio WhatsApp Business</p>
+                        <pre data-caption="bio_whatsapp"></pre>
+                        <button type="button" class="share-btn share-btn--copy share-btn--inline" data-copy="bio_whatsapp">Copier</button>
+                    </div>
+                    <div class="share-caption">
+                        <p class="share-caption-label">Bio Instagram (150 car.)</p>
+                        <pre data-caption="bio_instagram"></pre>
+                        <button type="button" class="share-btn share-btn--copy share-btn--inline" data-copy="bio_instagram">Copier</button>
+                    </div>
+                </div>
             </article>
 
-            <article class="share-card share-caption">
-                <h2>Texte Instagram</h2>
-                <pre data-caption="instagram"></pre>
-                <button type="button" class="share-btn share-btn--copy" data-copy="instagram">Copier</button>
-                <p id="share-hashtags" class="share-hashtags"></p>
+            <!-- Checklist -->
+            <article id="checklist" class="share-card share-card--accent">
+                <h2>Checklist promotion (semaine)</h2>
+                <p class="share-card-desc">Cochez au fur et à mesure — sauvegardé sur votre téléphone</p>
+                <ul class="share-checklist">
+                    <li><label><input type="checkbox"> Bio WhatsApp + Instagram mises à jour (lien o.html)</label></li>
+                    <li><label><input type="checkbox"> 7 statuts WhatsApp publiés (1/jour)</label></li>
+                    <li><label><input type="checkbox"> 3 posts Instagram ou Facebook</label></li>
+                    <li><label><input type="checkbox"> 1 Reel / vidéo écran (démo RSVP)</label></li>
+                    <li><label><input type="checkbox"> 15 messages DM prospects personnalisés</label></li>
+                    <li><label><input type="checkbox"> 5 relances sur devis en attente</label></li>
+                    <li><label><input type="checkbox"> Flyer QR imprimé ou partagé à 1 partenaire</label></li>
+                    <li><label><input type="checkbox"> 1 post dans un groupe Facebook mariage</label></li>
+                </ul>
             </article>
 
-            <article class="share-card share-caption">
-                <h2>Texte Facebook</h2>
-                <pre data-caption="facebook"></pre>
-                <button type="button" class="share-btn share-btn--copy" data-copy="facebook">Copier</button>
+            <!-- Conseils -->
+            <article class="share-card share-card--tips">
+                <h2>5 règles pour convertir plus</h2>
+                <ul class="share-tips">
+                    <li><strong>Montrez la démo</strong> avant le prix — l'émotion vend, pas la liste de features</li>
+                    <li><strong>Proposez Premium 50 $</strong> en premier (30 cartes incluses = argument fort)</li>
+                    <li><strong>Personnalisez</strong> chaque DM — jamais le même message à 20 personnes d'un coup</li>
+                    <li><strong>Relancez J+3</strong> — 80 % des ventes arrivent après la 2e ou 3e conversation</li>
+                    <li><strong>Répondez vite</strong> — sous 2 h = 3× plus de conversions qu'après 24 h</li>
+                </ul>
             </article>
 
             <article class="share-card">
                 <h2>Liens utiles</h2>
                 <div class="share-stack">
-                    <a class="share-btn share-btn--outline" href="./offres.html?v=43">Ouvrir page offres</a>
-                    <button type="button" class="share-btn share-btn--outline" data-copy="demo">Copier lien démo</button>
-                    <button type="button" class="share-btn share-btn--outline" data-copy="wa">Copier lien WhatsApp</button>
+                    <a class="share-btn share-btn--outline" href="./offres.html?v=46">Page offres</a>
+                    <a class="share-btn share-btn--outline" href="./invitation.html?event=yanick-keren" target="_blank" rel="noopener">Ouvrir démo live</a>
+                    <a class="share-btn share-btn--outline" href="../index.html">Accueil public</a>
                 </div>
             </article>
         </section>
@@ -100,6 +254,6 @@
         <a class="share-back" href="./offres.html">← Retour aux offres</a>
     </main>
 
-    <script src="../assets/js/share-kit.js?v=43"></script>
+    <script src="../assets/js/share-kit.js?v=46"></script>
 </body>
 </html>
