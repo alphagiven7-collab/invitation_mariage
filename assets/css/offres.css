@@ -99,26 +99,11 @@
     padding: 0 1rem 1.25rem;
 }
 
-.offres-block--overlap-tight {
-    margin-top: -1rem;
-}
-
-.offres-block--banner {
-    padding: 0 1rem;
-    margin-top: -2.5rem;
+.offres-block--overlap {
+    margin-top: -2.75rem;
     position: relative;
-    z-index: 3;
+    z-index: 2;
 }
-
-.offres-brand-banner {
-    display: block;
-    width: 100%;
-    height: auto;
-    border-radius: 1rem;
-    box-shadow: 0 12px 32px rgba(17, 24, 39, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.85);
-}
-
 
 .offres-block--last {
     padding-bottom: 0.5rem;
