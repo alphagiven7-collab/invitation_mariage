@@ -5,7 +5,7 @@
 
 
 :root {
-    --offres-hero-image: url("https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=85");
+    --offres-hero-image: url("../images/michelline-hero-envelopes.png");
     --offres-shell-max: 28rem;
     --offres-sticky-h: 4.25rem;
 }
@@ -542,7 +542,7 @@
     margin: 0 0 0.25rem;
 }
 
-.offres-footer-brand .mg-logo {
+.offres-footer-brand .michelline-logo {
     display: inline-flex;
 }
 
@@ -776,6 +776,43 @@
     font-size: 0.625rem;
     color: #9ca3af;
     margin: 0 0 0.85rem;
+}
+
+.offres-print-included {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: #db2777;
+    margin: 0 0 0.35rem;
+}
+
+.offres-section-desc--tight {
+    margin-top: 0.65rem;
+    text-align: center;
+}
+
+.offres-block--bridge {
+    margin-top: 0.25rem;
+}
+
+.offres-bridge-card {
+    padding: 1.15rem 1rem;
+    text-align: center;
+}
+
+.offres-bridge-text {
+    font-size: 0.75rem;
+    line-height: 1.55;
+    color: #6b7280;
+    margin: 0 0 1rem;
+}
+
+.offres-plan-list-muted {
+    color: #9ca3af !important;
+    font-size: 0.625rem;
+}
+
+.offres-points-card--digital .offres-points li:last-child {
+    border-bottom: none;
 }
 
 .offres-print-combo {

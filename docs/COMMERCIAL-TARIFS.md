@@ -1,4 +1,4 @@
-# Grille tarifaire — MG service
+# Grille tarifaire — Michelline
 
 > Document interne & commercial — juin 2026  
 > Page publique : `/pages/offres.html`
@@ -12,7 +12,19 @@
 
 ---
 
-## Forfaits couples / événements
+## Forfaits couples / événements (prix publics page offres)
+
+| Forfait | Prix USD | Invités max | Cartes physiques incluses |
+|---------|----------|-------------|---------------------------|
+| **Essentiel** | **25 $** | 80 | — |
+| **Premium** ⭐ | **50 $** | 200 | 30× Classique |
+| **Platinum** | **75 $** | 500 | 50× Élégance Rose |
+
+> Grille interne négociation / marché test ci-dessous — les prix affichés sur `/pages/offres.html` font foi pour la prospection.
+
+---
+
+## Forfaits couples / événements (grille interne historique)
 
 | Forfait | Prix USD | Prix EUR | Prix CDF (indicatif)* | Invités max | Délai setup |
 |---------|----------|----------|------------------------|-------------|-------------|

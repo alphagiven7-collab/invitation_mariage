@@ -1,6 +1,6 @@
 # Scripts WhatsApp — prospection & vente
 
-> Contact WhatsApp : **+243 845 370 370** · Marque **MG service**  
+> Contact WhatsApp : **+243 845 370 370** · Marque **Michelline**  
 > **Lien court offres :** https://alphagiven7-collab.github.io/invitation_mariage/o.html  
 > **Page offres :** https://alphagiven7-collab.github.io/invitation_mariage/pages/offres.html  
 > **Kit promotion (QR, visuels, textes) :** https://alphagiven7-collab.github.io/invitation_mariage/pages/partager.html  
@@ -12,9 +12,9 @@
 
 | Offre | Prix |
 |-------|------|
-| Digital Essentiel | 50 $ |
-| Digital Premium | 100 $ |
-| Digital Platinum | 150 $ |
+| Digital Essentiel | 25 $ |
+| Digital Premium | 50 $ (+ 30 cartes Classique) |
+| Digital Platinum | 75 $ (+ 50 cartes Élégance Rose) |
 | Impression Classique | 0,80 $ / ex. (min. 50) |
 | Impression Élégance Rose | 1,20 $ / ex. |
 | Impression Prestige Doré | 1,80 $ / ex. |
@@ -27,7 +27,7 @@
 ```
 Bonjour [Prénom] 👋
 
-Je suis [Votre nom], MG service — invitations digital & impressions pour mariages (RDC & Afrique).
+Je suis [Votre nom], Michelline — invitations digital & impressions pour mariages (RDC & Afrique).
 
 Vos invités reçoivent :
 💌 Enveloppe digitale personnalisée + RSVP en 30 sec
@@ -37,7 +37,7 @@ Vos invités reçoivent :
 Démo live : [Lien démo]
 Tarifs : [Lien court o.html]
 
-Digital dès 50 $ · Combo digital + papier −10 %
+Digital dès 25 $ · Premium inclut cartes papier · Combo −10 %
 
 Devis pour votre date du [Date] ?
 ```
@@ -70,7 +70,7 @@ Merci [Prénom] pour ces infos 🙏
 
 Voici votre proposition :
 
-📦 Forfait PREMIUM — 100 $
+📦 Forfait PREMIUM — 50 $
 • Invitation web + RSVP + sync cloud
 • Jusqu'à 200 invités
 • Menu boissons + QR + musique
@@ -93,7 +93,7 @@ Dès réception, on lance ! 🎉
 ```
 Bonjour [Prénom],
 
-MG service = invitations digital + impression, clé en main (RSVP, QR, admin invités) — mobile-first, WhatsApp, marché africain.
+Michelline = invitations digital + impression, clé en main (RSVP, QR, admin invités) — mobile-first, WhatsApp, marché africain.
 
 Je cherche 2–3 planners partenaires RDC & Afrique :
 
@@ -128,7 +128,7 @@ Prochain événement : [Date] ?
 ```
 Bonjour [Prénom],
 
-MG service : invitations digital + cartes imprimées pour vos couples.
+Michelline : invitations digital + cartes imprimées pour vos couples.
 
 Partenariat :
 → Vous recommandez après réservation photo/déco
@@ -147,7 +147,7 @@ Intéressé(e) ?
 ### « C'est trop cher »
 
 ```
-Je comprends. L'Essentiel digital est à 50 $ — RSVP, liens WhatsApp, programme.
+Je comprends. L'Essentiel digital est à 25 $ — RSVP, liens WhatsApp, programme.
 
 L'impression papier est à la carte (dès 0,80 $/ex.) si le budget est serré.
 
@@ -196,9 +196,9 @@ Merci pour votre confiance 🙏
 
 **Statut 1 — Offres**
 ```
-💍 MG service — digital + impression
+💍 Michelline — digital + impression
 👉 [Lien court o.html]
-Digital 50·100·150 $ · Print dès 0,80 $/ex.
+Digital 25·50·75 $ · Print dès 0,80 $/ex.
 Devis : +243 845 370 370
 ```
 
@@ -206,7 +206,7 @@ Devis : +243 845 370 370
 ```
 🎊 Voyez l'invitation en action (RSVP + QR)
 👉 [Lien démo]
-MG service · RDC & Afrique
+Michelline · RDC & Afrique
 ```
 
 **Statut 3 — Promo**

@@ -1,0 +1,41 @@
+/* Michelline — calligraphie */
+.michelline-logo {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+}
+
+.michelline-calligraphy {
+    font-family: "Great Vibes", "Segoe Script", cursive;
+    font-size: 1.45rem;
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: 0.02em;
+    color: inherit;
+    white-space: nowrap;
+}
+
+.michelline-logo--calligraphy-only {
+    gap: 0;
+}
+
+.michelline-logo--hero.michelline-logo--calligraphy-only .michelline-calligraphy {
+    font-size: 1.65rem;
+    color: #fff;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.45);
+}
+
+.michelline-logo--light .michelline-calligraphy {
+    color: #1f2937;
+}
+
+.michelline-logo--footer .michelline-calligraphy {
+    font-size: 1.2rem;
+}
+
+.michelline-logo--on-dark .michelline-calligraphy {
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
