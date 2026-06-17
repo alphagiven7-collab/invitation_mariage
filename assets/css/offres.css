@@ -566,15 +566,67 @@
     max-width: var(--offres-shell-max);
     display: flex;
     align-items: stretch;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom, 0));
-    background: rgba(250, 250, 250, 0.94);
+    gap: 0.4rem;
+    padding: 0.5rem 0.65rem calc(0.5rem + env(safe-area-inset-bottom, 0));
+    background: rgba(250, 250, 250, 0.96);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-top: 1px solid rgba(17, 24, 39, 0.08);
     z-index: 50;
-    box-shadow: 0 -8px 24px rgba(17, 24, 39, 0.06);
+    box-shadow: 0 -8px 24px rgba(17, 24, 39, 0.08);
 }
+
+/* Base commune — même hauteur pour Digital, Imprimer et WhatsApp */
+.offres-sticky-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.875rem;
+    height: 2.875rem;
+    padding: 0 0.45rem;
+    border-radius: 9999px;
+    font-family: "Montserrat", system-ui, sans-serif;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    text-align: center;
+    line-height: 1.15;
+    white-space: nowrap;
+    box-sizing: border-box;
+    transition: filter 0.2s ease, background 0.2s ease, transform 0.15s ease;
+}
+
+.offres-sticky-btn:active {
+    transform: scale(0.98);
+}
+
+.offres-sticky-link {
+    color: #374151;
+    background: #fff;
+    border: 1px solid rgba(17, 24, 39, 0.14);
+    box-shadow: 0 2px 8px rgba(17, 24, 39, 0.06);
+}
+
+.offres-sticky-link:hover {
+    background: #fdf2f8;
+    border-color: rgba(236, 72, 153, 0.25);
+    color: #db2777;
+}
+
+.offres-sticky-wa {
+    color: #fff !important;
+    border: none !important;
+    box-shadow: 0 4px 14px rgba(219, 39, 119, 0.35);
+}
+
+.offres-sticky-wa:hover {
+    filter: brightness(1.05);
+}
+
 
 .offres-lead strong {
     color: #1f2937;
@@ -734,21 +786,6 @@
     line-height: 1.55;
     color: #6b7280;
     margin: 0 0 1rem;
-}
-
-.offres-sticky-link {
-    flex: 1;
-    padding: 0 0.5rem;
-    font-size: 0.625rem;
-}
-
-
-.offres-sticky-wa {
-    flex: 1;
-    min-height: 2.75rem !important;
-    padding: 0.65rem 1rem !important;
-    font-size: 0.6875rem !important;
-    border-radius: 0.75rem !important;
 }
 
 /* Desktop : coque centrée, barre sticky dans la coque */
