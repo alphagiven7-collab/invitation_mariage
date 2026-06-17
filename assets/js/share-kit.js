@@ -1,5 +1,5 @@
 /**
- * Kit promotion Michelline — QR, copie lien, export visuel, captions
+ * Kit promotion MG service — QR, copie lien, export visuel, captions
  */
 (function () {
     const SITE_BASE = "https://alphagiven7-collab.github.io/invitation_mariage";
@@ -8,11 +8,12 @@
     const DEMO_URL = SITE_BASE + "/pages/invitation.html?event=yanick-keren";
     const WA_PHONE = "243845370370";
     const WA_DISPLAY = "+243 845 370 370";
+    const BRAND = "MG service";
 
     const CAPTIONS = {
-        whatsapp: `💍 Michelline — invitations digital + impression physique\n✅ RSVP mobile · QR jour J · modèles imprimés\n👉 ${SHORT_URL}\n📱 Devis : ${WA_DISPLAY}`,
-        instagram: `Votre mariage mérite une invitation à la hauteur 💌\n\nDigital : RSVP, WhatsApp, QR code\nPhysique : cartes imprimées premium\n\nTarifs sur le lien en bio\nRDC & Afrique 🌍\n\n#MariageRDC #WeddingKinshasa #InvitationDigitale #Michelline #Mariage2026`,
-        facebook: `Michelline — invitations digitales & impressions physiques pour votre mariage (RDC & Afrique).\n\n✓ Enveloppe personnalisée + RSVP mobile\n✓ QR code jour J\n✓ Cartes imprimées sur mesure\n\nTarifs et démo : ${SHORT_URL}\nWhatsApp : ${WA_DISPLAY}`
+        whatsapp: `💍 ${BRAND} — invitations digital + impression physique\n✅ RSVP mobile · QR jour J · modèles imprimés\n👉 ${SHORT_URL}\n📱 Devis : ${WA_DISPLAY}`,
+        instagram: `Votre mariage mérite une invitation à la hauteur 💌\n\nDigital : RSVP, WhatsApp, QR code\nPhysique : cartes imprimées premium\n\nTarifs sur le lien en bio\nRDC & Afrique 🌍\n\n#MariageRDC #WeddingKinshasa #InvitationDigitale #MGservice #Mariage2026`,
+        facebook: `${BRAND} — invitations digitales & impressions physiques pour votre mariage (RDC & Afrique).\n\n✓ Enveloppe personnalisée + RSVP mobile\n✓ QR code jour J\n✓ Cartes imprimées sur mesure\n\nTarifs et démo : ${SHORT_URL}\nWhatsApp : ${WA_DISPLAY}`
     };
 
     function qrImgUrl(data, size) {
@@ -82,30 +83,29 @@
         }
 
         ctx.textAlign = "center";
+        ctx.fillStyle = "#1e3a6e";
+        ctx.font = "700 88px Georgia, serif";
+        ctx.fillText("MG", w / 2, 175);
         ctx.fillStyle = "#db2777";
-        ctx.font = "italic 72px Georgia, serif";
-        ctx.fillText("Michelline", w / 2, 180);
+        ctx.font = "500 32px Montserrat, sans-serif";
+        ctx.fillText("service", w / 2, 220);
 
         ctx.fillStyle = "#6b7280";
         ctx.font = "600 22px Montserrat, sans-serif";
-        ctx.fillText("RDC & AFRIQUE", w / 2, 230);
+        ctx.fillText("RDC & AFRIQUE", w / 2, 270);
 
         ctx.fillStyle = "#1f2937";
         ctx.font = "600 36px Montserrat, sans-serif";
-        ctx.fillText("Invitations digital", w / 2, 320);
-        ctx.fillText("& impressions", w / 2, 368);
+        ctx.fillText("Invitations digital", w / 2, 340);
+        ctx.fillText("& impressions", w / 2, 388);
 
         ctx.fillStyle = "#4b5563";
         ctx.font = "400 26px Montserrat, sans-serif";
-        ctx.fillText("RSVP · QR · WhatsApp", w / 2, 440);
-
-        ctx.fillStyle = "#db2777";
-        ctx.font = "600 28px Montserrat, sans-serif";
-        ctx.fillText("Digital & impressions", w / 2, 520);
+        ctx.fillText("RSVP · QR · WhatsApp", w / 2, 460);
 
         const qrSize = 280;
         const qrX = (w - qrSize) / 2;
-        const qrY = 620;
+        const qrY = 520;
         return new Promise((resolve) => {
             const img = new Image();
             img.crossOrigin = "anonymous";
@@ -137,7 +137,7 @@
         if (!canvas) return;
         await drawShareCard(canvas);
         const link = document.createElement("a");
-        link.download = "michelline-partage-instagram.png";
+        link.download = "mg-service-partage-instagram.png";
         link.href = canvas.toDataURL("image/png");
         link.click();
         toast("Image téléchargée !");
@@ -176,7 +176,7 @@
     function initHashtags() {
         const el = document.getElementById("share-hashtags");
         if (el) {
-            el.textContent = "#MariageRDC #WeddingKinshasa #InvitationDigitale #Michelline #Mariage2026 #RDC #Afrique";
+            el.textContent = "#MariageRDC #WeddingKinshasa #InvitationDigitale #MGservice #Mariage2026 #RDC #Afrique";
         }
     }
 

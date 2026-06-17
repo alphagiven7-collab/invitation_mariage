@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="MG service">
+  <defs>
+    <linearGradient id="mg-ring" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4a6cf7"/>
+      <stop offset="55%" stop-color="#e8a4b8"/>
+      <stop offset="100%" stop-color="#db2777"/>
+    </linearGradient>
+    <linearGradient id="mg-text" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1e3a6e"/>
+      <stop offset="50%" stop-color="#db2777"/>
+      <stop offset="100%" stop-color="#4a6cf7"/>
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="54" fill="none" stroke="url(#mg-ring)" stroke-width="1.5" opacity="0.85"/>
+  <circle cx="60" cy="60" r="48" fill="none" stroke="url(#mg-ring)" stroke-width="0.5" opacity="0.35"/>
+  <text x="60" y="68" text-anchor="middle" font-family="Georgia, 'Playfair Display', serif" font-size="38" font-weight="600" fill="url(#mg-text)">MG</text>
+</svg>

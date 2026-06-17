@@ -34,6 +34,10 @@
     margin: 0 0 0.25rem;
 }
 
+.share-hero .mg-logo {
+    margin-bottom: 0.65rem;
+}
+
 .share-hero p {
     font-size: 0.75rem;
     color: rgba(255, 255, 255, 0.78);

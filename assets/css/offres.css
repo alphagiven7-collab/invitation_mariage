@@ -539,9 +539,11 @@
 }
 
 .offres-footer-brand {
-    font-size: 1.75rem;
-    color: #1f2937;
     margin: 0 0 0.25rem;
+}
+
+.offres-footer-brand .mg-logo {
+    display: inline-flex;
 }
 
 .offres-footer p:last-of-type {

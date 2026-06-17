@@ -1,4 +1,4 @@
-# Grille tarifaire — Michelline
+# Grille tarifaire — MG service
 
 > Document interne & commercial — juin 2026  
 > Page publique : `/pages/offres.html`

@@ -1,6 +1,6 @@
 # Scripts WhatsApp — prospection & vente
 
-> Contact WhatsApp : **+243 845 370 370** · Marque **Michelline**  
+> Contact WhatsApp : **+243 845 370 370** · Marque **MG service**  
 > **Lien court offres :** https://alphagiven7-collab.github.io/invitation_mariage/o.html  
 > **Page offres :** https://alphagiven7-collab.github.io/invitation_mariage/pages/offres.html  
 > **Kit promotion (QR, visuels, textes) :** https://alphagiven7-collab.github.io/invitation_mariage/pages/partager.html  
@@ -27,7 +27,7 @@
 ```
 Bonjour [Prénom] 👋
 
-Je suis [Votre nom], Michelline — invitations digital & impressions pour mariages (RDC & Afrique).
+Je suis [Votre nom], MG service — invitations digital & impressions pour mariages (RDC & Afrique).
 
 Vos invités reçoivent :
 💌 Enveloppe digitale personnalisée + RSVP en 30 sec
@@ -93,7 +93,7 @@ Dès réception, on lance ! 🎉
 ```
 Bonjour [Prénom],
 
-Michelline = invitations digital + impression, clé en main (RSVP, QR, admin invités) — mobile-first, WhatsApp, marché africain.
+MG service = invitations digital + impression, clé en main (RSVP, QR, admin invités) — mobile-first, WhatsApp, marché africain.
 
 Je cherche 2–3 planners partenaires RDC & Afrique :
 
@@ -128,7 +128,7 @@ Prochain événement : [Date] ?
 ```
 Bonjour [Prénom],
 
-Michelline : invitations digital + cartes imprimées pour vos couples.
+MG service : invitations digital + cartes imprimées pour vos couples.
 
 Partenariat :
 → Vous recommandez après réservation photo/déco
@@ -196,7 +196,7 @@ Merci pour votre confiance 🙏
 
 **Statut 1 — Offres**
 ```
-💍 Michelline — digital + impression
+💍 MG service — digital + impression
 👉 [Lien court o.html]
 Digital 50·100·150 $ · Print dès 0,80 $/ex.
 Devis : +243 845 370 370
@@ -206,7 +206,7 @@ Devis : +243 845 370 370
 ```
 🎊 Voyez l'invitation en action (RSVP + QR)
 👉 [Lien démo]
-Michelline · RDC & Afrique
+MG service · RDC & Afrique
 ```
 
 **Statut 3 — Promo**
@@ -221,7 +221,7 @@ Michelline · RDC & Afrique
 
 Page **partager.html** contient textes et visuel Instagram prêts à copier.
 
-Hashtags : `#MariageRDC #WeddingKinshasa #InvitationDigitale #Michelline #Mariage2026 #RDC #Afrique`
+Hashtags : `#MariageRDC #WeddingKinshasa #InvitationDigitale #MGservice #Mariage2026 #RDC #Afrique`
 
 ---
 
