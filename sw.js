@@ -1,34 +1,40 @@
-const CACHE = "invitation-v26";
-const PRECACHE = [
-    "./assets/css/tailwind.min.css?v=26",
-    "./assets/css/app.css?v=26",
-    "./assets/css/drink-menu.css?v=26"
-];
+const CACHE = "invitation-v34";
 
 self.addEventListener("install", (e) => {
-    e.waitUntil(
-        caches.open(CACHE).then((c) => c.addAll(PRECACHE).catch(() => {}))
-    );
     self.skipWaiting();
 });
 
 self.addEventListener("activate", (e) => {
     e.waitUntil(
         caches.keys().then((keys) =>
-            Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
-        )
+            Promise.all(keys.map((k) => caches.delete(k)))
+        ).then(() => self.clients.claim())
     );
-    self.clients.claim();
 });
 
 self.addEventListener("fetch", (e) => {
-    const url = new URL(e.request.url);
-    const isAppAsset = url.pathname.includes("/assets/js/") ||
-        url.pathname.includes("/assets/css/") ||
-        url.pathname.includes("/pages/") ||
-        url.pathname.endsWith("invitation.html");
+    if (e.request.method !== "GET") return;
 
-    if (e.request.method !== "GET" || !isAppAsset) return;
+    const url = new URL(e.request.url);
+    const isHtml =
+        url.pathname.endsWith(".html") ||
+        url.pathname.endsWith("/") ||
+        !url.pathname.split("/").pop().includes(".");
+
+    /* Pages HTML : toujours le réseau en priorité (évite ancienne version cachée) */
+    if (isHtml) {
+        e.respondWith(
+            fetch(e.request).catch(() => caches.match(e.request))
+        );
+        return;
+    }
+
+    const isStatic =
+        url.pathname.includes("/assets/js/") ||
+        url.pathname.includes("/assets/css/") ||
+        url.pathname.includes("/assets/images/");
+
+    if (!isStatic) return;
 
     e.respondWith(
         fetch(e.request)
