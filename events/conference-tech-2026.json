@@ -13,8 +13,8 @@
   "branding": {
     "primaryColor": "#2563eb",
     "accentColor": "#06b6d4",
-    "welcomeImage": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200",
-    "heroImage": "https://images.unsplash.com/photo-1505377785226-895ea2ebb2f6?w=1200"
+    "welcomeImage": "../assets/images/models/model-conference.png",
+    "heroImage": "../assets/images/models/model-conference.png"
   },
   "sections": {
     "quiz": false,

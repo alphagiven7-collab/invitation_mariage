@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="color-scheme" content="light">
-    <title>Michelline — Kit promotion pro</title>
+    <meta name="robots" content="noindex, nofollow">
+    <title>Michelline — Kit promotion pro (privé)</title>
     <meta name="description" content="Kit promotion Michelline — liens, QR, visuels Story/Feed, textes rotatifs, DM prospects, checklist hebdo.">
     <meta name="theme-color" content="#db2777">
     <meta property="og:type" content="website">
@@ -19,12 +20,27 @@
 </head>
 <body class="share-page">
 
-    <main class="share-shell">
+    <div id="partager-gate" class="share-gate">
+        <div class="share-gate-card">
+            <span class="michelline-calligraphy share-gate-brand">Michelline</span>
+            <p class="share-gate-title">Kit promotion privé</p>
+            <p class="share-gate-desc">Outils internes — QR, visuels, textes et checklist. Réservé à l'équipe Michelline.</p>
+            <form id="partager-gate-form" class="share-gate-form" autocomplete="off" novalidate>
+                <input id="partager-code" type="password" class="share-gate-input" placeholder="Code d'accès" autocomplete="off" autocapitalize="characters" spellcheck="false">
+                <button type="submit" class="share-btn share-btn--rose">Déverrouiller</button>
+            </form>
+            <p id="partager-gate-error" class="share-gate-error" hidden role="alert">Code incorrect</p>
+            <a class="share-gate-back" href="./offres.html">← Retour aux offres publiques</a>
+        </div>
+    </div>
+
+    <main id="partager-main" class="share-shell" hidden>
         <header class="share-hero">
             <div class="michelline-logo michelline-logo--on-dark michelline-logo--calligraphy-only" aria-label="Michelline">
                 <span class="michelline-calligraphy">Michelline</span>
             </div>
             <p class="share-hero-sub">Kit promotion pro — publiez plus vite, convertissez mieux</p>
+            <button type="button" id="partager-logout" class="share-logout-btn">Verrouiller</button>
         </header>
 
         <nav class="share-nav" aria-label="Sections kit">
@@ -341,6 +357,25 @@
         <a class="share-back" href="./offres.html">← Retour aux offres</a>
     </main>
 
-    <script src="../assets/js/share-kit.js?v=49"></script>
+    <script src="../assets/js/michelline-private-auth.js?v=51"></script>
+    <script src="../assets/js/share-kit.js?v=51"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            if (window.MichellinePrivateAuth) {
+                MichellinePrivateAuth.init({
+                    gateId: "partager-gate",
+                    mainId: "partager-main",
+                    formId: "partager-gate-form",
+                    inputId: "partager-code",
+                    errorId: "partager-gate-error",
+                    logoutId: "partager-logout",
+                    unlockedClass: "share-unlocked",
+                    onUnlock: function () {
+                        if (window.ShareKit && ShareKit.init) ShareKit.init();
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

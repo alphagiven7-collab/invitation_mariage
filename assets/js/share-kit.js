@@ -23,6 +23,10 @@
         { file: "prints/envelope-classique.png", label: "Enveloppe Classique", group: "Modèles imprimés" },
         { file: "prints/envelope-elegance.png", label: "Enveloppe Élégance Rose", group: "Modèles imprimés" },
         { file: "prints/envelope-prestige.png", label: "Enveloppe Prestige Doré", group: "Modèles imprimés" },
+        { file: "models/model-mariage.png", label: "Modèle Mariage", group: "Modèles événements" },
+        { file: "models/model-anniversaire.png", label: "Modèle Anniversaire", group: "Modèles événements" },
+        { file: "models/model-conference.png", label: "Modèle Conférence", group: "Modèles événements" },
+        { file: "models/model-sur-mesure.png", label: "Modèle Sur mesure", group: "Modèles événements" },
     ];
 
     /** Liens publics — URL + image d'aperçu de la page destination */
@@ -530,7 +534,7 @@
         if (el) el.textContent = HASHTAGS;
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
+    function initKit() {
         wireQrImages();
         wireCopyButtons();
         wireCaptionTabs();
@@ -541,7 +545,7 @@
         wireGallery();
         initHashtags();
         initDailyStatus();
-    });
+    }
 
-    window.ShareKit = { OFFRES_URL, SHORT_URL, DEMO_URL, PUBLIC_LINKS, CAPTIONS, GALLERY_ASSETS, copyText };
+    window.ShareKit = { OFFRES_URL, SHORT_URL, DEMO_URL, PUBLIC_LINKS, CAPTIONS, GALLERY_ASSETS, copyText, init: initKit };
 })();

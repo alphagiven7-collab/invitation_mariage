@@ -2,7 +2,7 @@
  * Auth privée Michelline — partagée (centre, objectifs, …)
  */
 (function (global) {
-    const VALID_CODES = ["MICHELLINE-HQ-2026", "MICHELLINE-PLAN-30J"];
+    const VALID_CODES = ["MICHELLINE-HQ-2026", "MICHELLINE-PLAN-30J", "MICHELLINE-KIT-2026"];
     const SESSION_KEY = "michelline_private_ok";
 
     function normalizeCode(value) {
