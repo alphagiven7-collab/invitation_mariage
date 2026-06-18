@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=34">
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@0.469.0"></script>
-    <link rel="stylesheet" href="../assets/css/app.css?v=34">
+    <link rel="stylesheet" href="../assets/css/app.css?v=50">
     <link rel="stylesheet" href="../assets/css/drink-menu.css?v=34">
 </head>
 <body class="antialiased text-gray-800 overflow-hidden">
@@ -638,6 +638,15 @@
                         <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Téléphone</label>
                         <input id="rsvp-phone" type="tel" required class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200" placeholder="+243 ...">
                     </div>
+                    <div class="rsvp-profile-upload">
+                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Votre photo (carte d'accès)</label>
+                        <p class="text-[10px] text-gray-400 mb-2">Optionnel — apparaît sur votre carte Jour J. Sans photo, le fond affiche le couple.</p>
+                        <label class="rsvp-profile-upload-btn">
+                            <span>Choisir une photo</span>
+                            <input id="rsvp-profile-photo" type="file" accept="image/*" class="hidden">
+                        </label>
+                        <img id="rsvp-profile-preview" src="" alt="Aperçu de votre photo" class="rsvp-profile-preview hidden">
+                    </div>
                     <div>
                         <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Présence</label>
                         <select id="rsvp-status" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200">
@@ -850,6 +859,13 @@
                     <p id="confirm-subtitle" class="text-sm text-white/90">Merci pour votre réponse</p>
                 </div>
                 <div id="confirmation-card-export" class="p-6 bg-gradient-to-b from-white to-rose-50/40">
+                    <div id="confirm-guest-photo-wrap" class="confirm-guest-photo-wrap hidden mb-3">
+                        <img id="confirm-guest-photo" src="" alt="" class="confirm-guest-photo">
+                    </div>
+                    <div class="confirm-pass-preview-wrap hidden mb-4">
+                        <p class="text-[10px] uppercase tracking-wider text-gray-400 text-center mb-2">Aperçu de votre carte</p>
+                        <canvas id="confirm-pass-preview" class="confirm-pass-preview" width="900" height="1280" aria-label="Aperçu carte d'accès"></canvas>
+                    </div>
                     <div id="confirm-couple-photos" class="confirm-couple-photos hidden mb-4">
                         <img id="confirm-photo-left" src="" alt="" class="confirm-couple-photo">
                         <div class="confirm-couple-heart" aria-hidden="true">♥</div>
@@ -903,8 +919,9 @@
     <script src="../assets/js/event-config.js?v=34"></script>
     <script src="../assets/js/cloud-api.js?v=34"></script>
     <script src="../assets/js/dashboard-sync.js?v=34"></script>
-    <script src="../assets/js/guest-manager.js?v=49"></script>
-    <script src="../assets/js/checkin-url.js?v=49"></script>
+    <script src="../assets/js/guest-manager.js?v=50"></script>
+    <script src="../assets/js/checkin-url.js?v=50"></script>
+    <script src="../assets/js/access-pass-export.js?v=50"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="../assets/js/content-blocks.js?v=34"></script>
     <script src="../assets/js/calendar-export.js?v=34"></script>
@@ -915,7 +932,7 @@
     <script src="../assets/js/drink-generic-images.js?v=34"></script>
     <script src="../assets/js/drink-menu.js?v=34"></script>
     <script src="../assets/js/app.js?v=49"></script>
-    <script src="../assets/js/guest-experience.js?v=49"></script>
+    <script src="../assets/js/guest-experience.js?v=50"></script>
     <script>
         // Fallback robuste si app.js ne se charge pas complètement
         (function () {

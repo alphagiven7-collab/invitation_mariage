@@ -5,6 +5,13 @@
 const GuestExperience = (() => {
     let profile = null;
     let initDone = false;
+    let rsvpProfilePhotoUrl = "";
+
+    function unwrapGuest(g) {
+        if (!g) return null;
+        if (g.guest) return g.guest;
+        return g;
+    }
 
     function getParams() {
         return new URLSearchParams(window.location.search);
@@ -72,6 +79,35 @@ const GuestExperience = (() => {
         }
         if (Array.isArray(guest.drinkChoices) && guest.drinkChoices.length && window.DrinkMenu) {
             DrinkMenu.setSelected(guest.drinkChoices);
+        }
+        if (guest.profilePhotoUrl) {
+            rsvpProfilePhotoUrl = guest.profilePhotoUrl;
+            const preview = document.getElementById("rsvp-profile-preview");
+            if (preview) {
+                preview.src = guest.profilePhotoUrl;
+                preview.classList.remove("hidden");
+            }
+        }
+    }
+
+    async function handleRsvpPhotoUpload(event) {
+        const file = event.target?.files?.[0];
+        if (!file) return;
+        if (!window.MediaUpload) {
+            showToast("Upload indisponible.");
+            return;
+        }
+        try {
+            const url = await MediaUpload.processFile(file, getEventId(), "guest-profile");
+            rsvpProfilePhotoUrl = url;
+            const preview = document.getElementById("rsvp-profile-preview");
+            if (preview) {
+                preview.src = url;
+                preview.classList.remove("hidden");
+            }
+            showToast("Photo ajoutée à votre carte.");
+        } catch (e) {
+            showToast("Photo illisible — essayez une autre image.");
         }
     }
 
@@ -323,22 +359,55 @@ const GuestExperience = (() => {
         }
     }
 
-    function setQrImage(data) {
+    function setQrImage(data, onReady) {
         const img = document.getElementById("rsvp-qr-image");
-        if (!img) return;
+        if (!img) {
+            if (typeof onReady === "function") onReady("");
+            return;
+        }
         const fallbackUrl =
             `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(data)}`;
+        const done = (url) => {
+            img.src = url;
+            if (typeof onReady === "function") onReady(url);
+        };
         if (window.QRCode && typeof QRCode.toDataURL === "function") {
             QRCode.toDataURL(data, { width: 220, margin: 2, color: { dark: "#1a472a", light: "#ffffff" } }, (err, url) => {
-                img.src = (!err && url) ? url : fallbackUrl;
+                done((!err && url) ? url : fallbackUrl);
             });
         } else {
-            img.src = fallbackUrl;
+            done(fallbackUrl);
         }
     }
 
+    function renderPassPreview(exportData, qrSrc) {
+        const previewCanvas = document.getElementById("confirm-pass-preview");
+        if (!previewCanvas || !window.AccessPassExport || !exportData) return;
+        const passData = AccessPassExport.buildData({
+            payload: exportData.payload,
+            guest: exportData.guest,
+            accessCode: exportData.accessCode,
+            tableLabel: exportData.tableLabel,
+            drinksLabel: exportData.drinksLabel,
+            eventTitle: exportData.eventTitle,
+            dateLabel: exportData.dateLabel,
+            meta: exportData.meta,
+            qrSrc: qrSrc || document.getElementById("rsvp-qr-image")?.src || ""
+        });
+        AccessPassExport.renderPreview(previewCanvas, passData).catch(() => {});
+        previewCanvas.closest(".confirm-pass-preview-wrap")?.classList.remove("hidden");
+    }
+
     function showConfirmation(payload, code, guest) {
-        const resolvedGuest = guest || profile;
+        const resolvedGuest = unwrapGuest(guest) || profile;
+        if (rsvpProfilePhotoUrl && resolvedGuest) {
+            resolvedGuest.profilePhotoUrl = rsvpProfilePhotoUrl;
+        } else if (resolvedGuest && resolvedGuest.profilePhotoUrl) {
+            rsvpProfilePhotoUrl = resolvedGuest.profilePhotoUrl;
+        }
+        if (payload && rsvpProfilePhotoUrl) {
+            payload.profilePhotoUrl = rsvpProfilePhotoUrl;
+        }
         const isYes = payload.status === "yes";
         const showQr = canShowQrCode(resolvedGuest, payload);
         const cfg = window.EventConfig && EventConfig.getConfig && EventConfig.getConfig();
@@ -373,7 +442,19 @@ const GuestExperience = (() => {
         const coupleWrap = document.getElementById("confirm-couple-photos");
         const photoLeft = document.getElementById("confirm-photo-left");
         const photoRight = document.getElementById("confirm-photo-right");
-        const leftUrl = (resolvedGuest && resolvedGuest.profilePhotoUrl) || meta.couplePhotoLeft || "";
+        const guestPhotoWrap = document.getElementById("confirm-guest-photo-wrap");
+        const guestPhotoEl = document.getElementById("confirm-guest-photo");
+        const profileUrl = resolvedGuest?.profilePhotoUrl || rsvpProfilePhotoUrl || "";
+        if (guestPhotoWrap && guestPhotoEl) {
+            if (showQr && profileUrl) {
+                guestPhotoWrap.classList.remove("hidden");
+                guestPhotoEl.src = profileUrl;
+                guestPhotoEl.alt = payload.name;
+            } else {
+                guestPhotoWrap.classList.add("hidden");
+            }
+        }
+        const leftUrl = meta.couplePhotoLeft || "";
         const rightUrl = meta.couplePhotoRight || "";
         if (coupleWrap && photoLeft && photoRight && (leftUrl || rightUrl)) {
             coupleWrap.classList.remove("hidden");
@@ -419,7 +500,6 @@ const GuestExperience = (() => {
                 codeLine.textContent = `Code : ${accessCode}`;
                 codeLine.classList.remove("hidden");
             }
-            setQrImage(buildQrPayload(payload, accessCode, resolvedGuest));
             if (qrWrap) qrWrap.classList.remove("hidden");
             if (pendingWrap) pendingWrap.classList.add("hidden");
             if (qrHint) {
@@ -430,6 +510,9 @@ const GuestExperience = (() => {
             lastConfirmationExport = {
                 payload, accessCode, tableLabel, drinksLabel, eventTitle, guest: resolvedGuest, meta, dateLabel
             };
+            setQrImage(buildQrPayload(payload, accessCode, resolvedGuest), (qrSrc) => {
+                renderPassPreview(lastConfirmationExport, qrSrc);
+            });
         } else {
             if (qrWrap) qrWrap.classList.add("hidden");
             if (pendingWrap) pendingWrap.classList.add("hidden");
@@ -437,6 +520,7 @@ const GuestExperience = (() => {
             if (qrHint) qrHint.classList.add("hidden");
             if (downloadBtn) downloadBtn.classList.add("hidden");
             lastConfirmationExport = null;
+            document.querySelector(".confirm-pass-preview-wrap")?.classList.add("hidden");
         }
 
         const modal = document.getElementById("rsvp-confirmation-modal");
@@ -459,132 +543,27 @@ const GuestExperience = (() => {
             showToast("QR code indisponible.");
             return;
         }
-
-        const loadImage = (src) => new Promise((resolve, reject) => {
-            const img = new Image();
-            img.crossOrigin = "anonymous";
-            img.onload = () => resolve(img);
-            img.onerror = reject;
-            img.src = src;
-        });
-
+        if (!window.AccessPassExport) {
+            showToast("Export carte indisponible.");
+            return;
+        }
         try {
-            const canvas = document.createElement("canvas");
-            canvas.width = 900;
-            canvas.height = 1280;
-            const ctx = canvas.getContext("2d");
-            const gradient = ctx.createLinearGradient(0, 0, 900, 1280);
-            gradient.addColorStop(0, "#f9f5f0");
-            gradient.addColorStop(0.45, "#f5e6e8");
-            gradient.addColorStop(1, "#faf6f1");
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = "#6b2c3e";
-            ctx.fillRect(0, 0, canvas.width, 200);
-            ctx.strokeStyle = "#c9a962";
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(320, 28);
-            ctx.lineTo(580, 28);
-            ctx.stroke();
-
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "700 38px Georgia, serif";
-            ctx.textAlign = "center";
-            ctx.fillText("Carte d'accès · Jour J", canvas.width / 2, 75);
-            ctx.font = "400 22px Montserrat, sans-serif";
-            ctx.fillText(data.eventTitle, canvas.width / 2, 115);
-            if (data.dateLabel) {
-                ctx.font = "italic 20px Georgia, serif";
-                ctx.fillStyle = "#fbcfe8";
-                ctx.fillText(data.dateLabel, canvas.width / 2, 155);
-            }
-
-            ctx.fillStyle = "#5c2032";
-            ctx.font = "700 40px Georgia, serif";
-            ctx.fillText(data.payload.name, canvas.width / 2, 260);
-            ctx.font = "400 22px Montserrat, sans-serif";
-            ctx.fillStyle = "#6b5344";
-            ctx.fillText(`${data.payload.adults} adulte(s) · ${data.payload.children} enfant(s)`, canvas.width / 2, 300);
-
-            const boxY = 340;
-            const boxH = 220;
-            ctx.fillStyle = "#ffffff";
-            ctx.strokeStyle = "rgba(201, 169, 98, 0.45)";
-            ctx.lineWidth = 2;
-            roundRect(ctx, 60, boxY, canvas.width - 120, boxH, 20, true, true);
-            ctx.fillStyle = "#8b6b6b";
-            ctx.font = "600 16px Montserrat, sans-serif";
-            ctx.textAlign = "left";
-            ctx.fillText("CODE D'ACCÈS", 90, boxY + 45);
-            ctx.fillStyle = "#6b2c3e";
-            ctx.font = "700 34px monospace";
-            ctx.fillText(data.accessCode, 90, boxY + 85);
-            ctx.fillStyle = "#8b6b6b";
-            ctx.font = "600 16px Montserrat, sans-serif";
-            ctx.fillText("TABLE", 90, boxY + 130);
-            ctx.fillStyle = "#5c2032";
-            ctx.font = "700 28px Montserrat, sans-serif";
-            ctx.fillText(data.tableLabel, 90, boxY + 165);
-            ctx.fillStyle = "#8b6b6b";
-            ctx.font = "600 16px Montserrat, sans-serif";
-            ctx.fillText("BOISSONS", 470, boxY + 130);
-            ctx.fillStyle = "#5c2032";
-            ctx.font = "700 22px Montserrat, sans-serif";
-            wrapText(ctx, data.drinksLabel, 470, boxY + 165, 340, 28);
-
-            const qr = await loadImage(qrImg.src);
-            const qrSize = 320;
-            const qrX = (canvas.width - qrSize) / 2;
-            const qrY = 610;
-            ctx.fillStyle = "#ffffff";
-            roundRect(ctx, qrX - 16, qrY - 16, qrSize + 32, qrSize + 32, 24, true, true);
-            ctx.drawImage(qr, qrX, qrY, qrSize, qrSize);
-
-            ctx.fillStyle = "#8b6b6b";
-            ctx.font = "400 18px Montserrat, sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("Présentez ce QR code le jour J à l'entrée", canvas.width / 2, 980);
-
-            const slug = (data.payload.name || "invite").replace(/[^\w\-]+/g, "_").slice(0, 40);
-            const link = document.createElement("a");
-            link.download = `carte-acces-${slug}.png`;
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-            showToast("Carte téléchargée.");
+            const passData = AccessPassExport.buildData({
+                payload: data.payload,
+                guest: data.guest,
+                accessCode: data.accessCode,
+                tableLabel: data.tableLabel,
+                drinksLabel: data.drinksLabel,
+                eventTitle: data.eventTitle,
+                dateLabel: data.dateLabel,
+                meta: data.meta,
+                qrSrc: qrImg.src
+            });
+            await AccessPassExport.download(passData);
+            showToast("Carte d'accès téléchargée.");
         } catch (e) {
             showToast("Téléchargement impossible — réessayez.");
         }
-    }
-
-    function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
-        ctx.beginPath();
-        ctx.moveTo(x + radius, y);
-        ctx.arcTo(x + width, y, x + width, y + height, radius);
-        ctx.arcTo(x + width, y + height, x, y + height, radius);
-        ctx.arcTo(x, y + height, x, y, radius);
-        ctx.arcTo(x, y, x + width, y, radius);
-        ctx.closePath();
-        if (fill) ctx.fill();
-        if (stroke) ctx.stroke();
-    }
-
-    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-        const words = String(text || "").split(" ");
-        let line = "";
-        let drawY = y;
-        for (let i = 0; i < words.length; i += 1) {
-            const test = `${line}${words[i]} `;
-            if (ctx.measureText(test).width > maxWidth && i > 0) {
-                ctx.fillText(line, x, drawY);
-                line = `${words[i]} `;
-                drawY += lineHeight;
-            } else {
-                line = test;
-            }
-        }
-        ctx.fillText(line, x, drawY);
     }
 
     function validatePhone(phone) {
@@ -640,9 +619,11 @@ const GuestExperience = (() => {
                         children: payload.children,
                         message: payload.message,
                         drinkChoices: payload.drinkChoices,
-                        inviteToken: token || ""
+                        inviteToken: token || "",
+                        profilePhotoUrl: rsvpProfilePhotoUrl || unwrapGuest(guestByToken)?.profilePhotoUrl || ""
                     });
                 } catch (e) {}
+                updatedGuest = unwrapGuest(updatedGuest);
                 if (!updatedGuest && payload.name) {
                     try { updatedGuest = await GuestManager.findByName(payload.name); } catch (e) {}
                 }
@@ -683,6 +664,7 @@ const GuestExperience = (() => {
         if (form) {
             form.addEventListener("submit", submitRsvp);
         }
+        document.getElementById("rsvp-profile-photo")?.addEventListener("change", handleRsvpPhotoUpload);
     }
 
     function boot() {

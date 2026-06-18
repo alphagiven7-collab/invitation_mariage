@@ -216,7 +216,7 @@ const GuestManager = (() => {
         return { guest: saved, cloudSynced };
     }
 
-    async function recordRSVP({ guestId, fullName, phone, status, adults, children, message, drinkChoices, inviteToken }) {
+    async function recordRSVP({ guestId, fullName, phone, status, adults, children, message, drinkChoices, inviteToken, profilePhotoUrl }) {
         await loadGuests(true);
         const guests = await loadGuests();
         let guest = guestId ? guests.find((g) => g.id === guestId) : null;
@@ -235,7 +235,7 @@ const GuestManager = (() => {
             : !!(guest.qrApproved);
         const nextAccessCode = guest.accessCode || guest.token.slice(0, 8).toUpperCase();
 
-        const updated = await updateGuest(guest.id, {
+        const patch = {
             status: status === "yes" ? "yes" : status === "no" ? "no" : "pending",
             adults: Number(adults) || 1,
             children: Number(children) || 0,
@@ -245,7 +245,10 @@ const GuestManager = (() => {
             accessCode: nextAccessCode,
             respondedAt: new Date().toISOString(),
             qrApproved
-        });
+        };
+        if (profilePhotoUrl) patch.profilePhotoUrl = profilePhotoUrl;
+
+        const updated = await updateGuest(guest.id, patch);
 
         if (window.CloudAPI && CloudAPI.isEnabled()) {
             const synced = await CloudAPI.upsertGuest(getEventId(), { ...guest, ...updated });
@@ -260,7 +263,7 @@ const GuestManager = (() => {
             });
         }
         cache = null;
-        return updated;
+        return updated?.guest || updated;
     }
 
     function parseCSV(text) {
