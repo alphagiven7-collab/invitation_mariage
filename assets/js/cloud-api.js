@@ -499,8 +499,41 @@ const CloudAPI = (() => {
             children: row.children || 0,
             rsvpMessage: row.rsvp_message || "",
             respondedAt: row.responded_at,
+            checkedInAt: row.checked_in_at || row.checkedInAt || null,
             createdAt: row.created_at
         };
+    }
+
+    async function getCheckIns(eventId, opts = {}) {
+        if (!isEnabled()) return null;
+        let query = `?event_id=eq.${encodeURIComponent(eventId)}&select=*&order=scanned_at.desc`;
+        if (opts.token) {
+            query += `&guest_token=eq.${encodeURIComponent(opts.token)}`;
+        }
+        const rows = await request("check_ins", { query });
+        return Array.isArray(rows) ? rows : [];
+    }
+
+    async function insertCheckIn(row) {
+        if (!isEnabled()) return null;
+        const res = await request("check_ins", {
+            method: "POST",
+            body: row,
+            prefer: "return=representation"
+        });
+        if (Array.isArray(res) && res.length) return res[0];
+        return res;
+    }
+
+    async function markGuestCheckedIn(eventId, guestId, checkedInAt) {
+        if (!isEnabled() || !guestId) return false;
+        const res = await request("guests", {
+            method: "PATCH",
+            query: `?id=eq.${encodeURIComponent(guestId)}&event_id=eq.${encodeURIComponent(eventId)}`,
+            body: { checked_in_at: checkedInAt },
+            prefer: "return=minimal"
+        });
+        return res === true;
     }
 
     function mapGuestToCloudBase(eventId, guest) {
@@ -529,7 +562,8 @@ const CloudAPI = (() => {
             drink_choices: guest.drinkChoices && guest.drinkChoices.length
                 ? JSON.stringify(guest.drinkChoices)
                 : null,
-            profile_photo_url: guest.profilePhotoUrl || null
+            profile_photo_url: guest.profilePhotoUrl || null,
+            checked_in_at: guest.checkedInAt || null
         };
     }
 
@@ -548,7 +582,10 @@ const CloudAPI = (() => {
         track,
         getAnalytics,
         getEventSettings,
-        saveEventSettings
+        saveEventSettings,
+        getCheckIns,
+        insertCheckIn,
+        markGuestCheckedIn
     };
 })();
 

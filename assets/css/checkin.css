@@ -1,0 +1,159 @@
+.checkin-page {
+    font-family: "Montserrat", system-ui, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+.checkin-shell {
+    max-width: 28rem;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 1rem 1rem 2rem;
+}
+
+.checkin-header {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.checkin-header h1 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem;
+}
+
+.checkin-header p {
+    font-size: 0.6875rem;
+    color: #94a3b8;
+    margin: 0;
+}
+
+.checkin-scanner-wrap {
+    background: #1e293b;
+    border-radius: 1rem;
+    overflow: hidden;
+    border: 1px solid #334155;
+    margin-bottom: 1rem;
+}
+
+#checkin-reader {
+    width: 100%;
+    min-height: 260px;
+}
+
+#checkin-reader video {
+    border-radius: 0.75rem;
+}
+
+.checkin-manual {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.checkin-manual input {
+    flex: 1;
+    background: #1e293b;
+    border: 1px solid #475569;
+    border-radius: 0.65rem;
+    padding: 0.65rem 0.75rem;
+    color: #f8fafc;
+    font-size: 0.8125rem;
+}
+
+.checkin-manual button {
+    background: #059669;
+    color: #fff;
+    border: none;
+    border-radius: 0.65rem;
+    padding: 0 1rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.checkin-result {
+    border-radius: 1rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: none;
+}
+
+.checkin-result--show { display: block; }
+
+.checkin-result--success {
+    background: rgba(16, 185, 129, 0.15);
+    border: 2px solid #10b981;
+}
+
+.checkin-result--duplicate {
+    background: rgba(245, 158, 11, 0.12);
+    border: 2px solid #f59e0b;
+}
+
+.checkin-result--invalid,
+.checkin-result--error {
+    background: rgba(239, 68, 68, 0.12);
+    border: 2px solid #ef4444;
+}
+
+.checkin-result-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 0.35rem;
+}
+
+.checkin-result-msg {
+    font-size: 0.8125rem;
+    margin: 0 0 0.65rem;
+    opacity: 0.95;
+}
+
+.checkin-result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    font-size: 0.6875rem;
+}
+
+.checkin-result-grid span {
+    display: block;
+    color: #94a3b8;
+    font-size: 0.5625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.checkin-result-grid strong {
+    color: #f8fafc;
+    font-size: 0.8125rem;
+}
+
+.checkin-staff-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.checkin-staff-row input {
+    flex: 1;
+    background: #1e293b;
+    border: 1px solid #475569;
+    border-radius: 0.65rem;
+    padding: 0.55rem 0.75rem;
+    color: #f8fafc;
+    font-size: 0.75rem;
+}
+
+.checkin-footer {
+    text-align: center;
+    font-size: 0.625rem;
+    color: #64748b;
+}
+
+.checkin-footer a {
+    color: #38bdf8;
+}

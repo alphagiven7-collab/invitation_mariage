@@ -195,8 +195,7 @@ const GuestManager = (() => {
             next.drinkChoices = Array.isArray(patch.drinkChoices) ? patch.drinkChoices : [];
         }
         if (patch.profilePhotoUrl !== undefined) next.profilePhotoUrl = String(patch.profilePhotoUrl || "").trim();
-
-        guests[idx] = next;
+        if (patch.checkedInAt !== undefined) next.checkedInAt = patch.checkedInAt || null;
         await persistGuests(guests);
         let saved = guests[idx];
         let cloudSynced = !(window.CloudAPI && CloudAPI.isEnabled());

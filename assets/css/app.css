@@ -819,7 +819,19 @@ body.best-gallery-open .app-floating-tools {
     animation: slideUp 0.5s ease-out;
 }
 .confirmation-card-v2-header {
-    background: linear-gradient(135deg, #0f766e 0%, #059669 45%, #10b981 100%);
+    background: linear-gradient(135deg, #6b2c3e 0%, #5c2032 45%, #8b4513 100%);
+}
+.confirmation-seal {
+    background: linear-gradient(145deg, #e8d5a8, #c9a962);
+    color: #5c2032;
+}
+.confirm-event-date {
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 0.8125rem;
+    color: #6b2c3e;
+    text-align: center;
+    margin-bottom: 0.35rem;
+    font-style: italic;
 }
 .confirmation-card-close {
     position: absolute;

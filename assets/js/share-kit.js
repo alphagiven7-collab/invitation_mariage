@@ -11,6 +11,19 @@
     const BRAND = "Michelline";
     const CHECKLIST_KEY = "michelline_share_kit_checks";
     const PREVIEW_BASE = "../assets/images/previews/";
+    const IMAGES_BASE = "../assets/images/";
+
+    /** Galerie téléchargeable complète (Phase 1) */
+    const GALLERY_ASSETS = [
+        { file: "previews/preview-accueil.png", label: "Aperçu — Accueil hub", group: "Aperçus pages" },
+        { file: "previews/preview-offres.png", label: "Aperçu — Offres", group: "Aperçus pages" },
+        { file: "previews/preview-kit.png", label: "Aperçu — Kit promo", group: "Aperçus pages" },
+        { file: "previews/preview-demo.png", label: "Aperçu — Démo invitation", group: "Aperçus pages" },
+        { file: "michelline-hero-envelopes.png", label: "Hero enveloppes", group: "Visuels marque" },
+        { file: "prints/envelope-classique.png", label: "Enveloppe Classique", group: "Modèles imprimés" },
+        { file: "prints/envelope-elegance.png", label: "Enveloppe Élégance Rose", group: "Modèles imprimés" },
+        { file: "prints/envelope-prestige.png", label: "Enveloppe Prestige Doré", group: "Modèles imprimés" },
+    ];
 
     /** Liens publics — URL + image d'aperçu de la page destination */
     const PUBLIC_LINKS = {
@@ -395,6 +408,52 @@
         btn.rel = "noopener";
     }
 
+    async function downloadGalleryAsset(asset) {
+        const link = document.createElement("a");
+        link.href = IMAGES_BASE + asset.file + "?v=49";
+        link.download = asset.file.split("/").pop();
+        link.click();
+    }
+
+    async function downloadAllGallery() {
+        toast("Téléchargement de " + GALLERY_ASSETS.length + " images…");
+        for (let i = 0; i < GALLERY_ASSETS.length; i += 1) {
+            await downloadGalleryAsset(GALLERY_ASSETS[i]);
+            await new Promise((r) => setTimeout(r, 400));
+        }
+        toast("Galerie téléchargée !");
+    }
+
+    function renderGallery() {
+        const root = document.getElementById("share-gallery-grid");
+        if (!root) return;
+        root.innerHTML = "";
+        GALLERY_ASSETS.forEach((asset, idx) => {
+            const item = document.createElement("article");
+            item.className = "share-gallery-item";
+            item.innerHTML = `
+                <img src="${IMAGES_BASE}${asset.file}?v=49" alt="${asset.label}" loading="lazy" width="320" height="200">
+                <div class="share-gallery-item-body">
+                    <span class="share-gallery-tag">${asset.group}</span>
+                    <p><strong>${asset.label}</strong></p>
+                    <button type="button" class="share-btn share-btn--outline share-btn--tiny" data-gallery-dl="${idx}">Télécharger</button>
+                </div>`;
+            root.appendChild(item);
+        });
+        root.querySelectorAll("[data-gallery-dl]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const asset = GALLERY_ASSETS[Number(btn.getAttribute("data-gallery-dl"))];
+                if (asset) downloadGalleryAsset(asset);
+                toast("Téléchargement lancé");
+            });
+        });
+    }
+
+    function wireGallery() {
+        renderGallery();
+        document.getElementById("share-download-all-gallery")?.addEventListener("click", downloadAllGallery);
+    }
+
     function wireDownloads() {
         const canvas = document.getElementById("share-export-canvas");
         if (!canvas) return;
@@ -479,9 +538,10 @@
         wireDownloads();
         wireChecklist();
         wirePreviewDownloads();
+        wireGallery();
         initHashtags();
         initDailyStatus();
     });
 
-    window.ShareKit = { OFFRES_URL, SHORT_URL, DEMO_URL, PUBLIC_LINKS, CAPTIONS, copyText };
+    window.ShareKit = { OFFRES_URL, SHORT_URL, DEMO_URL, PUBLIC_LINKS, CAPTIONS, GALLERY_ASSETS, copyText };
 })();

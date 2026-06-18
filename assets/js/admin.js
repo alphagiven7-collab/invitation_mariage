@@ -112,6 +112,7 @@ async function renderGuestsTable() {
             <td>${statusBadge(guest.status)}${guest.qrApproved ? ' <span class="admin-badge admin-badge-yes" title="QR validé">QR ✓</span>' : ''}</td>
             <td>
                 <div class="admin-actions">
+                    <button type="button" class="admin-btn admin-btn-ghost admin-btn-icon" data-envelope="${guest.id}" title="Enveloppe + QR PNG">📥</button>
                     <button type="button" class="admin-btn admin-btn-ghost admin-btn-icon" data-edit="${guest.id}" title="Modifier">✎</button>
                     <button type="button" class="admin-btn admin-btn-ghost admin-btn-icon" data-copy="${encodeURIComponent(link)}" title="Copier le lien">🔗</button>
                     ${guest.status === "yes" && !guest.qrApproved ? `<button type="button" class="admin-btn admin-btn-success admin-btn-icon" data-approve-qr="${guest.id}" title="Valider QR">QR</button>` : ""}
@@ -138,6 +139,15 @@ async function renderGuestsTable() {
         btn.addEventListener("click", () => {
             const guest = guestsCache.find((g) => g.id === btn.dataset.edit);
             if (guest) openEditModal(guest);
+        });
+    });
+
+    tbody.querySelectorAll("[data-envelope]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+            const guest = guestsCache.find((g) => g.id === btn.dataset.envelope);
+            if (!guest || !window.EnvelopeExport) return;
+            const ok = await EnvelopeExport.downloadForGuest(guest);
+            showToast(ok ? `PNG généré — ${guest.fullName}` : "Export impossible");
         });
     });
 
@@ -238,6 +248,7 @@ async function refreshAll() {
     await renderGuestsTable();
     await renderRelances();
     await renderRSVPList();
+    if (window.AdminPresence) await AdminPresence.renderTable();
     await renderAnalytics();
 }
 
@@ -248,6 +259,9 @@ function setupTabs() {
             document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
             tab.classList.add("active");
             document.getElementById(`tab-${tab.dataset.tab}`).classList.add("active");
+            if (tab.dataset.tab === "presence" && window.AdminPresence) {
+                AdminPresence.renderTable(document.getElementById("presence-search")?.value || "");
+            }
         });
     });
 }
@@ -276,10 +290,15 @@ window.addEventListener("DOMContentLoaded", async () => {
     const q = EventConfig.preserveEventQuery();
     document.getElementById("back-invitation-link").href = `./invitation.html${q}`;
     document.getElementById("back-custom-link").href = `./personnalisation.html${q}`;
+    const checkinHref = `./checkin.html${q}`;
+    document.getElementById("checkin-link").href = checkinHref;
+    const pcl = document.getElementById("presence-checkin-link");
+    if (pcl) pcl.href = checkinHref;
 
     updateCloudStatus();
     document.getElementById("wa-template").value = GuestManager.getMessageTemplate();
     setupTabs();
+    if (window.AdminPresence) AdminPresence.init();
     await refreshAll();
 
     document.getElementById("refresh-btn").addEventListener("click", async () => {
@@ -357,6 +376,14 @@ window.addEventListener("DOMContentLoaded", async () => {
     });
 
     document.getElementById("edit-cancel-btn").addEventListener("click", closeEditModal);
+
+    document.getElementById("edit-envelope-png-btn")?.addEventListener("click", async () => {
+        const id = document.getElementById("edit-guest-id").value;
+        const guest = guestsCache.find((g) => g.id === id);
+        if (!guest || !window.EnvelopeExport) return;
+        const ok = await EnvelopeExport.downloadForGuest(guest);
+        showToast(ok ? "Enveloppe + QR téléchargée" : "Export impossible");
+    });
     document.getElementById("edit-modal-close-btn")?.addEventListener("click", closeEditModal);
     document.getElementById("edit-guest-modal").addEventListener("click", (e) => {
         if (e.target.id === "edit-guest-modal") closeEditModal();

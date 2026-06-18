@@ -499,6 +499,54 @@
     display: block;
 }
 
+.share-gallery-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.65rem;
+    margin-bottom: 0.85rem;
+}
+
+.share-gallery-grid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.share-gallery-item {
+    border: 1px solid rgba(17, 24, 39, 0.08);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background: #fafafa;
+}
+
+.share-gallery-item img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    display: block;
+}
+
+.share-gallery-item-body {
+    padding: 0.65rem 0.75rem 0.75rem;
+}
+
+.share-gallery-tag {
+    display: inline-block;
+    font-size: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 0.25rem;
+}
+
+.share-gallery-item p {
+    font-size: 0.6875rem;
+    color: #374151;
+    margin: 0 0 0.5rem;
+}
+
 .share-caption pre {
     font-family: inherit;
     font-size: 0.6875rem;

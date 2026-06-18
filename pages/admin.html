@@ -16,7 +16,8 @@
             <p class="admin-subtitle">Import CSV · liens uniques · édition · WhatsApp · relances · exports</p>
             <span id="cloud-status" class="admin-cloud-pill offline">Chargement…</span>
             <div class="admin-head-actions">
-                <button type="button" id="refresh-btn" class="admin-head-btn primary">↻ Actualiser</button>
+                <a id="checkin-link" href="./checkin.html" class="admin-head-btn primary">📱 Check-in jour J</a>
+                <button type="button" id="refresh-btn" class="admin-head-btn">↻ Actualiser</button>
                 <a id="back-invitation-link" href="./invitation.html" class="admin-head-btn">Voir invitation</a>
                 <a id="back-custom-link" href="./personnalisation.html" class="admin-head-btn">Personnaliser</a>
                 <button type="button" id="logout-btn" class="admin-head-btn">Déconnexion</button>
@@ -30,6 +31,7 @@
                 <button type="button" class="admin-tab" data-tab="guests"><span class="admin-tab-icon">👥</span> Invités</button>
                 <button type="button" class="admin-tab" data-tab="relances"><span class="admin-tab-icon">💬</span> Relances</button>
                 <button type="button" class="admin-tab" data-tab="rsvps"><span class="admin-tab-icon">✓</span> Confirmations</button>
+                <button type="button" class="admin-tab" data-tab="presence"><span class="admin-tab-icon">🚪</span> Présence jour J</button>
                 <button type="button" class="admin-tab" data-tab="analytics"><span class="admin-tab-icon">📈</span> Analytics</button>
                 <button type="button" class="admin-tab" data-tab="exports"><span class="admin-tab-icon">📥</span> Exports</button>
             </nav>
@@ -121,6 +123,34 @@
                         <div id="rsvps-empty" class="admin-empty hidden">
                             <div class="admin-empty-icon">✉️</div>
                             <p>Aucune confirmation reçue pour l'instant.</p>
+                        </div>
+                    </section>
+                </div>
+
+                <div id="tab-presence" class="tab-panel">
+                    <section class="admin-card">
+                        <h2 class="admin-card-title">Présence jour J</h2>
+                        <p class="admin-card-desc">Entrées en temps réel · rafraîchissement auto 15 s · <a href="./checkin.html" id="presence-checkin-link">Ouvrir le scan staff →</a></p>
+                        <div class="admin-stats admin-stats--presence">
+                            <div class="admin-stat yes"><div class="admin-stat-value" id="presence-stat-entered">0</div><div class="admin-stat-label">Entrés</div></div>
+                            <div class="admin-stat pending"><div class="admin-stat-value" id="presence-stat-expected">0</div><div class="admin-stat-label">Attendus (RSVP oui)</div></div>
+                            <div class="admin-stat adults"><div class="admin-stat-value" id="presence-stat-pending">0</div><div class="admin-stat-label">Encore attendus</div></div>
+                            <div class="admin-stat no"><div class="admin-stat-value" id="presence-stat-not-confirmed">0</div><div class="admin-stat-label">Non confirmés</div></div>
+                        </div>
+                        <div class="admin-toolbar">
+                            <input id="presence-search" class="admin-input" placeholder="Rechercher par nom…" style="max-width:220px">
+                            <button type="button" id="presence-refresh" class="admin-btn admin-btn-ghost">↻ Rafraîchir</button>
+                            <button type="button" id="presence-export-csv" class="admin-btn admin-btn-primary">Export CSV</button>
+                        </div>
+                        <div class="admin-table-wrap mt-2">
+                            <table class="admin-table">
+                                <thead><tr><th>Invité</th><th>Statut</th><th>Heure entrée</th><th>Table</th><th>Ad./Enf.</th><th>Staff</th></tr></thead>
+                                <tbody id="presence-table-body"></tbody>
+                            </table>
+                        </div>
+                        <div id="presence-empty" class="admin-empty hidden">
+                            <div class="admin-empty-icon">🚪</div>
+                            <p>Aucun invité correspondant.</p>
                         </div>
                     </section>
                 </div>
@@ -225,6 +255,7 @@
                 </details>
             </form>
             <div class="admin-modal-footer">
+                <button type="button" id="edit-envelope-png-btn" class="admin-btn admin-btn-ghost">📥 Enveloppe + QR (PNG)</button>
                 <button type="button" id="edit-cancel-btn" class="admin-btn admin-btn-ghost">Annuler</button>
                 <button type="submit" form="edit-guest-form" class="admin-btn admin-btn-success admin-btn-save">✓ Enregistrer</button>
             </div>
@@ -237,7 +268,12 @@
     <script src="../assets/js/event-config.js?v=23"></script>
     <script src="../assets/js/cloud-api.js?v=23"></script>
     <script src="../assets/js/auth.js?v=23"></script>
-    <script src="../assets/js/guest-manager.js?v=23"></script>
-    <script src="../assets/js/admin.js?v=23"></script>
+    <script src="../assets/js/guest-manager.js?v=49"></script>
+    <script src="../assets/js/checkin-url.js?v=49"></script>
+    <script src="../assets/js/checkin-api.js?v=49"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="../assets/js/envelope-export.js?v=49"></script>
+    <script src="../assets/js/admin-presence.js?v=49"></script>
+    <script src="../assets/js/admin.js?v=49"></script>
 </body>
 </html>

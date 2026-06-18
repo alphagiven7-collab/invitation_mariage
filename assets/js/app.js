@@ -156,7 +156,9 @@
                 : `Vous avez indiqué ne pas pouvoir être présent(e).`;
             document.getElementById('confirm-code-line').textContent = confirmCode;
 
-            const qrPayload = JSON.stringify({
+            const qrData = (window.CheckinUrl && currentGuestProfile && currentGuestProfile.token)
+                ? CheckinUrl.buildCheckInUrl(currentGuestProfile, EventConfig.getEventId ? EventConfig.getEventId() : 'yanick-keren')
+                : JSON.stringify({
                 code: confirmCode,
                 event: EventConfig.getEventId ? EventConfig.getEventId() : 'yanick-keren',
                 name: payload.name,
@@ -167,7 +169,7 @@
                 confirmedAt: payload.sentAt
             });
             document.getElementById('rsvp-qr-image').src =
-                `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrPayload)}`;
+                `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrData)}`;
 
             openModal('rsvp-confirmation-modal');
         }

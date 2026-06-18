@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0f172a">
+    <title>Check-in jour J — Staff</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/checkin.css?v=49">
+</head>
+<body class="checkin-page">
+    <div class="checkin-shell">
+        <header class="checkin-header">
+            <h1>Check-in jour J</h1>
+            <p id="checkin-event-label">Chargement…</p>
+        </header>
+
+        <div class="checkin-staff-row">
+            <input id="checkin-staff-name" type="text" placeholder="Nom staff (optionnel)" autocomplete="name">
+        </div>
+
+        <div class="checkin-scanner-wrap">
+            <div id="checkin-reader"></div>
+        </div>
+
+        <div class="checkin-manual">
+            <input id="checkin-manual-token" type="text" placeholder="Token ou URL QR collée" autocomplete="off">
+            <button type="button" id="checkin-manual-btn">OK</button>
+        </div>
+
+        <div id="checkin-result" class="checkin-result">
+            <p id="checkin-result-title" class="checkin-result-title"></p>
+            <p id="checkin-result-msg" class="checkin-result-msg"></p>
+            <div id="checkin-result-grid" class="checkin-result-grid hidden"></div>
+        </div>
+
+        <p class="checkin-footer">
+            <a href="./admin.html">← Admin</a>
+            · Connexion staff requise
+        </p>
+    </div>
+
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="../assets/js/supabase-config.js?v=49"></script>
+    <script src="../assets/js/event-config.js?v=49"></script>
+    <script src="../assets/js/cloud-api.js?v=49"></script>
+    <script src="../assets/js/auth.js?v=49"></script>
+    <script src="../assets/js/guest-manager.js?v=49"></script>
+    <script src="../assets/js/checkin-url.js?v=49"></script>
+    <script src="../assets/js/checkin-api.js?v=49"></script>
+    <script src="../assets/js/checkin-page.js?v=49"></script>
+</body>
+</html>

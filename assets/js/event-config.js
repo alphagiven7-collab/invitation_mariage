@@ -157,11 +157,17 @@ const EventConfig = (() => {
         if (metaDesc && desc) metaDesc.content = desc.slice(0, 160);
         if (metaDesc2 && desc) metaDesc2.content = desc.slice(0, 160);
         if (metaTwitterDesc && desc) metaTwitterDesc.content = desc.slice(0, 160);
-        if (config.branding && config.branding.heroImage) {
+        if (config.branding && (config.branding.ogShareImage || config.branding.heroImage)) {
             const ogImg = document.getElementById("meta-og-image");
             const twImg = document.getElementById("meta-twitter-image");
-            if (ogImg) ogImg.content = config.branding.heroImage;
-            if (twImg) twImg.content = config.branding.heroImage;
+            const shareImg = config.branding.ogShareImage || config.branding.heroImage;
+            if (ogImg) ogImg.content = shareImg;
+            if (twImg) twImg.content = shareImg;
+        }
+
+        if (config.gateHint) {
+            const gateHint = document.getElementById("welcome-gate-hint");
+            if (gateHint) gateHint.textContent = config.gateHint;
         }
     }
 
