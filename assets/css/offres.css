@@ -1,14 +1,13 @@
-/* offres.html — maquette preview-offres (crème · bordeaux · or) */
+/* offres.html — aligné maquette preview-offres (plein écran mobile) */
 
 :root {
-    --offres-cream: #fdf8f4;
-    --offres-cream-deep: #f5ebe3;
+    --offres-cream: #f9f6f1;
     --offres-burgundy: #7a1e3c;
     --offres-burgundy-dark: #5c1830;
     --offres-gold: #c5a059;
-    --offres-gold-light: #e8d5a8;
-    --offres-blush: #f5e6e8;
-    --offres-shell-max: 26rem;
+    --offres-text: #5c4a4a;
+    --offres-text-soft: #8a7570;
+    --offres-shell-max: 24rem;
 }
 
 *,
@@ -20,201 +19,181 @@
 .offres-page {
     margin: 0;
     font-family: "Montserrat", system-ui, sans-serif;
-    background: var(--offres-cream-deep);
-    color: var(--offres-burgundy-dark);
+    background: var(--offres-cream);
+    color: var(--offres-text);
     min-height: 100vh;
     min-height: 100dvh;
-    display: flex;
-    justify-content: center;
-    padding: max(0.5rem, env(safe-area-inset-top)) 0.5rem max(0.5rem, env(safe-area-inset-bottom));
     -webkit-tap-highlight-color: transparent;
 }
 
 .offres-shell {
-    box-sizing: border-box;
     width: 100%;
     max-width: var(--offres-shell-max);
-    max-height: calc(100dvh - 1rem);
-    min-height: min(100dvh - 1rem, 44rem);
+    min-height: 100dvh;
     margin: 0 auto;
     background: var(--offres-cream);
     position: relative;
     overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 0 0 calc(1rem + env(safe-area-inset-bottom, 0));
-    box-shadow: 0 20px 50px rgba(92, 24, 48, 0.1);
-    border-radius: 1.25rem;
-    border: 1px solid rgba(197, 160, 89, 0.15);
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0));
 }
 
-/* ——— Fleurs décoratives ——— */
-.offres-floral {
+/* ——— Roses aquarelle (coins) ——— */
+.offres-rose {
     position: absolute;
-    width: 5rem;
-    height: 5rem;
+    width: 5.5rem;
+    height: 5.5rem;
     pointer-events: none;
-    opacity: 0.55;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Cellipse cx='28' cy='48' rx='14' ry='18' fill='%23f9a8d4' opacity='0.55'/%3E%3Cellipse cx='48' cy='38' rx='12' ry='16' fill='%23fda4af' opacity='0.5'/%3E%3Cellipse cx='38' cy='58' rx='10' ry='8' fill='%2386efac' opacity='0.35'/%3E%3C/svg%3E");
-    background-size: contain;
     background-repeat: no-repeat;
+    background-size: contain;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cellipse cx='35' cy='55' rx='18' ry='22' fill='%23f9a8d4' opacity='0.65'/%3E%3Cellipse cx='55' cy='42' rx='16' ry='20' fill='%23fda4af' opacity='0.55'/%3E%3Cellipse cx='48' cy='68' rx='12' ry='10' fill='%23fbcfe8' opacity='0.5'/%3E%3Cellipse cx='62' cy='58' rx='8' ry='12' fill='%2386efac' opacity='0.35'/%3E%3Cpath d='M50 75 Q52 85 48 92' stroke='%236b7280' stroke-width='1.2' fill='none' opacity='0.4'/%3E%3C/svg%3E");
 }
 
-.offres-floral--tl { top: 0.25rem; left: -0.75rem; }
-.offres-floral--tr { top: 0.25rem; right: -0.75rem; transform: scaleX(-1); }
-.offres-floral--bl { bottom: 0.5rem; left: -0.85rem; opacity: 0.4; }
-.offres-floral--br { bottom: 0.5rem; right: -0.85rem; transform: scaleX(-1); opacity: 0.4; }
+.offres-rose--tl { top: 2.5rem; left: -0.5rem; opacity: 0.85; }
+.offres-rose--tr { top: 2.5rem; right: -0.5rem; transform: scaleX(-1); opacity: 0.85; }
+.offres-rose--bl { bottom: 1.5rem; left: -0.75rem; opacity: 0.55; }
+.offres-rose--br { bottom: 1.5rem; right: -0.75rem; transform: scaleX(-1); opacity: 0.55; }
 
 /* ——— En-tête ——— */
 .offres-header {
     position: relative;
     text-align: center;
-    padding: 1.5rem 1rem 0.85rem;
+    padding: 1.25rem 1.1rem 0.75rem;
 }
 
 .offres-menu {
     position: absolute;
-    top: 1rem;
+    top: 1.1rem;
     right: 1rem;
-    z-index: 2;
-    font-size: 1rem;
-    color: var(--offres-burgundy);
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 2rem;
+    height: 2rem;
     text-decoration: none;
-    opacity: 0.7;
-    line-height: 1;
 }
 
-.offres-menu:hover {
-    opacity: 1;
-    text-decoration: none;
+.offres-menu span {
+    display: block;
+    width: 1.15rem;
+    height: 2px;
+    margin: 0 auto;
+    background: var(--offres-burgundy);
+    border-radius: 1px;
 }
 
 .offres-top-flourish {
-    margin: 0 0 0.1rem;
-    font-size: 0.7rem;
-    color: var(--offres-gold);
-    letter-spacing: 0.15em;
+    margin: 0 0 0.35rem;
+    line-height: 0;
 }
 
 .offres-brand {
-    font-size: 2.5rem !important;
+    font-size: 2.85rem !important;
     color: var(--offres-burgundy) !important;
     line-height: 1 !important;
 }
 
 .offres-kicker {
-    margin: 0.4rem 0 0.85rem;
-    font-family: "Montserrat", system-ui, sans-serif;
-    font-size: 0.55rem;
+    margin: 0.45rem 0 1rem;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 0.58rem;
     font-weight: 600;
-    letter-spacing: 0.34em;
-    text-indent: 0.34em;
+    letter-spacing: 0.28em;
+    text-indent: 0.28em;
     text-transform: uppercase;
     color: var(--offres-gold);
 }
 
 .offres-hero-title {
     font-family: "Playfair Display", Georgia, serif;
-    font-size: clamp(0.95rem, 4.2vw, 1.05rem);
+    font-size: 1.05rem;
     font-weight: 600;
-    letter-spacing: 0.16em;
-    text-indent: 0.16em;
+    letter-spacing: 0.12em;
+    text-indent: 0.12em;
     text-transform: uppercase;
     color: var(--offres-burgundy);
-    margin: 0 0 0.4rem;
-    line-height: 1.3;
+    margin: 0 0 0.45rem;
+    line-height: 1.25;
 }
 
 .offres-tagline {
-    font-family: "Playfair Display", Georgia, serif;
-    font-style: italic;
-    font-size: 0.75rem;
-    color: rgba(122, 30, 60, 0.78);
-    margin: 0 0 0.75rem;
-    letter-spacing: 0.03em;
+    font-family: "Montserrat", system-ui, sans-serif;
+    font-style: normal;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--offres-text-soft);
+    margin: 0 0 0.85rem;
+    letter-spacing: 0.02em;
 }
 
 .offres-gold-rule {
     display: flex;
-    align-items: center;
     justify-content: center;
-    gap: 0.55rem;
     margin: 0 auto;
-    max-width: 12rem;
-    color: var(--offres-gold);
+    line-height: 0;
 }
 
-.offres-gold-rule::before,
-.offres-gold-rule::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(to right, transparent, var(--offres-gold), transparent);
-}
-
-.offres-gold-rule span {
-    font-size: 0.5rem;
-}
-
-/* ——— Forfaits (3 colonnes, scroll si besoin) ——— */
+/* ——— Forfaits ——— */
 .offres-plans {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.4rem;
-    padding: 0.35rem 0.65rem 1rem;
-    width: 100%;
+    gap: 0.45rem;
+    padding: 0.25rem 0.75rem 1.1rem;
+    align-items: stretch;
 }
 
 .offres-plan-card {
-    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
     background: #fff;
-    border: 1px solid rgba(197, 160, 89, 0.35);
-    border-radius: 0.55rem;
-    padding: 0.65rem 0.35rem 0.6rem;
+    border: 1px solid rgba(197, 160, 89, 0.4);
+    border-radius: 0.5rem;
+    padding: 0.75rem 0.4rem 0.65rem;
     min-width: 0;
-    box-shadow: 0 4px 14px rgba(92, 24, 48, 0.06);
+    min-height: 11.5rem;
+    box-shadow: 0 2px 10px rgba(92, 24, 48, 0.05);
 }
 
 .offres-plan-card--featured {
-    border: 1.5px solid var(--offres-gold);
-    box-shadow: 0 8px 22px rgba(197, 160, 89, 0.22);
-    transform: scale(1.03);
+    border: 2px solid var(--offres-gold);
+    box-shadow: 0 6px 18px rgba(197, 160, 89, 0.2);
+    position: relative;
     z-index: 1;
 }
 
 .offres-plan-flourish {
-    margin: 0 0 0.25rem;
-    font-size: 0.45rem;
+    margin: 0 0 0.35rem;
+    font-size: 0.55rem;
     color: var(--offres-gold);
-    letter-spacing: 0.1em;
+    line-height: 1;
 }
 
 .offres-plan-price {
     font-family: "Playfair Display", Georgia, serif;
-    font-size: clamp(1.2rem, 5vw, 1.45rem);
+    font-size: 1.55rem;
     font-weight: 600;
     color: var(--offres-burgundy);
-    margin: 0 0 0.1rem;
+    margin: 0 0 0.2rem;
     line-height: 1;
 }
 
 .offres-plan-name {
-    font-size: 0.45rem;
-    font-weight: 700;
-    letter-spacing: 0.16em;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 0.52rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--offres-burgundy);
-    margin: 0 0 0.45rem;
+    color: var(--offres-gold);
+    margin: 0 0 0.55rem;
 }
 
 .offres-plan-features {
     list-style: none;
-    margin: 0 0 0.55rem;
-    padding: 0;
+    margin: 0 0 0.65rem;
+    padding: 0 0.15rem;
     flex: 1;
     width: 100%;
     text-align: left;
@@ -222,148 +201,144 @@
 
 .offres-plan-features li {
     position: relative;
-    font-size: 0.44rem;
-    line-height: 1.35;
-    color: rgba(92, 24, 48, 0.75);
-    padding: 0.15rem 0 0.15rem 0.55rem;
+    font-size: 0.5rem;
+    line-height: 1.45;
+    color: var(--offres-text-soft);
+    padding: 0.12rem 0 0.12rem 0.55rem;
 }
 
 .offres-plan-features li::before {
     content: "";
     position: absolute;
-    left: 0.15rem;
-    top: 0.45rem;
-    width: 0.18rem;
-    height: 0.18rem;
+    left: 0.1rem;
+    top: 0.42rem;
+    width: 0.2rem;
+    height: 0.2rem;
     border-radius: 999px;
     background: var(--offres-burgundy);
-    opacity: 0.55;
+    opacity: 0.45;
 }
 
 .offres-plan-cta {
-    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-height: 1.75rem;
-    padding: 0.3rem 0.2rem;
+    min-height: 1.85rem;
+    padding: 0.35rem 0.25rem;
     border-radius: 999px;
-    font-size: 0.4rem;
+    font-family: "Montserrat", system-ui, sans-serif;
+    font-size: 0.42rem;
     font-weight: 700;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     text-decoration: none;
     color: #fff;
     background: var(--offres-burgundy);
     border: none;
-    transition: filter 0.2s, transform 0.15s;
+    transition: filter 0.15s;
 }
 
 .offres-plan-cta:hover {
     text-decoration: none;
     color: #fff;
-    filter: brightness(1.06);
+    filter: brightness(1.08);
 }
 
 .offres-plan-cta:active {
-    transform: scale(0.97);
+    transform: scale(0.98);
 }
 
-/* ——— Galerie aperçus ——— */
+/* ——— Vignettes bas ——— */
 .offres-demos {
-    padding: 0 0.65rem 0.85rem;
+    padding: 0 0.75rem 0.75rem;
 }
 
 .offres-demos-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.4rem;
-    width: 100%;
+    gap: 0.45rem;
 }
 
 .offres-demo-thumb {
     display: block;
-    text-decoration: none;
-    border-radius: 0.4rem;
+    border-radius: 0.35rem;
     overflow: hidden;
-    border: 1px solid rgba(197, 160, 89, 0.28);
+    border: 1px solid rgba(197, 160, 89, 0.25);
     background: #fff;
-    box-shadow: 0 3px 12px rgba(92, 24, 48, 0.08);
-    transition: transform 0.2s;
-}
-
-.offres-demo-thumb:active {
-    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(92, 24, 48, 0.06);
+    text-decoration: none;
 }
 
 .offres-demo-thumb img {
     display: block;
     width: 100%;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 1 / 1;
     object-fit: cover;
 }
 
-/* ——— Pied de page ——— */
+/* ——— Pied ——— */
 .offres-footer {
     position: relative;
     text-align: center;
-    padding: 0.5rem 1rem 0.35rem;
+    padding: 0.75rem 1rem 0.5rem;
 }
 
 .offres-made {
-    font-size: 0.5rem;
+    font-family: "Montserrat", system-ui, sans-serif;
+    font-size: 0.52rem;
     font-weight: 600;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--offres-gold);
-    margin: 0 0 0.4rem;
+    margin: 0 0 0.35rem;
 }
 
 .offres-contact {
-    font-size: 0.5rem;
-    color: rgba(92, 24, 48, 0.5);
     margin: 0;
+    font-size: 0.48rem;
 }
 
 .offres-contact-link {
     color: var(--offres-burgundy);
     text-decoration: none;
     font-weight: 600;
+    opacity: 0.75;
 }
 
 .offres-contact-link:hover {
     text-decoration: underline;
+    opacity: 1;
 }
 
-@media (min-width: 380px) {
+@media (min-width: 390px) {
     .offres-plan-features li {
-        font-size: 0.48rem;
+        font-size: 0.52rem;
     }
 
     .offres-plan-cta {
-        font-size: 0.42rem;
-        min-height: 1.9rem;
+        font-size: 0.44rem;
+        min-height: 2rem;
+    }
+
+    .offres-hero-title {
+        font-size: 1.08rem;
     }
 }
 
 @media (min-width: 480px) {
-    .offres-page {
-        padding: 1rem;
-    }
-
     .offres-shell {
-        border-radius: 1.5rem;
+        max-width: 26rem;
     }
 
     .offres-plans {
         gap: 0.55rem;
-        padding-inline: 0.85rem;
+        padding-inline: 1rem;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .offres-plan-card--featured {
+    .offres-plan-cta:active {
         transform: none;
     }
 }
