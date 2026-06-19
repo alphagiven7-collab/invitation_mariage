@@ -244,11 +244,11 @@
     fill: currentColor;
 }
 
-.hub-btn--offres {
+.hub-btn--models {
     background: linear-gradient(135deg, #efd4cf 0%, var(--hub-btn-1) 100%);
 }
 
-.hub-btn--models {
+.hub-btn--demos {
     background: linear-gradient(135deg, #dbb5b5 0%, var(--hub-btn-2) 55%, var(--hub-btn-3) 100%);
 }
 

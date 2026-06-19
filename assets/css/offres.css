@@ -1,4 +1,4 @@
-/* offres.html — vitrine commerciale : forfait + modèle en parallèle */
+/* offres.html — catalogue de modèles d'invitations numériques */
 
 :root {
     --offres-cream: #f9f6f1;
@@ -143,265 +143,225 @@
     color: var(--offres-text-soft);
 }
 
-/* ——— Vitrines forfait + modèle ——— */
-.offres-showcases {
+/* ——— Cartes modèles ——— */
+.offres-models {
     display: flex;
     flex-direction: column;
-    gap: 1.15rem;
+    gap: 1.1rem;
     padding: 0 0.85rem 1rem;
 }
 
-.offres-showcase {
-    position: relative;
+.offres-model {
     background: #fff;
     border: 1px solid rgba(197, 160, 89, 0.35);
     border-radius: 0.75rem;
-    padding: 1rem 0.85rem 0.9rem;
+    padding: 0.9rem 0.85rem 0.85rem;
     box-shadow: 0 4px 18px rgba(92, 24, 48, 0.06);
 }
 
-.offres-showcase--featured {
+.offres-model--highlight {
     border: 2px solid var(--offres-gold);
-    box-shadow: 0 8px 24px rgba(197, 160, 89, 0.18);
+    box-shadow: 0 6px 22px rgba(197, 160, 89, 0.15);
 }
 
-.offres-showcase-popular {
-    position: absolute;
-    top: -0.55rem;
-    left: 50%;
-    transform: translateX(-50%);
-    margin: 0;
-    padding: 0.2rem 0.65rem;
-    border-radius: 999px;
+.offres-model-head {
+    text-align: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid rgba(197, 160, 89, 0.18);
+}
+
+.offres-model-type {
+    margin: 0 0 0.35rem;
     font-size: 0.48rem;
     font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: #fff;
-    background: var(--offres-gold);
-    white-space: nowrap;
-}
-
-.offres-showcase-head {
-    text-align: center;
-    margin-bottom: 0.85rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid rgba(197, 160, 89, 0.2);
-}
-
-.offres-showcase-price {
-    font-family: "Playfair Display", Georgia, serif;
-    font-size: 2rem;
-    font-weight: 600;
-    color: var(--offres-burgundy);
-    margin: 0 0 0.15rem;
-    line-height: 1;
-}
-
-.offres-showcase-name {
-    font-family: "Playfair Display", Georgia, serif;
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--offres-gold);
-    margin: 0 0 0.45rem;
 }
 
-.offres-showcase-pitch {
+.offres-model-title {
+    margin: 0 0 0.35rem;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--offres-burgundy);
+    line-height: 1.2;
+}
+
+.offres-model-subtitle {
     margin: 0;
-    font-size: 0.62rem;
+    font-size: 0.6rem;
     line-height: 1.5;
     color: var(--offres-text-soft);
-    max-width: 18rem;
+    max-width: 20rem;
     margin-inline: auto;
 }
 
-.offres-showcase-body {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    gap: 0.75rem;
+/* ——— Photos invitation (hauteur réduite) ——— */
+.offres-model-photos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+    margin-bottom: 0.75rem;
 }
 
-.offres-showcase-visual {
-    flex: 0 0 42%;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
+.offres-model-photos--single {
+    grid-template-columns: 1fr;
 }
 
-.offres-showcase-frame {
+.offres-model-photo {
     position: relative;
     display: block;
-    border-radius: 0.5rem;
+    border-radius: 0.45rem;
     overflow: hidden;
-    border: 1px solid rgba(197, 160, 89, 0.3);
+    border: 1px solid rgba(197, 160, 89, 0.28);
     background: var(--offres-cream);
     text-decoration: none;
-    box-shadow: 0 3px 12px rgba(92, 24, 48, 0.08);
+    box-shadow: 0 2px 8px rgba(92, 24, 48, 0.06);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.offres-showcase-frame:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(92, 24, 48, 0.12);
+.offres-model-photo:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(92, 24, 48, 0.1);
 }
 
-.offres-showcase-frame img {
+.offres-model-photo img {
     display: block;
     width: 100%;
-    aspect-ratio: 3 / 4;
+    aspect-ratio: 16 / 10;
     object-fit: cover;
-    object-position: top center;
+    object-position: center top;
 }
 
-.offres-showcase-frame-badge {
-    position: absolute;
-    top: 0.4rem;
-    left: 0.4rem;
-    padding: 0.18rem 0.45rem;
-    border-radius: 999px;
-    font-size: 0.42rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: #fff;
-    background: rgba(122, 30, 60, 0.82);
-    backdrop-filter: blur(4px);
-}
-
-.offres-showcase-model {
-    margin: 0.5rem 0 0.2rem;
-    font-family: "Playfair Display", Georgia, serif;
-    font-size: 0.62rem;
-    font-weight: 600;
-    color: var(--offres-burgundy);
-    line-height: 1.3;
-}
-
-.offres-showcase-model-desc {
-    margin: 0 0 0.45rem;
-    font-size: 0.5rem;
-    line-height: 1.45;
-    color: var(--offres-text-soft);
-    flex: 1;
-}
-
-.offres-showcase-demo {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: auto;
-    padding: 0.35rem 0.5rem;
-    border-radius: 999px;
-    font-size: 0.46rem;
+.offres-model-photo-label {
+    display: block;
+    padding: 0.28rem 0.35rem;
+    font-size: 0.44rem;
     font-weight: 600;
     letter-spacing: 0.04em;
+    text-align: center;
+    text-transform: uppercase;
+    color: var(--offres-text-soft);
+    background: rgba(255, 255, 255, 0.92);
+    border-top: 1px solid rgba(197, 160, 89, 0.15);
+}
+
+/* ——— Détails ——— */
+.offres-model-details {
+    margin-bottom: 0.75rem;
+}
+
+.offres-model-details-title {
+    margin: 0 0 0.45rem;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--offres-gold);
+}
+
+.offres-model-features {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.offres-model-features li {
+    position: relative;
+    font-size: 0.56rem;
+    line-height: 1.45;
+    color: var(--offres-text-soft);
+    padding: 0.3rem 0 0.3rem 0.65rem;
+    border-bottom: 1px solid rgba(197, 160, 89, 0.1);
+}
+
+.offres-model-features li:last-child {
+    border-bottom: none;
+}
+
+.offres-model-features li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55rem;
+    width: 0.2rem;
+    height: 0.2rem;
+    border-radius: 999px;
+    background: var(--offres-burgundy);
+    opacity: 0.45;
+}
+
+.offres-model-features strong {
+    display: inline;
+    font-weight: 600;
+    color: var(--offres-text);
+}
+
+/* ——— Actions ——— */
+.offres-model-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+}
+
+.offres-model-demo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2rem;
+    padding: 0.4rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.48rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
     text-decoration: none;
+    text-align: center;
     color: var(--offres-burgundy);
     border: 1px solid rgba(122, 30, 60, 0.25);
-    background: rgba(249, 246, 241, 0.8);
+    background: rgba(249, 246, 241, 0.85);
     transition: background 0.15s, border-color 0.15s;
 }
 
-.offres-showcase-demo:hover {
+.offres-model-demo:hover {
     background: #fff;
     border-color: var(--offres-gold);
     text-decoration: none;
 }
 
-.offres-showcase-details {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-.offres-showcase-includes {
-    margin: 0 0 0.45rem;
-    font-size: 0.48rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--offres-gold);
-}
-
-.offres-showcase-features {
-    list-style: none;
-    margin: 0 0 0.75rem;
-    padding: 0;
-    flex: 1;
-}
-
-.offres-showcase-features li {
-    position: relative;
-    font-size: 0.54rem;
-    line-height: 1.5;
-    color: var(--offres-text-soft);
-    padding: 0.28rem 0 0.28rem 0.65rem;
-    border-bottom: 1px solid rgba(197, 160, 89, 0.12);
-}
-
-.offres-showcase-features li:last-child {
-    border-bottom: none;
-}
-
-.offres-showcase-features li::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0.55rem;
-    width: 0.22rem;
-    height: 0.22rem;
-    border-radius: 999px;
-    background: var(--offres-burgundy);
-    opacity: 0.5;
-}
-
-.offres-showcase-features strong {
-    display: block;
-    font-size: 0.56rem;
-    font-weight: 600;
-    color: var(--offres-text);
-    margin-bottom: 0.05rem;
-}
-
-.offres-showcase-cta {
+.offres-model-cta {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    min-height: 2.15rem;
-    margin-top: auto;
-    padding: 0.45rem 0.75rem;
+    min-height: 2rem;
+    padding: 0.4rem 0.5rem;
     border-radius: 999px;
-    font-family: "Montserrat", system-ui, sans-serif;
-    font-size: 0.52rem;
+    font-size: 0.48rem;
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
     text-decoration: none;
+    text-align: center;
     color: #fff;
     background: var(--offres-burgundy);
     border: none;
     transition: filter 0.15s, transform 0.15s;
 }
 
-.offres-showcase-cta:hover {
+.offres-model-cta:hover {
     text-decoration: none;
     color: #fff;
     filter: brightness(1.08);
 }
 
-.offres-showcase-cta:active {
+.offres-model-cta:active {
     transform: scale(0.98);
 }
 
-.offres-showcase--featured .offres-showcase-cta {
+.offres-model--highlight .offres-model-cta {
     background: linear-gradient(135deg, var(--offres-burgundy) 0%, var(--offres-burgundy-dark) 100%);
-    box-shadow: 0 4px 12px rgba(122, 30, 60, 0.25);
 }
 
 /* ——— Confiance ——— */
@@ -475,20 +435,21 @@
 }
 
 @media (min-width: 390px) {
-    .offres-showcase-features li {
-        font-size: 0.56rem;
+    .offres-model-title {
+        font-size: 1.1rem;
     }
 
-    .offres-showcase-features strong {
+    .offres-model-features li {
         font-size: 0.58rem;
     }
 
-    .offres-showcase-cta {
-        font-size: 0.54rem;
+    .offres-model-demo,
+    .offres-model-cta {
+        font-size: 0.5rem;
     }
 
-    .offres-showcase-model-desc {
-        font-size: 0.52rem;
+    .offres-model-photo-label {
+        font-size: 0.46rem;
     }
 }
 
@@ -497,25 +458,17 @@
         max-width: 30rem;
     }
 
-    .offres-showcases {
+    .offres-models {
         padding-inline: 1.1rem;
-    }
-
-    .offres-showcase-body {
-        gap: 1rem;
-    }
-
-    .offres-showcase-visual {
-        flex-basis: 44%;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .offres-showcase-frame:hover {
+    .offres-model-photo:hover {
         transform: none;
     }
 
-    .offres-showcase-cta:active {
+    .offres-model-cta:active {
         transform: none;
     }
 }
