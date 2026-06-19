@@ -7,6 +7,10 @@ const CloudAPI = (() => {
         return window.SUPABASE_CONFIG || { enabled: false, url: "", anonKey: "" };
     }
 
+    function isDjangoEnabled() {
+        return !!(window.DjangoAPI && DjangoAPI.isEnabled());
+    }
+
     function isEnabled() {
         const c = cfg();
         return c.enabled && c.url && c.anonKey;
@@ -136,6 +140,19 @@ const CloudAPI = (() => {
 
     // --- Invités ---
     async function getGuests(eventId) {
+        if (isDjangoEnabled()) {
+            try {
+                const djangoGuests = await DjangoAPI.getGuests(eventId);
+                const localGuests = readGuestsLocal(eventId);
+                const merged = djangoGuests.length || localGuests.length
+                    ? mergeGuestLists(djangoGuests, localGuests)
+                    : [];
+                return filterDeletedGuests(eventId, merged);
+            } catch (err) {
+                console.warn("CloudAPI: Django getGuests fallback.", err);
+            }
+        }
+
         let cloudGuests = [];
         const cloud = await request("guests", {
             query: `?event_id=eq.${eventId}&order=created_at.desc`
@@ -209,6 +226,20 @@ const CloudAPI = (() => {
 
     async function upsertGuest(eventId, guest) {
         let workingGuest = { ...guest };
+
+        if (isDjangoEnabled()) {
+            try {
+                const result = await DjangoAPI.upsertGuest(eventId, workingGuest);
+                const merged = result.guest;
+                const guests = readGuestsLocal(eventId).filter((g) => g.slug !== merged.slug);
+                guests.unshift(merged);
+                await saveGuestsLocal(eventId, guests);
+                return { guest: merged, cloudSynced: true };
+            } catch (err) {
+                console.warn("CloudAPI: Django upsert fallback.", err);
+            }
+        }
+
         let cloudGuest = null;
 
         if (isEnabled()) {
@@ -266,6 +297,15 @@ const CloudAPI = (() => {
         markGuestDeleted(eventId, target);
         const guests = allGuests.filter((g) => g.id !== guestId);
         await saveGuestsLocal(eventId, guests);
+
+        if (isDjangoEnabled()) {
+            try {
+                const result = await DjangoAPI.removeGuest(eventId, target);
+                return { removed: true, cloudSynced: result.cloudSynced, reason: "ok" };
+            } catch (err) {
+                console.warn("CloudAPI: Django delete fallback.", err);
+            }
+        }
 
         if (!isEnabled()) {
             return { removed: true, cloudSynced: true, reason: "local_only" };

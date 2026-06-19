@@ -30,6 +30,13 @@ const EventConfig = (() => {
     }
 
     async function fetchEventJson(slug) {
+        if (window.DjangoAPI && DjangoAPI.isEnabled()) {
+            try {
+                return await DjangoAPI.fetchEvent(slug);
+            } catch (err) {
+                console.warn("EventConfig: Django API indisponible, repli JSON local.", err);
+            }
+        }
         const res = await fetch(`../events/${slug}.json`);
         if (!res.ok) throw new Error(`Event ${slug} not found`);
         return res.json();
