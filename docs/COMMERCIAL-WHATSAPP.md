@@ -151,7 +151,7 @@ Je comprends. L'Essentiel digital est à 25 $ — RSVP, liens WhatsApp, programm
 
 L'impression papier est à la carte (dès 0,80 $/ex.) si le budget est serré.
 
-On peut aussi faire digital pour la diaspora + quelques cartes premium pour la cérémonie.
+On peut aussi combiner invitation digitale + quelques cartes premium pour la cérémonie.
 ```
 
 ### « Mes invités ne sont pas tech »

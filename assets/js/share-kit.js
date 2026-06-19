@@ -26,7 +26,11 @@
         { file: "models/model-mariage.png", label: "Modèle Mariage", group: "Modèles événements" },
         { file: "models/model-anniversaire.png", label: "Modèle Anniversaire", group: "Modèles événements" },
         { file: "models/model-conference.png", label: "Modèle Conférence", group: "Modèles événements" },
-        { file: "models/model-sur-mesure.png", label: "Modèle Sur mesure", group: "Modèles événements" },
+        { file: "marketing/pub-mariage-feed-lubumbashi.png", label: "Pub Instagram — Lubumbashi", group: "Marketing mariage" },
+        { file: "marketing/pub-mariage-lubumbashi.png", label: "Pub Lubumbashi — Haut-Katanga", group: "Marketing mariage" },
+        { file: "marketing/pub-mariage-story.png", label: "Pub Story vertical", group: "Marketing mariage" },
+        { file: "marketing/pub-mariage-reel-cover.png", label: "Couverture Reel / TikTok", group: "Marketing mariage" },
+        { file: "marketing/pub-mariage-whatsapp-banner.png", label: "Bannière WhatsApp / Facebook", group: "Marketing mariage" },
     ];
 
     /** Liens publics — URL + image d'aperçu de la page destination */
@@ -68,38 +72,38 @@
         },
     };
 
-    const HASHTAGS = "#MariageRDC #WeddingKinshasa #InvitationDigitale #Michelline #Mariage2026 #RDC #Afrique #MariageCongolais #SaveTheDate";
+    const HASHTAGS = "#MariageLubumbashi #Lubumbashi #HautKatanga #MariageRDC #InvitationDigitale #Michelline #Mariage2026 #RDC #Afrique #MariageCongolais #SaveTheDate";
 
     const CAPTIONS = {
         whatsapp: `💍 ${BRAND} — invitations numériques + cartes imprimées\n\n✅ Enveloppe digitale sur WhatsApp\n✅ RSVP en 30 sec · QR jour J\n✅ Dès 25 $ · Premium 50 $ (+ 30 cartes)\n\n👉 ${SHORT_URL}\n📱 Devis : ${WA_DISPLAY}`,
 
         whatsapp_demo: `✨ Voyez une vraie invitation en action 👇\n\nEnveloppe personnalisée → RSVP → QR code jour J\n\n🔗 Démo live :\n${DEMO_URL}\n\n💬 Devis : ${WA_DISPLAY}`,
 
-        whatsapp_tarifs: `💌 Tarifs ${BRAND} (RDC & Afrique)\n\n• Essentiel — 25 $ (80 invités)\n• Premium — 50 $ (200 invités + 30 cartes)\n• Platinum — 75 $ (500 invités + 50 cartes Élégance)\n\n👉 ${SHORT_URL}\n📱 ${WA_DISPLAY}`,
+        whatsapp_tarifs: `💌 Modèles ${BRAND} — Lubumbashi · Haut-Katanga\n\n• Élégance Rose — Mariage\n• Classique Festif — Anniversaire\n• Prestige Corporate — Événements\n• Sur mesure\n\n👉 ${OFFRES_URL}\n📱 ${WA_DISPLAY}`,
 
         whatsapp_print: `🖨️ Cartes & enveloppes imprimées — ${BRAND}\n\nClassique · Élégance Rose · Prestige Doré\nCombo digital + papier : −10 %\n\nOffres : ${SHORT_URL}\nWhatsApp : ${WA_DISPLAY}`,
 
-        whatsapp_dm: `Bonjour [Prénom] 👋\n\nJe suis [Votre nom], ${BRAND} — invitations numériques pour mariages (RDC & diaspora).\n\nVos invités reçoivent une enveloppe sur WhatsApp, confirment en ligne (RSVP) et un QR code le jour J.\n\n✨ Démo : ${DEMO_URL}\n💰 Tarifs : ${SHORT_URL}\n\nDate prévue : [Date] · Combien d'invités environ ?`,
+        whatsapp_dm: `Bonjour [Prénom] 👋\n\nJe suis [Votre nom], ${BRAND} — invitations numériques pour mariages (Lubumbashi & RDC).\n\nVos invités reçoivent une enveloppe sur WhatsApp, confirment en ligne (RSVP) et un QR code le jour J.\n\n✨ Démo : ${DEMO_URL}\n💰 Modèles : ${OFFRES_URL}\n\nDate prévue : [Date] · Combien d'invités environ ?`,
 
         whatsapp_relance: `Bonjour [Prénom] 😊\n\nPetit rappel — avez-vous pu voir la démo d'invitation ${BRAND} ?\n\n🔗 ${DEMO_URL}\n\nJe peux vous envoyer un devis sur mesure en 2 min.`,
 
-        whatsapp_story: `💍 Invitation numérique dès 25 $\nRSVP · QR · WhatsApp\n👇 ${SHORT_URL}`,
+        whatsapp_story: `💍 Invitation mariage digitale · Lubumbashi\nRSVP · QR · WhatsApp\n👇 ${SHORT_URL}`,
 
-        instagram: `Votre mariage mérite une invitation à la hauteur 💌\n\n📲 Enveloppe digitale + RSVP mobile\n📱 QR code jour J\n🖨️ Cartes physiques en option\n\nDès 25 $ · Premium 50 $ (+ 30 cartes)\n\nLien en bio 👇\nRDC & Afrique 🌍`,
+        instagram: `Votre mariage mérite une invitation à la hauteur 💌\n\n📲 Enveloppe digitale + RSVP mobile\n📱 QR code jour J\n🖨️ Cartes physiques en option\n\nLubumbashi · Haut-Katanga 🇨🇩\n\nLien en bio 👇`,
 
-        instagram_reel: `POV : vos invités reçoivent leur invitation sur WhatsApp 💍\n\nRSVP en 30 sec · QR jour J · Diaspora incluse\n\n${BRAND} — dès 25 $\n\n#MariageRDC #Michelline`,
+        instagram_reel: `POV : vos invités reçoivent leur invitation sur WhatsApp 💍\n\nRSVP en 30 sec · QR jour J · Lubumbashi\n\n${BRAND}\n\n#MariageLubumbashi #Michelline`,
 
-        instagram_story: `Invitation numérique 💌\nRSVP + QR + WhatsApp\nDès 25 $ → lien en bio`,
+        instagram_story: `Invitation numérique 💌\nLubumbashi · RSVP + QR\nModèles → lien en bio`,
 
-        facebook: `${BRAND} — invitations numériques & cartes imprimées (RDC & Afrique).\n\n✓ Enveloppe personnalisée + RSVP mobile\n✓ QR code jour J (accès, table, boissons)\n✓ Cartes Classique / Élégance / Prestige\n\nTarifs : ${SHORT_URL}\nDémo live : ${DEMO_URL}\nWhatsApp : ${WA_DISPLAY}`,
+        facebook: `${BRAND} — invitations numériques & cartes imprimées · Lubumbashi, Haut-Katanga.\n\n✓ Enveloppe personnalisée + RSVP mobile\n✓ QR code jour J (accès, table, boissons)\n✓ Cartes Classique / Élégance / Prestige\n\nModèles : ${OFFRES_URL}\nDémo live : ${DEMO_URL}\nWhatsApp : ${WA_DISPLAY}`,
 
-        tiktok: `Invitation mariage version 2026 💍\n\nPlus de cartes perdues — tout sur le téléphone 📲\nRSVP live + QR jour J\n\n${BRAND} · dès 25 $\nLien : ${SHORT_URL}`,
+        tiktok: `Invitation mariage version 2026 💍\n\nTout sur le téléphone 📲\nRSVP live + QR jour J\n\n${BRAND} · Lubumbashi\nLien : ${SHORT_URL}`,
 
-        bio_whatsapp: `${BRAND} 💍 Invitations numériques · RSVP · QR\nDès 25 $ · RDC & Afrique\n👉 ${SHORT_URL}`,
+        bio_whatsapp: `${BRAND} 💍 Invitations numériques · RSVP · QR\nLubumbashi · Haut-Katanga · RDC\n👉 ${SHORT_URL}`,
 
-        bio_instagram: `💍 Invitations numériques · RSVP · QR\nRDC & Afrique 🌍\nDès 25 $ · Premium + cartes\n👇 Offres & démo`,
+        bio_instagram: `💍 Invitations numériques · RSVP · QR\nLubumbashi · Haut-Katanga 🇨🇩\n👇 Modèles & démo`,
 
-        group_facebook: `Bonjour le groupe 👋\n\nJe partage ${BRAND} — invitations numériques pour mariages (RSVP, WhatsApp, QR jour J). Démo gratuite :\n${DEMO_URL}\n\nTarifs : ${SHORT_URL}\n(Pas de spam — pour couples en préparation 🙏)`,
+        group_facebook: `Bonjour le groupe 👋\n\nJe partage ${BRAND} — invitations numériques pour mariages à Lubumbashi (RSVP, WhatsApp, QR jour J). Démo gratuite :\n${DEMO_URL}\n\nModèles : ${OFFRES_URL}\n(Pas de spam — pour couples en préparation 🙏)`,
     };
 
     /** Statut WhatsApp du jour (rotation L→D) */

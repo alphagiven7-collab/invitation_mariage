@@ -1,13 +1,16 @@
 /* offres.html — catalogue de modèles d'invitations numériques */
 
 :root {
-    --offres-cream: #f9f6f1;
-    --offres-burgundy: #7a1e3c;
-    --offres-burgundy-dark: #5c1830;
-    --offres-gold: #c5a059;
-    --offres-text: #5c4a4a;
-    --offres-text-soft: #8a7570;
-    --offres-shell-max: 28rem;
+    --offres-cream: #f3ece4;
+    --offres-cream-light: #faf7f2;
+    --offres-burgundy: #5c1830;
+    --offres-burgundy-dark: #3d0f1f;
+    --offres-gold: #a8843a;
+    --offres-gold-light: #c5a059;
+    --offres-text: #2f2222;
+    --offres-text-soft: #5c4a4a;
+    --offres-shell-max: 26rem;
+    --offres-gallery-bg: linear-gradient(165deg, #2a1018 0%, #5c1830 42%, #3a1522 100%);
 }
 
 *,
@@ -19,7 +22,9 @@
 .offres-page {
     margin: 0;
     font-family: "Montserrat", system-ui, sans-serif;
-    background: var(--offres-cream);
+    background:
+        radial-gradient(ellipse 120% 80% at 50% -10%, rgba(92, 24, 48, 0.08), transparent 55%),
+        var(--offres-cream);
     color: var(--offres-text);
     min-height: 100vh;
     min-height: 100dvh;
@@ -31,7 +36,7 @@
     max-width: var(--offres-shell-max);
     min-height: 100dvh;
     margin: 0 auto;
-    background: var(--offres-cream);
+    background: transparent;
     position: relative;
     overflow-x: hidden;
     padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0));
@@ -137,43 +142,46 @@
 .offres-section-lead {
     margin: 0;
     padding: 0.5rem 1.15rem 1rem;
-    font-size: 0.68rem;
+    font-size: 0.7rem;
     line-height: 1.55;
     text-align: center;
     color: var(--offres-text-soft);
+    font-weight: 500;
 }
 
 /* ——— Cartes modèles ——— */
 .offres-models {
     display: flex;
     flex-direction: column;
-    gap: 1.1rem;
-    padding: 0 0.85rem 1rem;
+    gap: 0.95rem;
+    padding: 0 0.75rem 1rem;
 }
 
 .offres-model {
     background: #fff;
-    border: 1px solid rgba(197, 160, 89, 0.35);
-    border-radius: 0.75rem;
-    padding: 0.9rem 0.85rem 0.85rem;
-    box-shadow: 0 4px 18px rgba(92, 24, 48, 0.06);
+    border: 1px solid rgba(92, 24, 48, 0.12);
+    border-radius: 0.85rem;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 8px 28px rgba(47, 34, 34, 0.1);
 }
 
 .offres-model--highlight {
-    border: 2px solid var(--offres-gold);
-    box-shadow: 0 6px 22px rgba(197, 160, 89, 0.15);
+    border: 2px solid var(--offres-gold-light);
+    box-shadow: 0 12px 32px rgba(92, 24, 48, 0.14);
 }
 
 .offres-model-head {
     text-align: center;
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.65rem;
-    border-bottom: 1px solid rgba(197, 160, 89, 0.18);
+    margin-bottom: 0;
+    padding: 0.85rem 0.8rem 0.7rem;
+    border-bottom: 1px solid rgba(92, 24, 48, 0.08);
+    background: var(--offres-cream-light);
 }
 
 .offres-model-type {
     margin: 0 0 0.35rem;
-    font-size: 0.48rem;
+    font-size: 0.5rem;
     font-weight: 700;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -183,7 +191,7 @@
 .offres-model-title {
     margin: 0 0 0.35rem;
     font-family: "Playfair Display", Georgia, serif;
-    font-size: 1.05rem;
+    font-size: 1.15rem;
     font-weight: 600;
     color: var(--offres-burgundy);
     line-height: 1.2;
@@ -191,66 +199,134 @@
 
 .offres-model-subtitle {
     margin: 0;
-    font-size: 0.6rem;
+    font-size: 0.64rem;
     line-height: 1.5;
     color: var(--offres-text-soft);
     max-width: 20rem;
     margin-inline: auto;
 }
 
-/* ——— Photos invitation (hauteur réduite) ——— */
-.offres-model-photos {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.45rem;
-    margin-bottom: 0.75rem;
+/* ——— Galerie compacte : enveloppe + carte miniature ——— */
+.offres-model-gallery {
+    padding: 0.65rem 0.85rem 0.75rem;
+    background: var(--offres-gallery-bg);
+    border-block: 1px solid rgba(197, 160, 89, 0.15);
 }
 
-.offres-model-photos--single {
-    grid-template-columns: 1fr;
+.offres-model-gallery-kicker {
+    margin: 0 0 0.5rem;
+    font-size: 0.46rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    text-align: center;
+    color: rgba(197, 160, 89, 0.95);
 }
 
-.offres-model-photo {
+.offres-model-stage {
     position: relative;
+    width: min(100%, 15.5rem);
+    margin: 0 auto;
+    padding: 0 0.35rem 0.15rem;
+}
+
+.offres-model-shot {
+    margin: 0;
+}
+
+.offres-model-shot-link {
     display: block;
-    border-radius: 0.45rem;
-    overflow: hidden;
-    border: 1px solid rgba(197, 160, 89, 0.28);
-    background: var(--offres-cream);
     text-decoration: none;
-    box-shadow: 0 2px 8px rgba(92, 24, 48, 0.06);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
-.offres-model-photo:hover {
+.offres-model-shot-link:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(92, 24, 48, 0.1);
 }
 
-.offres-model-photo img {
+.offres-model-shot-frame {
+    display: block;
+    padding: 0.35rem;
+    background: #fff;
+    border-radius: 0.45rem;
+    box-shadow:
+        0 10px 24px rgba(0, 0, 0, 0.28),
+        0 0 0 1px rgba(197, 160, 89, 0.22);
+}
+
+.offres-model-shot--hero .offres-model-shot-frame img {
     display: block;
     width: 100%;
-    aspect-ratio: 16 / 10;
-    object-fit: cover;
-    object-position: center top;
+    aspect-ratio: 2 / 1;
+    object-fit: contain;
+    object-position: center;
+    background: linear-gradient(180deg, #fcfbfa 0%, #f3f0eb 100%);
+    border-radius: 0.28rem;
 }
 
-.offres-model-photo-label {
-    display: block;
-    padding: 0.28rem 0.35rem;
-    font-size: 0.44rem;
+.offres-model-shot--hero .offres-model-shot-caption {
+    margin: 0.35rem 0 0;
+    font-size: 0.48rem;
     font-weight: 600;
-    letter-spacing: 0.04em;
-    text-align: center;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--offres-text-soft);
-    background: rgba(255, 255, 255, 0.92);
-    border-top: 1px solid rgba(197, 160, 89, 0.15);
+    text-align: center;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.offres-model-shot--mini {
+    position: absolute;
+    right: -0.15rem;
+    bottom: 1.35rem;
+    width: 36%;
+    max-width: 5.5rem;
+    z-index: 2;
+}
+
+.offres-model-shot--mini .offres-model-shot-frame {
+    padding: 0.22rem;
+    border-radius: 0.38rem;
+    box-shadow:
+        0 8px 20px rgba(0, 0, 0, 0.35),
+        0 0 0 1.5px rgba(197, 160, 89, 0.45);
+    transform: rotate(-2.5deg);
+    transition: transform 0.18s ease;
+}
+
+.offres-model-shot--mini .offres-model-shot-link:hover .offres-model-shot-frame {
+    transform: rotate(0deg) scale(1.03);
+}
+
+.offres-model-shot--mini .offres-model-shot-frame img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: contain;
+    object-position: center;
+    background: #fff;
+    border-radius: 0.22rem;
+}
+
+.offres-model-shot--mini .offres-model-shot-caption {
+    margin: 0.28rem 0 0;
+    font-size: 0.38rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.82);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.offres-model-shot-caption {
+    margin: 0;
 }
 
 /* ——— Détails ——— */
 .offres-model-details {
-    margin-bottom: 0.75rem;
+    margin-bottom: 0;
+    padding: 0.85rem 0.9rem 0.75rem;
+    background: #fff;
 }
 
 .offres-model-details-title {
@@ -271,11 +347,11 @@
 
 .offres-model-features li {
     position: relative;
-    font-size: 0.56rem;
-    line-height: 1.45;
+    font-size: 0.58rem;
+    line-height: 1.5;
     color: var(--offres-text-soft);
-    padding: 0.3rem 0 0.3rem 0.65rem;
-    border-bottom: 1px solid rgba(197, 160, 89, 0.1);
+    padding: 0.32rem 0 0.32rem 0.65rem;
+    border-bottom: 1px solid rgba(92, 24, 48, 0.08);
 }
 
 .offres-model-features li:last-child {
@@ -305,23 +381,25 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.45rem;
+    padding: 0 0.9rem 0.9rem;
+    background: #fff;
 }
 
 .offres-model-demo {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 2rem;
-    padding: 0.4rem 0.5rem;
+    min-height: 2.15rem;
+    padding: 0.45rem 0.5rem;
     border-radius: 999px;
-    font-size: 0.48rem;
+    font-size: 0.5rem;
     font-weight: 600;
     letter-spacing: 0.03em;
     text-decoration: none;
     text-align: center;
     color: var(--offres-burgundy);
-    border: 1px solid rgba(122, 30, 60, 0.25);
-    background: rgba(249, 246, 241, 0.85);
+    border: 1.5px solid rgba(92, 24, 48, 0.22);
+    background: var(--offres-cream-light);
     transition: background 0.15s, border-color 0.15s;
 }
 
@@ -335,10 +413,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 2rem;
-    padding: 0.4rem 0.5rem;
+    min-height: 2.15rem;
+    padding: 0.45rem 0.5rem;
     border-radius: 999px;
-    font-size: 0.48rem;
+    font-size: 0.5rem;
     font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -347,6 +425,7 @@
     color: #fff;
     background: var(--offres-burgundy);
     border: none;
+    box-shadow: 0 4px 14px rgba(92, 24, 48, 0.25);
     transition: filter 0.15s, transform 0.15s;
 }
 
@@ -464,7 +543,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .offres-model-photo:hover {
+    .offres-model-shot-link:hover {
         transform: none;
     }
 
