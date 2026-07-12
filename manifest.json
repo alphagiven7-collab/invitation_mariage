@@ -1,11 +1,11 @@
 {
-  "name": "Invitation Événement",
-  "short_name": "Invitation",
-  "description": "Plateforme d'invitation personnalisée",
-  "start_url": "./pages/invitation.html",
+  "name": "Michelline Wedding",
+  "short_name": "Michelline",
+  "description": "Service d'invitations digitales & impressions. RSVP en ligne, QR code, enveloppe personnalisée.",
+  "start_url": "../index.html",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#4caf50",
+  "theme_color": "#5c1830",
   "orientation": "portrait",
   "icons": [
     {
