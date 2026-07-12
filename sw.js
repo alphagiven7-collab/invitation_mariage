@@ -1,4 +1,4 @@
-const CACHE = "invitation-v47";
+const CACHE = "invitation-v50";
 
 self.addEventListener("install", (e) => {
     self.skipWaiting();
@@ -16,26 +16,16 @@ self.addEventListener("fetch", (e) => {
     if (e.request.method !== "GET") return;
 
     const url = new URL(e.request.url);
-    const isHtml =
-        url.pathname.endsWith(".html") ||
-        url.pathname.endsWith("/") ||
-        !url.pathname.split("/").pop().includes(".");
-
-    /* Pages HTML : toujours le réseau en priorité (évite ancienne version cachée) */
-    if (isHtml) {
+    
+    // Pour les pages HTML : toujours réseau, avec fallback cache
+    if (url.pathname.endsWith(".html") || url.pathname.endsWith("/") || !url.pathname.split("/").pop().includes(".")) {
         e.respondWith(
             fetch(e.request).catch(() => caches.match(e.request))
         );
         return;
     }
 
-    const isStatic =
-        url.pathname.includes("/assets/js/") ||
-        url.pathname.includes("/assets/css/") ||
-        url.pathname.includes("/assets/images/");
-
-    if (!isStatic) return;
-
+    // Pour tout le reste (JS, CSS, images, JSON) : réseau d'abord
     e.respondWith(
         fetch(e.request)
             .then((res) => {

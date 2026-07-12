@@ -239,14 +239,19 @@ function parseList(value, max = 12) {
         .slice(0, max);
 }
 
+function getDashboardStorageKey(eventId) {
+    if (window.DashboardSync && typeof window.DashboardSync.scopedKey === "function") {
+        return window.DashboardSync.scopedKey(eventId);
+    }
+    return `${LEGACY_DASHBOARD_KEY}_${eventId || "default"}`;
+}
+
 function loadStateLocalOnly() {
     const cfgDefaults = getConfigDefaults();
     const base = { ...DEFAULT_STATE, ...cfgDefaults };
     try {
         const eventId = getEventId();
-        const scoped = window.DashboardSync
-            ? DashboardSync.scopedKey(eventId)
-            : LEGACY_DASHBOARD_KEY;
+        const scoped = getDashboardStorageKey(eventId);
         const raw = localStorage.getItem(scoped) || localStorage.getItem(LEGACY_DASHBOARD_KEY);
         if (!raw) return base;
         return { ...base, ...JSON.parse(raw) };
@@ -856,7 +861,8 @@ async function persistDashboard(payload, { cloudMessage = true } = {}) {
         }
         return result;
     }
-    localStorage.setItem(LEGACY_DASHBOARD_KEY, JSON.stringify(payload));
+    const scopedKey = getDashboardStorageKey(eventId);
+    localStorage.setItem(scopedKey, JSON.stringify(payload));
     updateCloudStatus(null);
     return { saved: true, cloud: false };
 }
@@ -981,6 +987,7 @@ async function saveSettings(e) {
 async function resetDashboard() {
     const eventId = getEventId();
     localStorage.removeItem(LEGACY_DASHBOARD_KEY);
+    localStorage.removeItem(getDashboardStorageKey(eventId));
     if (window.DashboardSync) {
         localStorage.removeItem(DashboardSync.scopedKey(eventId));
     }

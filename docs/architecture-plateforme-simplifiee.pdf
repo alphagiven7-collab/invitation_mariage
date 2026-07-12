@@ -1,0 +1,44 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 276 >>
+stream
+BT
+/F1 16 Tf
+72 740 Td
+(Architecture simplifiee de la plateforme d invitations et d evenements) Tj
+0 -22 Td
+(Le projet repose sur trois piliers : l organisateur, l invite et la supervision globale.) Tj
+0 -22 Td
+(Le coeur actuel couvre l invitation, la personnalisation, la gestion des invites, le RSVP et le check-in.) Tj
+0 -22 Td
+(La couche cible ajoute des comptes organisateurs, des evenements isoles, des droits clairs et un super admin simple.) Tj
+0 -22 Td
+(Le flux ideal est : inscription, creation d evenement, personnalisation, import des invites, suivi du RSVP et usage du check-in.) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000010 00000 n 
+0000000062 00000 n 
+0000000119 00000 n 
+0000000203 00000 n 
+0000000319 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+0
+%%EOF
