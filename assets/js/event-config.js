@@ -160,7 +160,7 @@ const EventConfig = (() => {
 
         // 2. Tenter de charger le fichier JSON physique
         try {
-            const res = await fetch(`../events/${slug}.json`);
+            const res = await fetch(`../events/${slug}.json`, { cache: "no-store" });
             if (res.ok) return await res.json();
         } catch (e) {
             /* ignore network/fetch error */
