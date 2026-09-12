@@ -18,9 +18,11 @@ const CloudAPI = (() => {
 
     async function request(table, { method = "GET", query = "", body = null, prefer = "" } = {}) {
         if (!isEnabled()) return null;
+        const adminSession = window.AuthGuard && AuthGuard.getSession ? AuthGuard.getSession() : null;
+        const accessToken = adminSession?.accessToken || cfg().anonKey;
         const headers = {
             apikey: cfg().anonKey,
-            Authorization: `Bearer ${cfg().anonKey}`,
+            Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json"
         };
         if (prefer) headers.Prefer = prefer;
@@ -360,11 +362,29 @@ const CloudAPI = (() => {
             message: data.message || ""
         };
         if (isEnabled()) {
-            await request("rsvps", { method: "POST", body: payload, prefer: "return=representation" });
+            const query = resolvedGuestId
+                ? `?event_id=eq.${encodeURIComponent(eventId)}&guest_id=eq.${encodeURIComponent(resolvedGuestId)}&select=id&limit=1`
+                : "";
+            const existing = query ? await request("rsvps", { query }) : null;
+            if (Array.isArray(existing) && existing[0]?.id) {
+                await request("rsvps", {
+                    method: "PATCH",
+                    query: `?id=eq.${encodeURIComponent(existing[0].id)}`,
+                    body: payload,
+                    prefer: "return=representation"
+                });
+            } else {
+                await request("rsvps", { method: "POST", body: payload, prefer: "return=representation" });
+            }
         }
         const key = localKey(eventId, "rsvps");
         const list = JSON.parse(localStorage.getItem(key) || "[]");
-        list.unshift({ ...payload, id: crypto.randomUUID(), created_at: new Date().toISOString() });
+        const localIndex = resolvedGuestId
+            ? list.findIndex((item) => item.guest_id === resolvedGuestId)
+            : -1;
+        const localRecord = { ...payload, id: localIndex >= 0 ? list[localIndex].id : crypto.randomUUID(), created_at: new Date().toISOString() };
+        if (localIndex >= 0) list[localIndex] = localRecord;
+        else list.unshift(localRecord);
         localStorage.setItem(key, JSON.stringify(list));
         return payload;
     }
@@ -438,8 +458,7 @@ const CloudAPI = (() => {
     // --- Personnalisation (event_settings) ---
     async function getEventSettings(eventId) {
         if (!isEnabled()) {
-            const raw = localStorage.getItem(localKey(eventId, "dashboard_state"))
-                || localStorage.getItem("wedding_dashboard_state");
+            const raw = localStorage.getItem(localKey(eventId, "dashboard_state"));
             if (!raw) return null;
             try {
                 return JSON.parse(raw);
@@ -461,12 +480,37 @@ const CloudAPI = (() => {
         };
     }
 
+    async function createEvent(event) {
+        if (!event || !event.id || !event.slug || !event.title) {
+            throw new Error("Configuration d'événement incomplète.");
+        }
+        if (!isEnabled()) return { cloud: false, reason: "offline" };
+
+        const created = await request("events", {
+            method: "POST",
+            body: {
+                id: event.id,
+                slug: event.slug,
+                owner_id: window.AuthGuard?.getSession?.()?.userId || null,
+                type: event.type || "wedding",
+                title: event.title,
+                config_json: event
+            },
+            prefer: "return=representation"
+        });
+        if (!extractGuestRow(created)) {
+            return { cloud: false, reason: "event_create_failed" };
+        }
+
+        const settings = await saveEventSettings(event.id, event);
+        return { cloud: !!settings.cloud, reason: settings.cloud ? "ok" : "settings_save_failed" };
+    }
+
     async function saveEventSettings(eventId, payload) {
         const clean = { ...(payload || {}) };
         delete clean._cloudUpdatedAt;
 
         localStorage.setItem(localKey(eventId, "dashboard_state"), JSON.stringify(payload));
-        localStorage.setItem("wedding_dashboard_state", JSON.stringify(payload));
 
         if (!isEnabled()) {
             return { cloud: false, reason: "offline" };
@@ -621,6 +665,7 @@ const CloudAPI = (() => {
         getGuestbookMessages,
         track,
         getAnalytics,
+        createEvent,
         getEventSettings,
         saveEventSettings,
         getCheckIns,
