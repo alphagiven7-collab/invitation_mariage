@@ -83,6 +83,10 @@ test('EventConfig ignores stale local configuration for a built-in demo', async 
 
   await sandbox.window.EventConfig.init();
   assert.equal(sandbox.window.EventConfig.getConfig().title, 'JSON officiel');
+  assert.equal(
+    sandbox.window.EventConfig.getRegisteredEvents().find((event) => event.slug === 'yanick-keren').title,
+    'Démo'
+  );
 });
 
 test('DashboardSync does not read the legacy shared dashboard state for another event', () => {

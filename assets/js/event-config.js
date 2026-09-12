@@ -5,7 +5,7 @@
 const EventConfig = (() => {
     const DEFAULT_EVENT = "yanick-keren";
     const BUILTIN_EVENTS = [
-        { id: "yanick-keren", slug: "yanick-keren", title: "Mariage de Yanick & Keren", type: "wedding" },
+        { id: "yanick-keren", slug: "yanick-keren", title: "Démo", type: "wedding" },
         { id: "anniversaire-grace", slug: "anniversaire-grace", title: "Anniversaire de Grace", type: "birthday" },
         { id: "conference-tech-2026", slug: "conference-tech-2026", title: "Conférence Tech Kinshasa 2026", type: "conference" }
     ];
@@ -188,19 +188,7 @@ const EventConfig = (() => {
 
     function sanitizeLegacyIdentityOverrides(partial, base) {
         if (!partial || !base) return partial;
-        const blob = JSON.stringify(partial);
-        const isObsoleteYanickKerenDefault = base.id === "yanick-keren"
-            && /josue|divine/i.test(blob);
-        if (!/yanick|keren/i.test(blob) && !isObsoleteYanickKerenDefault) return partial;
-        const out = { ...partial };
-        ["title", "subtitle", "coupleLeft", "coupleRight"].forEach((key) => {
-            const value = String(out[key] || "");
-            if (/yanick|keren/i.test(value) || (isObsoleteYanickKerenDefault && /josue|divine/i.test(value))) {
-                if (base[key]) out[key] = base[key];
-                else delete out[key];
-            }
-        });
-        return out;
+        return partial;
     }
 
     function showEventLoadError(slug) {

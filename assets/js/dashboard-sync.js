@@ -172,7 +172,7 @@ const DashboardSync = (() => {
         return { saved: localOk || cloudResult.cloud, localOk, ...cloudResult };
     }
 
-    /** Remplace Yanick/Keren (cache local ou cloud) par l'identité du JSON événement. */
+    /** Migre uniquement l'ancien jeu de données Josue/Divine de la démo. */
     function syncIdentityFromConfig(state, cfg) {
         if (!cfg) return { state: state || {}, changed: false };
 
