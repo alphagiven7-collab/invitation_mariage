@@ -1038,9 +1038,15 @@
                 if (el) el.textContent = display;
             }
 
+            function fallbackEventStorageKey(suffix) {
+                const params = new URLSearchParams(window.location.search);
+                const eventId = (params.get("event") || "yanick-keren").trim().toLowerCase();
+                return `wedding_event_${eventId}_${suffix}`;
+            }
+
             function fallbackOpenMain(nameFromInput) {
-                const name = (nameFromInput || localStorage.getItem("wedding_guest_name_simple") || "").trim();
-                if (name) localStorage.setItem("wedding_guest_name_simple", name);
+                const name = (nameFromInput || localStorage.getItem(fallbackEventStorageKey("guest_name")) || "").trim();
+                if (name) localStorage.setItem(fallbackEventStorageKey("guest_name"), name);
                 fallbackApplyGuestName(name);
                 const gate = document.getElementById("welcome-gate");
                 const main = document.getElementById("main-view");
@@ -1061,7 +1067,7 @@
                 const personalGate = document.getElementById("gate-personal-container");
                 if (personalGate && !personalGate.classList.contains("hidden")) return;
 
-                const savedName = (localStorage.getItem("wedding_guest_name_simple") || "").trim();
+                const savedName = (localStorage.getItem(fallbackEventStorageKey("guest_name")) || "").trim();
                 if (savedName) {
                     const inputWrap = document.getElementById("gate-name-input-container");
                     const backWrap = document.getElementById("gate-welcome-back-container");

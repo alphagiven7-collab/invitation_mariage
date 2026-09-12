@@ -66,11 +66,20 @@
 
         if (grid && guest && (result.status === "success" || result.status === "duplicate")) {
             const s = CheckinAPI.guestSummary(guest);
-            grid.innerHTML = `
-                <div><span>Table</span><strong>${s.table}</strong></div>
-                <div><span>Personnes</span><strong>${s.adults} ad. · ${s.children} enf.</strong></div>
-                <div style="grid-column:1/-1"><span>Boissons</span><strong>${s.drinks}</strong></div>
-            `;
+            const addDetail = (label, value, fullWidth = false) => {
+                const detail = document.createElement("div");
+                if (fullWidth) detail.style.gridColumn = "1/-1";
+                const labelElement = document.createElement("span");
+                labelElement.textContent = label;
+                const valueElement = document.createElement("strong");
+                valueElement.textContent = value;
+                detail.append(labelElement, valueElement);
+                grid.appendChild(detail);
+            };
+            grid.replaceChildren();
+            addDetail("Table", s.table);
+            addDetail("Personnes", `${s.adults} ad. · ${s.children} enf.`);
+            addDetail("Boissons", s.drinks, true);
             grid.classList.remove("hidden");
         } else if (grid) {
             grid.innerHTML = "";
@@ -89,10 +98,18 @@
         }
     }
 
-    async function handleToken(token) {
+    async function handleToken(token, scannedEventId = null) {
         if (busy || !token) return;
         busy = true;
         const eventId = getEventId();
+        if (scannedEventId && scannedEventId !== eventId) {
+            showResult({
+                status: "invalid",
+                message: "Ce QR appartient à un autre événement."
+            });
+            setTimeout(() => { busy = false; }, 1200);
+            return;
+        }
         const staff = (document.getElementById("checkin-staff-name")?.value || "").trim();
         const result = await CheckinAPI.performCheckIn(eventId, token, {
             scannedBy: staff || null,
@@ -105,7 +122,7 @@
     async function onScan(decodedText) {
         const parsed = CheckinUrl.parseScannedValue(decodedText);
         if (!parsed || !parsed.token) return;
-        await handleToken(parsed.token);
+        await handleToken(parsed.token, parsed.eventId);
     }
 
     async function startScanner() {
@@ -151,7 +168,7 @@
         document.getElementById("checkin-manual-btn")?.addEventListener("click", () => {
             const raw = document.getElementById("checkin-manual-token")?.value || "";
             const parsed = CheckinUrl.parseScannedValue(raw);
-            if (parsed?.token) handleToken(parsed.token);
+            if (parsed?.token) handleToken(parsed.token, parsed.eventId);
         });
 
         document.getElementById("checkin-manual-token")?.addEventListener("keydown", (e) => {

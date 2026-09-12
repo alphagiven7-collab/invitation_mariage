@@ -7,7 +7,7 @@ VALUES (
     'event-assets',
     true,
     5242880,
-    ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg']
+    ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/x-m4a']
 )
 ON CONFLICT (id) DO UPDATE SET
     public = EXCLUDED.public,

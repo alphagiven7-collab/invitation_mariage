@@ -65,6 +65,13 @@ const CheckinAPI = (() => {
                     : "RSVP non confirmé — accès refusé"
             };
         }
+        if (!guest.qrApproved) {
+            return {
+                ok: false,
+                status: "invalid",
+                message: "QR non validé par l'organisateur — accès refusé"
+            };
+        }
 
         const existing = await getExistingCheckIn(eventId, token);
         if (existing) {

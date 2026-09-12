@@ -104,6 +104,8 @@ function getConfigDefaults() {
         subtitle: cfg?.subtitle || "Josue et Divine",
         coupleLeft: cfg?.coupleLeft || "Divine",
         coupleRight: cfg?.coupleRight || "Josue",
+        welcomeImage: cfg?.branding?.welcomeImage || "",
+        heroImage: cfg?.branding?.heroImage || "",
         welcomeMessage: cfg?.welcomeMessage || "",
         gateHint: cfg?.gateHint || "",
         inviteIntro: cfg?.inviteIntro || "C'est avec une grande joie que {couple} vous invitent à célébrer leur mariage.",
@@ -243,7 +245,7 @@ function getDashboardStorageKey(eventId) {
     if (window.DashboardSync && typeof window.DashboardSync.scopedKey === "function") {
         return window.DashboardSync.scopedKey(eventId);
     }
-    return `${LEGACY_DASHBOARD_KEY}_${eventId || "default"}`;
+    return `wedding_event_${eventId || "default"}_dashboard_state`;
 }
 
 function loadStateLocalOnly() {
@@ -252,7 +254,7 @@ function loadStateLocalOnly() {
     try {
         const eventId = getEventId();
         const scoped = getDashboardStorageKey(eventId);
-        const raw = localStorage.getItem(scoped) || localStorage.getItem(LEGACY_DASHBOARD_KEY);
+        const raw = localStorage.getItem(scoped);
         if (!raw) return base;
         return { ...base, ...JSON.parse(raw) };
     } catch {
@@ -760,25 +762,41 @@ function wireMusicControls() {
     upload?.addEventListener("change", async (e) => {
         const file = (e.target.files || [])[0];
         if (!file) return;
-        if (file.size > 5 * 1024 * 1024) {
-            showToast("Fichier trop volumineux (max 5 Mo).");
-            e.target.value = "";
-            return;
-        }
+        const uploadLabel = upload.closest("label") || upload;
+        const eventId = getEventId();
         try {
-            const reader = new FileReader();
-            const dataUrl = await new Promise((resolve, reject) => {
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
-            urlField.value = dataUrl;
-            showToast("Audio importé — sauvegardez pour l'appliquer à l'invitation.");
+            if (window.ButtonLoading) {
+                ButtonLoading.setLoading(uploadLabel, true, "Téléversement…");
+            }
+            let audioUrl = "";
+            if (window.MediaUpload && typeof MediaUpload.processAudioFile === "function") {
+                audioUrl = await MediaUpload.processAudioFile(file, eventId, "background-music");
+            } else if (window.MediaUpload && typeof MediaUpload.processFile === "function") {
+                audioUrl = await MediaUpload.processFile(file, eventId, "background-music");
+            } else {
+                const reader = new FileReader();
+                audioUrl = await new Promise((resolve, reject) => {
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+            if (urlField) urlField.value = audioUrl;
+            if (preview) {
+                preview.src = audioUrl;
+                preview.volume = Number(vol?.value || 35) / 100;
+            }
+            showToast("Audio importé avec succès — enregistrez pour appliquer.");
             schedulePreviewRefresh(400);
-        } catch {
-            showToast("Impossible de lire le fichier audio.");
+        } catch (err) {
+            console.error("Erreur import audio:", err);
+            showToast(err.message || "Impossible de charger le fichier audio.");
+        } finally {
+            if (window.ButtonLoading) {
+                ButtonLoading.setLoading(uploadLabel, false);
+            }
+            e.target.value = "";
         }
-        e.target.value = "";
     });
 }
 
@@ -986,7 +1004,6 @@ async function saveSettings(e) {
 
 async function resetDashboard() {
     const eventId = getEventId();
-    localStorage.removeItem(LEGACY_DASHBOARD_KEY);
     localStorage.removeItem(getDashboardStorageKey(eventId));
     if (window.DashboardSync) {
         localStorage.removeItem(DashboardSync.scopedKey(eventId));
@@ -1008,7 +1025,7 @@ function initScrollSpy() {
                 link.classList.toggle("active", link.getAttribute("href") === `#${id}`);
             });
         });
-    }, { root: null, rootMarin: "-20% 0px -60% 0px", threshold: 0.1 });
+    }, { root: null, rootMargin: "-20% 0px -60% 0px", threshold: 0.1 });
 
     sections.forEach((sec) => observer.observe(sec));
     if (links[0]) links[0].classList.add("active");
@@ -1023,6 +1040,30 @@ function wireNavLinks() {
     });
     const admin = document.getElementById("link-admin");
     if (admin) admin.href = `./admin.html${q}`;
+
+    const switcher = document.getElementById("perso-event-switcher");
+    if (switcher && EventConfig.getRegisteredEvents) {
+        const currentEventId = getEventId();
+        const platformAdmin = window.AuthGuard && AuthGuard.isPlatformAdmin();
+        const events = platformAdmin
+            ? EventConfig.getRegisteredEvents()
+            : EventConfig.getRegisteredEvents().filter((event) => event.slug === currentEventId);
+        switcher.innerHTML = "";
+        events.forEach((ev) => {
+            const opt = document.createElement("option");
+            opt.value = ev.slug;
+            opt.textContent = `${ev.type === "birthday" ? "🎂" : ev.type === "conference" ? "🎤" : "💍"} ${ev.title || ev.slug}`;
+            if (ev.slug === currentEventId) opt.selected = true;
+            switcher.appendChild(opt);
+        });
+        switcher.disabled = !platformAdmin;
+        switcher.onchange = () => {
+            const target = switcher.value;
+            if (target && target !== currentEventId) {
+                window.location.href = `./personnalisation.html?event=${encodeURIComponent(target)}`;
+            }
+        };
+    }
 }
 
 window.addEventListener("DOMContentLoaded", async () => {

@@ -12,9 +12,17 @@
 <body class="admin-shell text-slate-800">
     <main class="dash-wrap">
         <header class="admin-header">
-            <p class="admin-overline">Studio concepteur</p>
-            <h1>Personnaliser l'invitation</h1>
-            <p class="admin-subtitle">Programme du jour · lieu &amp; GPS · infos pratiques · textes · photos · date · couleurs — sauvegarde cloud + aperçu live.</p>
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+                <div>
+                    <p class="admin-overline">Studio concepteur</p>
+                    <h1>Personnaliser l'invitation</h1>
+                    <p class="admin-subtitle">Programme du jour · lieu &amp; GPS · infos pratiques · textes · photos · date · couleurs — sauvegarde cloud + aperçu live.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <select id="perso-event-switcher" class="admin-select" style="max-width:240px; font-weight:600;" aria-label="Changer d'événement"></select>
+                    <a href="./admin.html" class="admin-head-btn primary">➕ Nouvelle invitation</a>
+                </div>
+            </div>
             <span id="cloud-status" class="admin-cloud-pill offline">Sync cloud…</span>
             <div class="admin-head-actions">
                 <a id="link-view-invitation" href="./invitation.html" class="admin-head-btn primary">Voir l'invitation</a>

@@ -2,6 +2,7 @@
   "name": "invitation-mariage",
   "private": true,
   "scripts": {
+    "test": "node --test tests/*.test.js",
     "build:css": "tailwindcss -i ./assets/css/tailwind.src.css -o ./assets/css/tailwind.min.css --minify",
     "watch:css": "tailwindcss -i ./assets/css/tailwind.src.css -o ./assets/css/tailwind.min.css --watch"
   },

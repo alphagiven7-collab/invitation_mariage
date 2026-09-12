@@ -15,6 +15,7 @@
 1. Menu gauche → **SQL Editor** → **New query**
 2. Copiez-collez tout le contenu de `docs/SUPABASE-SETUP.sql` → **Run**
 3. Même chose avec `docs/SUPABASE-SEED.sql` → **Run**
+4. Exécutez `docs/SUPABASE-RELIABILITY-MIGRATION.sql` → **Run** pour activer la création d'événements et éviter les RSVP en double.
 
 ## Étape C — Récupérer vos clés (1 min)
 

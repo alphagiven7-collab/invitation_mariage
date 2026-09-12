@@ -1,8 +1,6 @@
         const DESIGNER_ACCESS_CODE = 'YANICK-KEREN-ADMIN';
         const designerModeKey = 'wedding_designer_mode';
         const dashboardStateKey = 'wedding_dashboard_state';
-        const rsvpListKey = 'wedding_rsvp_list';
-        const guestbookListKey = 'wedding_guestbook_messages';
         let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
         let guestName = '';
         let currentGuestProfile = null;
@@ -10,6 +8,13 @@
         let bestGalleryImages = [];
         let bestGalleryIndex = 0;
         let bestGalleryInterval = null;
+
+        function eventStorageKey(suffix) {
+            const eventId = window.EventConfig && EventConfig.getEventId
+                ? EventConfig.getEventId()
+                : 'yanick-keren';
+            return `wedding_event_${eventId}_${suffix}`;
+        }
 
         function applyGuestName(name) {
             const display = (name || '').trim().length > 1 ? name.trim() : 'Invite(e)';
@@ -25,7 +30,7 @@
                     return;
                 }
                 guestName = input;
-                localStorage.setItem('wedding_guest_name_simple', guestName);
+                localStorage.setItem(eventStorageKey('guest_name'), guestName);
                 openMainSite(ev, { skipLoader: true });
             };
             if (window.ButtonLoading) {
@@ -38,7 +43,7 @@
             const { skipLoader = false } = options;
             const run = () => {
                 if (!guestName) {
-                    guestName = (localStorage.getItem('wedding_guest_name_simple') || '').trim();
+                    guestName = (localStorage.getItem(eventStorageKey('guest_name')) || '').trim();
                 }
                 if (window.GuestExperience && GuestExperience.getProfile()) {
                     applyGuestProfile(GuestExperience.getProfile());
@@ -83,7 +88,7 @@
             currentGuestProfile = guest;
             guestName = guest.fullName || guestName;
             applyGuestName(guestName);
-            localStorage.setItem('wedding_guest_name_simple', guestName);
+            localStorage.setItem(eventStorageKey('guest_name'), guestName);
 
             const setVal = (id, val, markPrefilled = true) => {
                 const el = document.getElementById(id);
@@ -119,13 +124,18 @@
             document.getElementById('gate-personal-container').classList.remove('hidden');
 
             const cfg = EventConfig.getConfig && EventConfig.getConfig();
-            const couple = (cfg && cfg.subtitle) ? cfg.subtitle : 'Josue & Divine';
+            let couple = 'Les mariés';
+            if (cfg) {
+                if (cfg.coupleLeft && cfg.coupleRight) couple = `${cfg.coupleLeft} & ${cfg.coupleRight}`;
+                else if (cfg.subtitle) couple = cfg.subtitle;
+                else if (cfg.title) couple = cfg.title;
+            }
             const firstName = (guest.fullName || '').split(' ')[0];
 
             document.getElementById('gate-personal-greeting').textContent = `Cher/Chère ${guest.fullName}`;
             document.getElementById('gate-personal-message').innerHTML =
-                `<strong>${couple}</strong> ont le bonheur de vous inviter <strong>personnellement</strong> à célébrer leur union.<br><br>` +
-                `Cette enveloppe a été préparée uniquement pour vous, <strong>${firstName}</strong>. ` +
+                `<strong>${escapeHtml(couple)}</strong> ont le bonheur de vous inviter <strong>personnellement</strong> à célébrer leur union.<br><br>` +
+                `Cette enveloppe a été préparée uniquement pour vous, <strong>${escapeHtml(firstName)}</strong>. ` +
                 `Votre présence serait pour eux un immense bonheur.`;
         }
 
@@ -141,7 +151,7 @@
                 return;
             }
             const cfg = EventConfig.getConfig && EventConfig.getConfig();
-            const eventTitle = (cfg && cfg.title) ? cfg.title : 'Mariage de Josue et Divine';
+            const eventTitle = (cfg && cfg.title) ? cfg.title : (document.title || 'Invitation');
             const isYes = payload.status === 'yes';
 
             document.getElementById('confirm-title').textContent = isYes
@@ -156,11 +166,12 @@
                 : `Vous avez indiqué ne pas pouvoir être présent(e).`;
             document.getElementById('confirm-code-line').textContent = confirmCode;
 
+            const curEventId = EventConfig.getEventId ? EventConfig.getEventId() : 'yanick-keren';
             const qrData = (window.CheckinUrl && currentGuestProfile && currentGuestProfile.token)
-                ? CheckinUrl.buildCheckInUrl(currentGuestProfile, EventConfig.getEventId ? EventConfig.getEventId() : 'yanick-keren')
+                ? CheckinUrl.buildCheckInUrl(currentGuestProfile, curEventId)
                 : JSON.stringify({
                 code: confirmCode,
-                event: EventConfig.getEventId ? EventConfig.getEventId() : 'yanick-keren',
+                event: curEventId,
                 name: payload.name,
                 phone: payload.phone,
                 status: payload.status,
@@ -230,7 +241,7 @@
                         CloudAPI.track(EventConfig.getEventId(), 'guest_link_open', { guestToken: token });
                     }
                     if (guestByToken.status === 'yes' || guestByToken.status === 'no') {
-                        const saved = localStorage.getItem(`wedding_confirm_${token}`);
+                        const saved = localStorage.getItem(eventStorageKey(`confirm_${token}`));
                         if (saved) {
                             try {
                                 const data = JSON.parse(saved);
@@ -266,7 +277,7 @@
                 return;
             }
 
-            const savedName = (localStorage.getItem('wedding_guest_name_simple') || '').trim();
+            const savedName = (localStorage.getItem(eventStorageKey('guest_name')) || '').trim();
             const startName = resolvedName ? decodeURIComponent(resolvedName.replace(/\+/g, ' ')) : savedName;
             if (startName) {
                 guestName = startName;
@@ -465,7 +476,7 @@
         function getCurrentCustomizationState() {
             let savedBlocks = {};
             try {
-                const raw = localStorage.getItem(dashboardStateKey);
+                const raw = localStorage.getItem(eventStorageKey('dashboard_state'));
                 if (raw) savedBlocks = JSON.parse(raw);
             } catch { /* ignore */ }
 
@@ -828,7 +839,7 @@
                 ? EventConfig.storageKey('dashboard_state')
                 : dashboardStateKey;
             try {
-                const raw = localStorage.getItem(scopedKey) || localStorage.getItem(dashboardStateKey);
+                const raw = localStorage.getItem(scopedKey);
                 return raw ? JSON.parse(raw) : {};
             } catch {
                 return {};
@@ -885,7 +896,6 @@
                 ? EventConfig.storageKey('dashboard_state')
                 : dashboardStateKey;
             localStorage.setItem(scopedKey, JSON.stringify(state));
-            localStorage.setItem(dashboardStateKey, JSON.stringify(state));
             if (window.DashboardSync && EventConfig.isReady()) {
                 DashboardSync.save(EventConfig.getEventId(), state).catch(() => {});
             }
@@ -896,7 +906,7 @@
             if (!defaultCustomizationState) return;
             populateCustomizerFields(defaultCustomizationState);
             applyCustomizationState(defaultCustomizationState);
-            localStorage.removeItem(dashboardStateKey);
+            localStorage.removeItem(eventStorageKey('dashboard_state'));
             showToast('Configuration reinitialisee');
         }
 
@@ -964,11 +974,8 @@
                     showToast('Téléphone invalide (9 chiffres minimum).');
                     return;
                 }
-                localStorage.setItem('wedding_rsvp_data', JSON.stringify(payload));
-                const rsvpList = readLocalJson(rsvpListKey, []);
-                rsvpList.unshift(payload);
-                localStorage.setItem(rsvpListKey, JSON.stringify(rsvpList));
-                localStorage.setItem('wedding_rsvp_status', payload.status);
+                localStorage.setItem(eventStorageKey('rsvp_data'), JSON.stringify(payload));
+                localStorage.setItem(eventStorageKey('rsvp_status'), payload.status);
 
                 if (window.GuestManager) {
                     const urlParams = new URLSearchParams(window.location.search);
@@ -999,11 +1006,11 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const token = urlParams.get('t');
                 if (token) {
-                    localStorage.setItem(`wedding_confirm_${token}`, JSON.stringify({ payload, code: confirmCode }));
+                    localStorage.setItem(eventStorageKey(`confirm_${token}`), JSON.stringify({ payload, code: confirmCode }));
                 }
                 if (payload.name) {
                     const slug = payload.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-                    localStorage.setItem(`wedding_confirm_name_${slug}`, JSON.stringify({ payload, code: confirmCode }));
+                    localStorage.setItem(eventStorageKey(`confirm_name_${slug}`), JSON.stringify({ payload, code: confirmCode }));
                 }
 
                 if (window.GuestExperience) {
@@ -1064,26 +1071,34 @@
                     .toUpperCase() || 'IN';
                 const card = document.createElement('div');
                 card.className = 'bg-white p-4 rounded-xl shadow-sm border border-gray-50';
-                card.innerHTML = `
-                    <div class="flex items-center space-x-2 mb-2">
-                        <div class="w-8 h-8 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center font-bold text-xs">${initials}</div>
-                        <div>
-                            <p class="text-xs font-bold msg-author"></p>
-                            <p class="text-[9px] text-gray-400 msg-time"></p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-gray-600 msg-content"></p>`;
-                card.querySelector('.msg-author').textContent = item.author || 'Invité';
-                card.querySelector('.msg-time').textContent = item.sentAt ? new Date(item.sentAt).toLocaleString('fr-FR') : "A l'instant";
-                card.querySelector('.msg-content').textContent = item.message || '';
+                const header = document.createElement('div');
+                header.className = 'flex items-center space-x-2 mb-2';
+                const avatar = document.createElement('div');
+                avatar.className = 'w-8 h-8 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center font-bold text-xs';
+                avatar.textContent = initials;
+                const metadata = document.createElement('div');
+                const author = document.createElement('p');
+                author.className = 'text-xs font-bold';
+                author.textContent = item.author || 'Invité';
+                const sentAt = document.createElement('p');
+                sentAt.className = 'text-[9px] text-gray-400';
+                sentAt.textContent = item.sentAt ? new Date(item.sentAt).toLocaleString('fr-FR') : "A l'instant";
+                const content = document.createElement('p');
+                content.className = 'text-xs text-gray-600';
+                content.textContent = item.message || '';
+                metadata.append(author, sentAt);
+                header.append(avatar, metadata);
+                card.append(header, content);
                 container.appendChild(card);
             });
         }
 
         async function loadGuestbookMessages() {
-            let messages = readLocalJson(guestbookListKey, []);
+            let messages = readLocalJson(eventStorageKey('guestbook_messages'), []);
             if (window.CloudAPI && EventConfig.isReady()) {
-                const cloud = await CloudAPI.getGuestbookMessages(EventConfig.getEventId());
+                const cloud = CloudAPI.getPublicGuestbookMessages
+                    ? await CloudAPI.getPublicGuestbookMessages(EventConfig.getEventId())
+                    : await CloudAPI.getGuestbookMessages(EventConfig.getEventId());
                 if (cloud && cloud.length) {
                     messages = cloud.map((m) => ({
                         author: m.author_name || m.authorName,
@@ -1112,15 +1127,20 @@
 
                 const author = guestName || 'Invité';
                 const newItem = { author, message, sentAt: new Date().toISOString() };
-                const messages = readLocalJson(guestbookListKey, []);
+                const messages = readLocalJson(eventStorageKey('guestbook_messages'), []);
                 messages.unshift(newItem);
-                localStorage.setItem(guestbookListKey, JSON.stringify(messages));
+                localStorage.setItem(eventStorageKey('guestbook_messages'), JSON.stringify(messages));
 
                 if (window.CloudAPI && EventConfig.isReady()) {
-                    await CloudAPI.addGuestbookMessage(EventConfig.getEventId(), {
-                        authorName: author,
-                        message
-                    });
+                    const token = new URLSearchParams(window.location.search).get('t') || '';
+                    if (CloudAPI.postGuestbookMessage && token) {
+                        await CloudAPI.postGuestbookMessage(EventConfig.getEventId(), token, message);
+                    } else if (!CloudAPI.postGuestbookMessage) {
+                        await CloudAPI.addGuestbookMessage(EventConfig.getEventId(), {
+                            authorName: author,
+                            message
+                        });
+                    }
                     CloudAPI.track(EventConfig.getEventId(), 'guestbook_post', {});
                 }
 
@@ -1137,13 +1157,13 @@
         }
 
         function exportRsvpData() {
-            const rows = readLocalJson(rsvpListKey, []);
+            const rows = readLocalJson(eventStorageKey('rsvp_list'), []);
             downloadJsonFile('rsvp-data.json', rows);
             showToast('Export RSVP téléchargé.');
         }
 
         function exportGuestbookData() {
-            const rows = readLocalJson(guestbookListKey, []);
+            const rows = readLocalJson(eventStorageKey('guestbook_messages'), []);
             downloadJsonFile('livre-or-data.json', rows);
             showToast('Export livre d\'or téléchargé.');
         }
@@ -1373,7 +1393,7 @@
                     dashboardState = null;
                 }
             } else {
-                const savedState = localStorage.getItem(scopedDashboardKey) || localStorage.getItem(dashboardStateKey);
+                const savedState = localStorage.getItem(scopedDashboardKey);
                 if (savedState) {
                     try {
                         dashboardState = JSON.parse(savedState);

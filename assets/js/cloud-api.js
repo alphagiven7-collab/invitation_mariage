@@ -53,6 +53,28 @@ const CloudAPI = (() => {
         }
     }
 
+    async function requestRpc(functionName, body) {
+        if (!isEnabled()) return null;
+        const adminSession = window.AuthGuard && AuthGuard.getSession ? AuthGuard.getSession() : null;
+        const accessToken = adminSession?.accessToken || cfg().anonKey;
+        const response = await fetch(`${cfg().url}/rest/v1/rpc/${functionName}`, {
+            method: "POST",
+            headers: {
+                apikey: cfg().anonKey,
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body || {})
+        });
+        if (!response.ok) {
+            const error = await response.text().catch(() => "");
+            console.warn("CloudAPI RPC", functionName, response.status, error.slice(0, 240));
+            return null;
+        }
+        const data = await response.json().catch(() => null);
+        return Array.isArray(data) ? data[0] || null : data;
+    }
+
     function deletedGuestsKey(eventId) {
         return localKey(eventId, "deleted_guests");
     }
@@ -480,6 +502,42 @@ const CloudAPI = (() => {
         };
     }
 
+    async function getPublicEventConfig(eventId) {
+        return requestRpc("get_public_event_config", { p_event_id: eventId });
+    }
+
+    async function getGuestByInviteToken(token) {
+        const guest = await requestRpc("get_guest_invite", { p_token: token });
+        return guest ? mapGuestFromCloud(guest) : null;
+    }
+
+    async function submitGuestRsvp(token, data) {
+        const guest = await requestRpc("submit_guest_rsvp", {
+            p_token: token,
+            p_phone: data.phone || "",
+            p_status: data.status === "yes" ? "yes" : "no",
+            p_adults: Number(data.adults) || 1,
+            p_children: Number(data.children) || 0,
+            p_message: data.message || "",
+            p_drink_choices: Array.isArray(data.drinkChoices) ? data.drinkChoices : [],
+            p_profile_photo_url: data.profilePhotoUrl || ""
+        });
+        return guest ? mapGuestFromCloud(guest) : null;
+    }
+
+    async function getPublicGuestbookMessages(eventId) {
+        const messages = await requestRpc("get_public_guestbook_messages", { p_event_id: eventId });
+        return Array.isArray(messages) ? messages : [];
+    }
+
+    async function postGuestbookMessage(eventId, token, message) {
+        return requestRpc("post_guestbook_message", {
+            p_event_id: eventId,
+            p_token: token,
+            p_message: message
+        });
+    }
+
     async function createEvent(event) {
         if (!event || !event.id || !event.slug || !event.title) {
             throw new Error("Configuration d'événement incomplète.");
@@ -567,6 +625,7 @@ const CloudAPI = (() => {
     function mapGuestFromCloud(row) {
         return {
             id: row.id,
+            eventId: row.event_id,
             slug: row.slug,
             fullName: row.full_name,
             phone: row.phone || "",
@@ -667,6 +726,11 @@ const CloudAPI = (() => {
         getAnalytics,
         createEvent,
         getEventSettings,
+        getPublicEventConfig,
+        getGuestByInviteToken,
+        submitGuestRsvp,
+        getPublicGuestbookMessages,
+        postGuestbookMessage,
         saveEventSettings,
         getCheckIns,
         insertCheckIn,

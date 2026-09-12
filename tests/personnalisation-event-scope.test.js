@@ -61,5 +61,5 @@ test('getDashboardStorageKey uses an event-specific key when DashboardSync is un
 
   vm.runInNewContext(source, sandbox, { filename: 'personnalisation.js' });
 
-  assert.equal(sandbox.getDashboardStorageKey('event-42'), 'wedding_dashboard_state_event-42');
+  assert.equal(sandbox.getDashboardStorageKey('event-42'), 'wedding_event_event-42_dashboard_state');
 });

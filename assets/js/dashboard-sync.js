@@ -107,7 +107,7 @@ const DashboardSync = (() => {
 
     function readLocal(eventId) {
         try {
-            const raw = localStorage.getItem(scopedKey(eventId)) || localStorage.getItem(LEGACY_KEY);
+            const raw = localStorage.getItem(scopedKey(eventId));
             return raw ? JSON.parse(raw) : null;
         } catch {
             return null;
@@ -127,7 +127,6 @@ const DashboardSync = (() => {
         try {
             const json = JSON.stringify(payload);
             localStorage.setItem(scopedKey(eventId), json);
-            localStorage.setItem(LEGACY_KEY, json);
             return true;
         } catch (e) {
             console.warn("DashboardSync: localStorage plein ou inaccessible", e);

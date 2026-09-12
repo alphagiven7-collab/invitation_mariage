@@ -4,6 +4,7 @@
  */
 const GuestManager = (() => {
     let cache = null;
+    let cacheEventId = null;
 
     function getEventId() {
         if (window.EventConfig && EventConfig.isReady()) return EventConfig.getEventId();
@@ -42,11 +43,7 @@ const GuestManager = (() => {
         const base = EventConfig.buildInvitationBaseUrl();
         const params = new URLSearchParams();
         params.set("event", getEventId());
-        params.set("guest", guest.slug);
-        params.set("nom", guest.fullName);
         params.set("t", guest.token);
-        const phone = (guest.phone || "").replace(/\s/g, "");
-        if (phone) params.set("tel", phone);
         return `${base}?${params.toString()}`;
     }
 
@@ -69,9 +66,10 @@ const GuestManager = (() => {
     }
 
     async function loadGuests(force = false) {
-        if (cache && !force) return cache;
+        const eventId = getEventId();
+        if (cache && cacheEventId === eventId && !force) return cache;
         if (window.CloudAPI) {
-            cache = await CloudAPI.getGuests(getEventId());
+            cache = await CloudAPI.getGuests(eventId);
         } else {
             try {
                 const raw = localStorage.getItem(storageKey());
@@ -80,6 +78,7 @@ const GuestManager = (() => {
                 cache = [];
             }
         }
+        cacheEventId = eventId;
         return cache;
     }
 
@@ -156,6 +155,11 @@ const GuestManager = (() => {
 
     async function findByToken(token) {
         if (!token) return null;
+        if (window.CloudAPI && CloudAPI.isEnabled() && CloudAPI.getGuestByInviteToken) {
+            const guest = await CloudAPI.getGuestByInviteToken(token);
+            if (guest && guest.eventId === getEventId()) return guest;
+            return null;
+        }
         const guests = await loadGuests();
         return guests.find((g) => g.token === token) || null;
     }
@@ -196,13 +200,14 @@ const GuestManager = (() => {
         }
         if (patch.profilePhotoUrl !== undefined) next.profilePhotoUrl = String(patch.profilePhotoUrl || "").trim();
         if (patch.checkedInAt !== undefined) next.checkedInAt = patch.checkedInAt || null;
+        guests[idx] = next;
         await persistGuests(guests);
-        let saved = guests[idx];
+        let saved = next;
         let cloudSynced = !(window.CloudAPI && CloudAPI.isEnabled());
         if (window.CloudAPI && CloudAPI.isEnabled()) {
             try {
-                const result = await CloudAPI.upsertGuest(getEventId(), guests[idx]);
-                saved = result?.guest || guests[idx];
+            const result = await CloudAPI.upsertGuest(getEventId(), next);
+            saved = result?.guest || next;
                 cloudSynced = !!result?.cloudSynced;
             } catch (e) {
                 console.warn("GuestManager.updateGuest cloud sync", e);
@@ -217,6 +222,21 @@ const GuestManager = (() => {
     }
 
     async function recordRSVP({ guestId, fullName, phone, status, adults, children, message, drinkChoices, inviteToken, profilePhotoUrl }) {
+        if (inviteToken && window.CloudAPI && CloudAPI.isEnabled() && CloudAPI.submitGuestRsvp) {
+            const cloudGuest = await CloudAPI.submitGuestRsvp(inviteToken, {
+                phone,
+                status,
+                adults,
+                children,
+                message,
+                drinkChoices,
+                profilePhotoUrl
+            });
+            if (!cloudGuest || cloudGuest.eventId !== getEventId()) return null;
+            cache = null;
+            cacheEventId = null;
+            return cloudGuest;
+        }
         await loadGuests(true);
         const guests = await loadGuests();
         let guest = guestId ? guests.find((g) => g.id === guestId) : null;
@@ -229,10 +249,6 @@ const GuestManager = (() => {
         }
         if (!guest) return null;
 
-        const isPersonalInvite = !!(inviteToken && guest.token === inviteToken);
-        const qrApproved = status === "yes" && isPersonalInvite
-            ? true
-            : !!(guest.qrApproved);
         const nextAccessCode = guest.accessCode || guest.token.slice(0, 8).toUpperCase();
 
         const patch = {
@@ -244,14 +260,15 @@ const GuestManager = (() => {
             drinkChoices: Array.isArray(drinkChoices) ? drinkChoices : guest.drinkChoices || [],
             accessCode: nextAccessCode,
             respondedAt: new Date().toISOString(),
-            qrApproved
+            qrApproved: !!guest.qrApproved
         };
         if (profilePhotoUrl) patch.profilePhotoUrl = profilePhotoUrl;
 
         const updated = await updateGuest(guest.id, patch);
 
         if (window.CloudAPI && CloudAPI.isEnabled()) {
-            const synced = await CloudAPI.upsertGuest(getEventId(), { ...guest, ...updated });
+            const syncedGuest = updated?.guest || updated || guest;
+            const synced = await CloudAPI.upsertGuest(getEventId(), syncedGuest);
             await CloudAPI.recordRSVP(getEventId(), {
                 guestId: synced ? synced.id : guest.id,
                 fullName: fullName || guest.fullName,
@@ -263,14 +280,49 @@ const GuestManager = (() => {
             });
         }
         cache = null;
+        cacheEventId = null;
         return updated?.guest || updated;
     }
 
-    function parseCSV(text) {
-        const lines = text.trim().split(/\r?\n/).filter(Boolean);
-        if (lines.length < 2) return { imported: 0, skipped: 0, guests: [] };
+    function parseCsvRecords(text) {
+        const records = [];
+        let record = [];
+        let field = "";
+        let quoted = false;
+        const source = String(text || "").replace(/^\uFEFF/, "");
 
-        const header = lines[0].split(",").map((h) => h.trim().toLowerCase());
+        for (let index = 0; index < source.length; index++) {
+            const character = source[index];
+            if (character === '"') {
+                if (quoted && source[index + 1] === '"') {
+                    field += '"';
+                    index++;
+                } else {
+                    quoted = !quoted;
+                }
+            } else if (character === "," && !quoted) {
+                record.push(field.trim());
+                field = "";
+            } else if ((character === "\n" || character === "\r") && !quoted) {
+                if (character === "\r" && source[index + 1] === "\n") index++;
+                record.push(field.trim());
+                if (record.some((value) => value)) records.push(record);
+                record = [];
+                field = "";
+            } else {
+                field += character;
+            }
+        }
+        record.push(field.trim());
+        if (record.some((value) => value)) records.push(record);
+        return records;
+    }
+
+    function parseCSV(text) {
+        const records = parseCsvRecords(text);
+        if (records.length < 2) return [];
+
+        const header = records[0].map((h) => h.toLowerCase());
         const nameIdx = header.findIndex((h) => ["nom", "name", "full_name", "fullname"].includes(h));
         const phoneIdx = header.findIndex((h) => ["telephone", "phone", "tel", "mobile"].includes(h));
         const groupIdx = header.findIndex((h) => ["groupe", "group", "group_name"].includes(h));
@@ -279,8 +331,8 @@ const GuestManager = (() => {
         if (nameIdx === -1) throw new Error("Colonne 'nom' obligatoire dans le CSV");
 
         const rows = [];
-        for (let i = 1; i < lines.length; i++) {
-            const cols = lines[i].split(",").map((c) => c.trim().replace(/^"|"$/g, ""));
+        for (let i = 1; i < records.length; i++) {
+            const cols = records[i];
             const fullName = cols[nameIdx];
             if (!fullName) continue;
             rows.push({
@@ -297,12 +349,9 @@ const GuestManager = (() => {
         let imported = 0;
         let skipped = 0;
         for (const row of rows) {
-            const before = (await loadGuests()).length;
             const created = await addGuest(row);
-            const g = created?.guest || created;
-            const after = (await loadGuests()).length;
-            if (after > before || g) imported++;
-            else skipped++;
+            if (created?.duplicate || !created?.guest) skipped++;
+            else imported++;
         }
         await loadGuests(true);
         return { imported, skipped };
@@ -370,6 +419,7 @@ const GuestManager = (() => {
         updateGuest,
         recordRSVP,
         parseCSV,
+        parseCsvRecords,
         importCSVRows,
         getStats,
         getPendingGuests,

@@ -277,15 +277,88 @@ function updateCloudStatus() {
     }
 }
 
+function populateEventSwitcher(currentEventId) {
+    const switcher = document.getElementById("admin-event-switcher");
+    if (!switcher || !window.EventConfig || !EventConfig.getRegisteredEvents) return;
+    const platformAdmin = window.AuthGuard && AuthGuard.isPlatformAdmin();
+    const events = platformAdmin
+        ? EventConfig.getRegisteredEvents()
+        : EventConfig.getRegisteredEvents().filter((event) => event.slug === currentEventId);
+    switcher.innerHTML = "";
+    events.forEach((ev) => {
+        const opt = document.createElement("option");
+        opt.value = ev.slug;
+        opt.textContent = `${ev.type === "birthday" ? "🎂" : ev.type === "conference" ? "🎤" : "💍"} ${ev.title || ev.slug}`;
+        if (ev.slug === currentEventId) opt.selected = true;
+        switcher.appendChild(opt);
+    });
+
+    switcher.disabled = !platformAdmin;
+    switcher.onchange = () => {
+        const target = switcher.value;
+        if (target && target !== currentEventId) {
+            window.location.href = `./admin.html?event=${encodeURIComponent(target)}`;
+        }
+    };
+}
+
+function openCreateEventModal() {
+    const modal = document.getElementById("create-event-modal");
+    if (!modal) return;
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+    const titleInput = document.getElementById("new-event-title");
+    if (titleInput) setTimeout(() => titleInput.focus(), 80);
+}
+
+function closeCreateEventModal() {
+    const modal = document.getElementById("create-event-modal");
+    if (!modal) return;
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+}
+
+function openEventCreatedModal(eventObj) {
+    const modal = document.getElementById("event-created-modal");
+    if (!modal) return;
+    document.getElementById("event-created-name").textContent = eventObj.title;
+    const invUrl = `${window.location.origin}${window.location.pathname.replace(/[^/]+$/, "invitation.html")}?event=${eventObj.slug}`;
+    document.getElementById("event-created-link-invitation").textContent = invUrl;
+    document.getElementById("event-created-admin-code").textContent = eventObj.adminCode || "—";
+
+    document.getElementById("event-created-action-perso").href = `./personnalisation.html?event=${eventObj.slug}`;
+    document.getElementById("event-created-action-admin").href = `./admin.html?event=${eventObj.slug}`;
+    document.getElementById("event-created-action-view").href = `./invitation.html?event=${eventObj.slug}`;
+
+    document.getElementById("event-created-download-json").onclick = () => {
+        downloadFile(JSON.stringify(eventObj, null, 2), `${eventObj.slug}.json`, "application/json");
+    };
+
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+}
+
+function closeEventCreatedModal() {
+    const modal = document.getElementById("event-created-modal");
+    if (!modal) return;
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
     await EventConfig.init();
     const eventId = EventConfig.getEventId();
     if (!AuthGuard.requireAdmin(eventId)) return;
+    const platformAdmin = AuthGuard.isPlatformAdmin();
+    document.getElementById("all-events-link")?.classList.toggle("hidden", !platformAdmin);
+    document.getElementById("create-event-open-btn")?.classList.toggle("hidden", !platformAdmin);
 
     const config = EventConfig.getConfig();
     if (config && config.title) {
         document.getElementById("admin-event-title").textContent = `Invités — ${config.title}`;
     }
+
+    populateEventSwitcher(eventId);
 
     const q = EventConfig.preserveEventQuery();
     document.getElementById("back-invitation-link").href = `./invitation.html${q}`;
@@ -425,4 +498,129 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("guest-search").addEventListener("input", renderGuestsTable);
     document.getElementById("guest-filter").addEventListener("change", renderGuestsTable);
+
+    // Modal Créer un événement
+    document.getElementById("create-event-open-btn")?.addEventListener("click", openCreateEventModal);
+    document.getElementById("create-event-close-btn")?.addEventListener("click", closeCreateEventModal);
+    document.getElementById("create-event-cancel-btn")?.addEventListener("click", closeCreateEventModal);
+    document.getElementById("create-event-modal")?.addEventListener("click", (e) => {
+        if (e.target.id === "create-event-modal") closeCreateEventModal();
+    });
+
+    document.getElementById("event-created-close-btn")?.addEventListener("click", closeEventCreatedModal);
+    document.getElementById("event-created-modal")?.addEventListener("click", (e) => {
+        if (e.target.id === "event-created-modal") closeEventCreatedModal();
+    });
+
+    // Auto slugify
+    const newTitle = document.getElementById("new-event-title");
+    const newSlug = document.getElementById("new-event-slug");
+    const newCode = document.getElementById("new-event-admin-code");
+    const newWelcomeImage = document.getElementById("new-event-welcome-image");
+    const newWelcomeUpload = document.getElementById("new-event-welcome-upload");
+    const newWelcomePreview = document.getElementById("new-event-welcome-preview");
+    newTitle?.addEventListener("input", () => {
+        if (!newSlug.dataset.customized) {
+            const val = newTitle.value
+                .toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/^-+|-+$/g, "");
+            newSlug.value = val;
+            if (!newCode.dataset.customized && val) {
+                newCode.value = `${val.toUpperCase().slice(0, 10)}-2026`;
+            }
+        }
+    });
+    newSlug?.addEventListener("input", () => {
+        newSlug.dataset.customized = "true";
+    });
+    newCode?.addEventListener("input", () => {
+        newCode.dataset.customized = "true";
+    });
+    newWelcomeImage?.addEventListener("input", () => {
+        const src = newWelcomeImage.value.trim();
+        if (!src || !newWelcomePreview) return;
+        newWelcomePreview.src = src;
+        newWelcomePreview.classList.remove("hidden");
+    });
+    newWelcomeUpload?.addEventListener("change", async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+            const temporaryEventId = newSlug.value.trim() || "nouvel-evenement";
+            const imageUrl = window.MediaUpload && MediaUpload.processFile
+                ? await MediaUpload.processFile(file, temporaryEventId, "welcome-image")
+                : URL.createObjectURL(file);
+            newWelcomeImage.value = imageUrl;
+            if (newWelcomePreview) {
+                newWelcomePreview.src = imageUrl;
+                newWelcomePreview.classList.remove("hidden");
+            }
+            showToast("Photo d'accueil importée.");
+        } catch (err) {
+            showToast(err.message || "Impossible d'importer cette photo.");
+        } finally {
+            e.target.value = "";
+        }
+    });
+
+    document.getElementById("create-event-form")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!AuthGuard.isPlatformAdmin()) {
+            showToast("Seul l'administrateur plateforme peut créer un événement.");
+            return;
+        }
+        const title = newTitle.value.trim();
+        const slug = newSlug.value.trim();
+        if (!title || !slug) {
+            showToast("Titre et Slug obligatoires.");
+            return;
+        }
+        if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(slug)) {
+            showToast("Le slug utilise seulement lettres, chiffres et tirets.");
+            return;
+        }
+        const coupleLeft = document.getElementById("new-event-couple-left")?.value.trim() || "";
+        const coupleRight = document.getElementById("new-event-couple-right")?.value.trim() || "";
+        const type = document.getElementById("new-event-type")?.value || "wedding";
+        const dateVal = document.getElementById("new-event-date")?.value;
+        const venue = document.getElementById("new-event-venue")?.value.trim() || "Kinshasa";
+        const adminCode = newCode.value.trim() || `${slug.toUpperCase()}-2026`;
+        const welcomeImage = newWelcomeImage?.value.trim() || "";
+        if (!welcomeImage) {
+            showToast("Ajoutez une photo d'accueil pour cette invitation.");
+            return;
+        }
+
+        let created = null;
+        try {
+            created = EventConfig.createEvent({
+                title,
+                slug,
+                type,
+                coupleLeft,
+                coupleRight,
+                eventDate: dateVal ? new Date(dateVal).toISOString() : new Date(Date.now() + 30 * 86400000).toISOString(),
+                venue,
+                adminCode,
+                welcomeImage
+            });
+
+            const publication = await EventConfig.publishEvent(created);
+            if (window.CloudAPI && CloudAPI.isEnabled() && !publication.cloud) {
+                if (publication.reason === "event_create_failed") {
+                    EventConfig.discardLocalEvent(created.slug);
+                }
+                throw new Error("Invitation créée seulement sur cet appareil : publication Supabase impossible. Vérifiez la table events et ses permissions avant de partager le lien.");
+            }
+
+            closeCreateEventModal();
+            populateEventSwitcher(eventId);
+            openEventCreatedModal(created);
+            showToast(`Événement ${title} créé avec succès !`);
+        } catch (err) {
+            showToast(err.message || "Erreur création événement");
+        }
+    });
 });

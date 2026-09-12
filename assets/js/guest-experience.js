@@ -32,9 +32,18 @@ const GuestExperience = (() => {
         return getParams().get("event") || "yanick-keren";
     }
 
+    function eventStorageKey(suffix) {
+        return `wedding_event_${getEventId()}_${suffix}`;
+    }
+
     function getCoupleLabel() {
         const cfg = window.EventConfig && EventConfig.getConfig && EventConfig.getConfig();
-        return (cfg && cfg.subtitle) ? cfg.subtitle : "Josue & Divine";
+        if (cfg) {
+            if (cfg.coupleLeft && cfg.coupleRight) return `${cfg.coupleLeft} & ${cfg.coupleRight}`;
+            if (cfg.subtitle) return cfg.subtitle;
+            if (cfg.title) return cfg.title;
+        }
+        return "Les mariés";
     }
 
     function showToast(msg) {
@@ -57,7 +66,7 @@ const GuestExperience = (() => {
         profile = guest;
         window.currentGuestProfile = guest;
         window.guestName = guest.fullName;
-        localStorage.setItem("wedding_guest_name_simple", guest.fullName);
+        localStorage.setItem(eventStorageKey("guest_name"), guest.fullName);
 
         const display = document.getElementById("display-guest-name");
         if (display) display.textContent = guest.fullName;
@@ -129,10 +138,24 @@ const GuestExperience = (() => {
         if (hint) hint.textContent = `${first}, ouvrez votre enveloppe`;
         if (greeting) greeting.textContent = `${first},`;
         if (message) {
-            message.innerHTML =
-                `<strong>${couple}</strong> ont le bonheur de vous inviter <strong>personnellement</strong> à célébrer leur union.<br><br>` +
-                `Cette enveloppe a été préparée uniquement pour vous, <strong>${first}</strong>. ` +
-                `Votre présence serait pour eux un immense bonheur.`;
+            message.replaceChildren();
+            const coupleStrong = document.createElement("strong");
+            coupleStrong.textContent = couple;
+            const personalStrong = document.createElement("strong");
+            personalStrong.textContent = "personnellement";
+            const firstStrong = document.createElement("strong");
+            firstStrong.textContent = first;
+            message.append(
+                coupleStrong,
+                " ont le bonheur de vous inviter ",
+                personalStrong,
+                " à célébrer leur union.",
+                document.createElement("br"),
+                document.createElement("br"),
+                "Cette enveloppe a été préparée uniquement pour vous, ",
+                firstStrong,
+                ". Votre présence serait pour eux un immense bonheur."
+            );
         }
     }
 
@@ -210,22 +233,38 @@ const GuestExperience = (() => {
 
         if (token) {
             try { guest = await GuestManager.findByToken(token); } catch (e) {}
-            saved = localStorage.getItem(`wedding_confirm_${token}`);
+            saved = localStorage.getItem(eventStorageKey(`confirm_${token}`));
         } else {
-            const name = (localStorage.getItem("wedding_guest_name_simple") || "").trim();
+            const name = (localStorage.getItem(eventStorageKey("guest_name")) || "").trim();
             if (name) {
                 try { guest = await GuestManager.findByName(name); } catch (e) {}
-                saved = localStorage.getItem(`wedding_confirm_name_${slugify(name)}`);
+                saved = localStorage.getItem(eventStorageKey(`confirm_name_${slugify(name)}`));
             }
         }
 
-        if (!saved || !guest || guest.status !== "yes") return;
-        try {
-            const data = JSON.parse(saved);
-            if (canShowQrCode(guest, data.payload)) {
-                setTimeout(() => showConfirmation(data.payload, data.code, guest), 800);
-            }
-        } catch (e) {}
+        if (!guest || guest.status !== "yes") return;
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                if (canShowQrCode(guest, data.payload)) {
+                    setTimeout(() => showConfirmation(data.payload, data.code, guest), 800);
+                }
+                return;
+            } catch (e) {}
+        }
+
+        const payload = {
+            name: guest.fullName,
+            phone: guest.phone || "",
+            status: guest.status,
+            adults: guest.adults || 1,
+            children: guest.children || 0,
+            message: guest.rsvpMessage || "",
+            drinkChoices: guest.drinkChoices || []
+        };
+        if (canShowQrCode(guest, payload)) {
+            setTimeout(() => showConfirmation(payload, buildConfirmCode(guest, payload), guest), 800);
+        }
     }
 
     async function initAsync() {
@@ -261,7 +300,7 @@ const GuestExperience = (() => {
             applyProfile(profile);
             return;
         }
-        const saved = (localStorage.getItem("wedding_guest_name_simple") || "").trim();
+        const saved = (localStorage.getItem(eventStorageKey("guest_name")) || "").trim();
         if (saved) applyProfile({ fullName: saved, phone: "", status: "pending", adults: 1, children: 0 });
     }
 
@@ -345,17 +384,24 @@ const GuestExperience = (() => {
     }
 
     function canShowQrCode(guest, payload) {
-        return !!(payload && payload.status === "yes");
+        return !!(
+            payload
+            && payload.status === "yes"
+            && guest
+            && guest.status === "yes"
+            && guest.qrApproved
+            && hasPersonalInviteToken(guest)
+        );
     }
 
     function saveConfirmationCache(payload, code) {
         const token = (getParams().get("t") || "").trim();
         const data = JSON.stringify({ payload, code });
         if (token) {
-            localStorage.setItem(`wedding_confirm_${token}`, data);
+            localStorage.setItem(eventStorageKey(`confirm_${token}`), data);
         }
         if (payload.name) {
-            localStorage.setItem(`wedding_confirm_name_${slugify(payload.name)}`, data);
+            localStorage.setItem(eventStorageKey(`confirm_name_${slugify(payload.name)}`), data);
         }
     }
 
@@ -411,7 +457,7 @@ const GuestExperience = (() => {
         const isYes = payload.status === "yes";
         const showQr = canShowQrCode(resolvedGuest, payload);
         const cfg = window.EventConfig && EventConfig.getConfig && EventConfig.getConfig();
-        const eventTitle = (cfg && cfg.title) ? cfg.title : "Mariage de Josue et Divine";
+        const eventTitle = (cfg && cfg.title) ? cfg.title : (document.title || "Invitation");
         const meta = getConfirmationMeta();
         const accessCode = buildAccessCode(resolvedGuest) || code;
         const tableLabel = getGuestTableLabel(resolvedGuest);
@@ -480,7 +526,7 @@ const GuestExperience = (() => {
         const accessEl = document.getElementById("confirm-access-code");
         const tableEl = document.getElementById("confirm-table-line");
         const drinksEl = document.getElementById("confirm-drinks-line");
-        if (isYes && infoGrid && accessEl && tableEl && drinksEl) {
+        if (showQr && infoGrid && accessEl && tableEl && drinksEl) {
             infoGrid.classList.remove("hidden");
             accessEl.textContent = accessCode;
             tableEl.textContent = tableLabel;
@@ -515,7 +561,11 @@ const GuestExperience = (() => {
             });
         } else {
             if (qrWrap) qrWrap.classList.add("hidden");
-            if (pendingWrap) pendingWrap.classList.add("hidden");
+            if (pendingWrap) pendingWrap.classList.toggle("hidden", !isYes);
+            const pendingText = document.getElementById("confirm-pending-text");
+            if (pendingText && isYes) {
+                pendingText.textContent = "Votre présence est enregistrée. Votre QR code sera disponible après validation par l'organisateur.";
+            }
             if (codeLine) codeLine.classList.add("hidden");
             if (qrHint) qrHint.classList.add("hidden");
             if (downloadBtn) downloadBtn.classList.add("hidden");
@@ -599,8 +649,8 @@ const GuestExperience = (() => {
                 return;
             }
 
-            localStorage.setItem("wedding_rsvp_data", JSON.stringify(payload));
-            localStorage.setItem("wedding_rsvp_status", payload.status);
+            localStorage.setItem(eventStorageKey("rsvp_data"), JSON.stringify(payload));
+            localStorage.setItem(eventStorageKey("rsvp_status"), payload.status);
 
             let updatedGuest = null;
             if (window.GuestManager) {
@@ -660,9 +710,10 @@ const GuestExperience = (() => {
         window.submitRsvp = submitRsvp;
         window.downloadConfirmationPass = downloadConfirmationPass;
 
-        const form = document.getElementById("rsvp-form");
-        if (form) {
-            form.addEventListener("submit", submitRsvp);
+        const rsvpForm = document.getElementById("rsvp-form");
+        if (rsvpForm && !rsvpForm.dataset.guestExperienceBound) {
+            rsvpForm.addEventListener("submit", submitRsvp);
+            rsvpForm.dataset.guestExperienceBound = "true";
         }
         document.getElementById("rsvp-profile-photo")?.addEventListener("change", handleRsvpPhotoUpload);
     }

@@ -25,6 +25,20 @@ const MediaUpload = (() => {
         return new Blob([arr], { type: mime });
     }
 
+    function getBlobExtension(blob) {
+        const type = (blob?.type || "").toLowerCase();
+        if (type.includes("png")) return "png";
+        if (type.includes("webp")) return "webp";
+        if (type.includes("gif")) return "gif";
+        if (type.includes("jpeg") || type.includes("jpg")) return "jpg";
+        if (type.includes("mpeg") || type.includes("mp3")) return "mp3";
+        if (type.includes("wav")) return "wav";
+        if (type.includes("ogg")) return "ogg";
+        if (type.includes("aac") || type.includes("m4a") || type.includes("mp4")) return "m4a";
+        if (type.startsWith("audio/")) return "mp3";
+        return "jpg";
+    }
+
     function blobToDataUrl(blob) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -73,7 +87,7 @@ const MediaUpload = (() => {
 
     async function uploadBlob(eventId, blob, label = "asset") {
         if (!canUpload()) return null;
-        const ext = (blob.type || "image/jpeg").includes("png") ? "png" : "jpg";
+        const ext = getBlobExtension(blob);
         const safe = String(label).replace(/[^a-z0-9_-]/gi, "-").slice(0, 40);
         const path = `${eventId}/${Date.now()}-${safe}.${ext}`;
         const c = cfg();
@@ -82,7 +96,7 @@ const MediaUpload = (() => {
             headers: {
                 apikey: c.anonKey,
                 Authorization: `Bearer ${c.anonKey}`,
-                "Content-Type": blob.type || "image/jpeg",
+                "Content-Type": blob.type || (ext === "mp3" ? "audio/mpeg" : "image/jpeg"),
                 "x-upsert": "true"
             },
             body: blob
@@ -94,7 +108,25 @@ const MediaUpload = (() => {
         return `${c.url}/storage/v1/object/public/event-assets/${path}`;
     }
 
+    async function processAudioFile(file, eventId, label = "audio") {
+        if (!file) throw new Error("Fichier audio manquant");
+        if (canUpload()) {
+            const url = await uploadBlob(eventId, file, label);
+            if (url) return url;
+        }
+        if (file.size > 3 * 1024 * 1024) {
+            throw new Error("Fichier audio volumineux (> 3 Mo). Activez Supabase Storage pour les fichiers audio lourds ou privilégiez un lien MP3 direct / YouTube.");
+        }
+        const dataUrl = await blobToDataUrl(file);
+        return dataUrl;
+    }
+
     async function processFile(file, eventId, label) {
+        if (!file) throw new Error("Fichier manquant");
+        const isAudio = (file.type && file.type.startsWith("audio/")) || /\.(mp3|wav|ogg|m4a|aac)$/i.test(file.name || "");
+        if (isAudio) {
+            return processAudioFile(file, eventId, label);
+        }
         const blob = await compressImageFile(file);
         if (canUpload()) {
             const url = await uploadBlob(eventId, blob, label);
@@ -146,9 +178,12 @@ const MediaUpload = (() => {
     return {
         compressImageFile,
         processFile,
+        processAudioFile,
+        uploadBlob,
         externalizeDashboardMedia,
         canUpload,
-        dataUrlToBlob
+        dataUrlToBlob,
+        blobToDataUrl
     };
 })();
 

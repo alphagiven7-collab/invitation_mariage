@@ -75,6 +75,7 @@ CREATE POLICY "guests_delete" ON guests FOR DELETE USING (true);
 
 CREATE POLICY "rsvps_insert" ON rsvps FOR INSERT WITH CHECK (true);
 CREATE POLICY "rsvps_read" ON rsvps FOR SELECT USING (true);
+CREATE POLICY "rsvps_update" ON rsvps FOR UPDATE USING (true) WITH CHECK (true);
 
 CREATE POLICY "guestbook_insert" ON guestbook_messages FOR INSERT WITH CHECK (true);
 CREATE POLICY "guestbook_read" ON guestbook_messages FOR SELECT USING (true);
@@ -83,6 +84,7 @@ CREATE POLICY "analytics_insert" ON analytics_events FOR INSERT WITH CHECK (true
 CREATE POLICY "analytics_read" ON analytics_events FOR SELECT USING (true);
 
 CREATE POLICY "events_read" ON events FOR SELECT USING (true);
+CREATE POLICY "events_insert" ON events FOR INSERT WITH CHECK (true);
 
 -- Personnalisation dashboard (programme, GPS, infos pratiques, visuels)
 CREATE TABLE IF NOT EXISTS event_settings (
@@ -96,3 +98,24 @@ ALTER TABLE event_settings ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "event_settings_read" ON event_settings FOR SELECT USING (true);
 CREATE POLICY "event_settings_insert" ON event_settings FOR INSERT WITH CHECK (true);
 CREATE POLICY "event_settings_update" ON event_settings FOR UPDATE USING (true);
+
+-- Conserve la réponse RSVP la plus récente avant d'empêcher les doublons.
+DELETE FROM rsvps
+WHERE id IN (
+    SELECT id
+    FROM (
+        SELECT
+            id,
+            row_number() OVER (
+                PARTITION BY event_id, guest_id
+                ORDER BY created_at DESC, id DESC
+            ) AS duplicate_rank
+        FROM rsvps
+        WHERE guest_id IS NOT NULL
+    ) AS ranked_rsvps
+    WHERE duplicate_rank > 1
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS rsvps_one_response_per_guest
+    ON rsvps (event_id, guest_id)
+    WHERE guest_id IS NOT NULL;

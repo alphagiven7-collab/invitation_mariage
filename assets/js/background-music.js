@@ -285,11 +285,17 @@ const BackgroundMusic = (() => {
     }
 
     function readPausedPreference() {
-        return sessionStorage.getItem("wedding_music_paused") === "1";
+        const eventId = window.EventConfig && EventConfig.getEventId
+            ? EventConfig.getEventId()
+            : "default";
+        return sessionStorage.getItem(`wedding_event_${eventId}_music_paused`) === "1";
     }
 
     function savePausedPreference() {
-        sessionStorage.setItem("wedding_music_paused", userPaused ? "1" : "0");
+        const eventId = window.EventConfig && EventConfig.getEventId
+            ? EventConfig.getEventId()
+            : "default";
+        sessionStorage.setItem(`wedding_event_${eventId}_music_paused`, userPaused ? "1" : "0");
     }
 
     function armAutoplay() {

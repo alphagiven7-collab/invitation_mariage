@@ -11,9 +11,18 @@
 <body class="admin-shell text-slate-800">
     <main class="dash-wrap">
         <header class="admin-header">
-            <p class="admin-overline">Administration événement</p>
-            <h1 id="admin-event-title">Gestion des invités</h1>
-            <p class="admin-subtitle">Import CSV · liens uniques · édition · WhatsApp · relances · exports</p>
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+                <div>
+                    <p class="admin-overline">Administration événement</p>
+                    <h1 id="admin-event-title">Gestion des invités</h1>
+                    <p class="admin-subtitle">Import CSV · liens uniques · édition · WhatsApp · relances · exports</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <select id="admin-event-switcher" class="admin-select" style="max-width:240px; font-weight:600;" aria-label="Changer d'événement"></select>
+                    <a id="all-events-link" href="./evenements.html" class="admin-head-btn">Tous les événements</a>
+                    <button type="button" id="create-event-open-btn" class="admin-head-btn primary">➕ Nouvelle invitation</button>
+                </div>
+            </div>
             <span id="cloud-status" class="admin-cloud-pill offline">Chargement…</span>
             <div class="admin-head-actions">
                 <a id="checkin-link" href="./checkin.html" class="admin-head-btn primary">📱 Check-in jour J</a>
@@ -262,6 +271,116 @@
         </div>
     </div>
 
+    <!-- Modal Créer une nouvelle invitation -->
+    <div id="create-event-modal" class="admin-modal-backdrop" aria-hidden="true">
+        <div class="admin-modal" role="dialog" aria-labelledby="create-event-modal-title" style="max-width: 580px;">
+            <div class="admin-modal-header">
+                <div class="admin-modal-header-row">
+                    <div>
+                        <h3 id="create-event-modal-title">✨ Créer une nouvelle invitation</h3>
+                        <p>Configurez un nouvel événement indépendant avec son propre lien et ses invités</p>
+                    </div>
+                    <button type="button" id="create-event-close-btn" class="admin-modal-close" aria-label="Fermer">×</button>
+                </div>
+            </div>
+            <form id="create-event-form" class="admin-modal-body">
+                <p class="admin-modal-section-label">1. Type &amp; Titre de l'événement</p>
+                <div class="admin-form-grid admin-form-grid-compact">
+                    <div class="admin-field">
+                        <label for="new-event-type">Type d'événement</label>
+                        <select id="new-event-type" class="admin-select">
+                            <option value="wedding">💍 Mariage</option>
+                            <option value="birthday">🎂 Anniversaire</option>
+                            <option value="conference">🎤 Conférence / Séminaire</option>
+                            <option value="party">🎉 Soirée / Autre</option>
+                        </select>
+                    </div>
+                    <div class="admin-field">
+                        <label for="new-event-title">Titre principal *</label>
+                        <input id="new-event-title" class="admin-input" placeholder="Ex: Mariage de Sarah &amp; Marc" required>
+                    </div>
+                    <div class="admin-field">
+                        <label for="new-event-couple-left">Prénom 1 (ou hôte)</label>
+                        <input id="new-event-couple-left" class="admin-input" placeholder="Ex: Sarah">
+                    </div>
+                    <div class="admin-field">
+                        <label for="new-event-couple-right">Prénom 2 (ou conjoint)</label>
+                        <input id="new-event-couple-right" class="admin-input" placeholder="Ex: Marc">
+                    </div>
+                </div>
+
+                <p class="admin-modal-section-label">2. Date, Lieu &amp; Accès</p>
+                <div class="admin-form-grid admin-form-grid-compact">
+                    <div class="admin-field">
+                        <label for="new-event-date">Date &amp; Heure de l'événement</label>
+                        <input id="new-event-date" type="datetime-local" class="admin-input">
+                    </div>
+                    <div class="admin-field">
+                        <label for="new-event-venue">Lieu / Salle / Ville</label>
+                        <input id="new-event-venue" class="admin-input" placeholder="Ex: Grand Hôtel, Kinshasa">
+                    </div>
+                    <div class="admin-field">
+                        <label for="new-event-slug">Identifiant URL (Slug) *</label>
+                        <input id="new-event-slug" class="admin-input font-mono" placeholder="ex: sarah-marc-2026" required>
+                        <p class="perso-gps-hint mt-1">Sera utilisé dans le lien : ?event=slug</p>
+                    </div>
+                    <div class="admin-field">
+                        <label for="new-event-admin-code">Code secret Admin</label>
+                        <input id="new-event-admin-code" class="admin-input font-mono" placeholder="Ex: SARAH-2026">
+                        <p class="perso-gps-hint mt-1">Pour vous connecter à la gestion de cet événement</p>
+                    </div>
+                </div>
+
+                <p class="admin-modal-section-label">3. Photo d'accueil</p>
+                <div class="admin-form-grid admin-form-grid-compact">
+                    <div class="admin-field admin-field-full">
+                        <label for="new-event-welcome-image">Photo affichée à l'ouverture de cette invitation *</label>
+                        <input id="new-event-welcome-image" class="admin-input" type="url" placeholder="https://.../photo.jpg">
+                        <p class="perso-gps-hint mt-1">Cette photo appartient uniquement à ce lien d'événement et s'affiche derrière l'enveloppe d'accueil.</p>
+                    </div>
+                    <div class="admin-field admin-field-full">
+                        <label class="dash-upload-btn inline-flex cursor-pointer">
+                            Importer une photo depuis cet appareil
+                            <input id="new-event-welcome-upload" type="file" accept="image/jpeg,image/png,image/webp" class="hidden">
+                        </label>
+                        <img id="new-event-welcome-preview" class="hidden mt-3 w-full h-32 object-cover rounded-lg border border-slate-200" alt="Aperçu de la photo d'accueil">
+                    </div>
+                </div>
+            </form>
+            <div class="admin-modal-footer">
+                <button type="button" id="create-event-cancel-btn" class="admin-btn admin-btn-ghost">Annuler</button>
+                <button type="submit" form="create-event-form" class="admin-btn admin-btn-success">Créer l'invitation →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Succès Création d'événement -->
+    <div id="event-created-modal" class="admin-modal-backdrop" aria-hidden="true">
+        <div class="admin-modal" role="dialog" style="max-width: 520px;">
+            <div class="admin-modal-header">
+                <div class="admin-modal-header-row">
+                    <div>
+                        <h3 class="text-emerald-700">🎉 Invitation créée avec succès !</h3>
+                        <p id="event-created-name" class="font-semibold"></p>
+                    </div>
+                    <button type="button" id="event-created-close-btn" class="admin-modal-close" aria-label="Fermer">×</button>
+                </div>
+            </div>
+            <div class="admin-modal-body space-y-4">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-1">
+                    <p><strong>Lien public invitation :</strong> <span id="event-created-link-invitation" class="font-mono text-indigo-600 break-all"></span></p>
+                    <p><strong>Code d'accès Admin :</strong> <span id="event-created-admin-code" class="font-mono font-bold text-slate-800"></span></p>
+                </div>
+                <div class="grid grid-cols-1 gap-2 pt-2">
+                    <a id="event-created-action-perso" href="#" class="admin-btn admin-btn-primary text-center">🎨 Personnaliser l'invitation (Textes, Couleurs, Photos)</a>
+                    <a id="event-created-action-admin" href="#" class="admin-btn admin-btn-success text-center">👥 Gérer les invités &amp; WhatsApp</a>
+                    <a id="event-created-action-view" href="#" target="_blank" class="admin-btn admin-btn-ghost text-center">💌 Voir l'invitation publique</a>
+                    <button type="button" id="event-created-download-json" class="admin-btn admin-btn-ghost text-center">📥 Télécharger le fichier JSON</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="toast" class="toast"></div>
 
     <script src="../assets/js/supabase-config.js?v=53"></script>
@@ -269,6 +388,7 @@
     <script src="../assets/js/django-api.js?v=53"></script>
     <script src="../assets/js/event-config.js?v=53"></script>
     <script src="../assets/js/cloud-api.js?v=53"></script>
+    <script src="../assets/js/media-upload.js?v=54"></script>
     <script src="../assets/js/auth.js?v=23"></script>
     <script src="../assets/js/guest-manager.js?v=49"></script>
     <script src="../assets/js/checkin-url.js?v=49"></script>
