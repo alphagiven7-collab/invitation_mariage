@@ -20,6 +20,11 @@ const MediaUpload = (() => {
         );
     }
 
+    function isCloudConfigured() {
+        const c = cfg();
+        return !!(c.enabled && c.url && c.anonKey && window.CloudAPI && CloudAPI.isEnabled());
+    }
+
     function dataUrlToBlob(dataUrl) {
         const parts = dataUrl.split(",");
         const mime = (parts[0].match(/data:([^;]+)/) || [])[1] || "application/octet-stream";
@@ -90,7 +95,9 @@ const MediaUpload = (() => {
     }
 
     async function uploadBlob(eventId, blob, label = "asset") {
-        if (!canUpload()) return null;
+        if (!canUpload()) {
+            throw new Error("Votre session administrateur a expiré. Reconnectez-vous avant d'importer un média.");
+        }
         const ext = getBlobExtension(blob);
         const safe = String(label).replace(/[^a-z0-9_-]/gi, "-").slice(0, 40);
         const path = `${eventId}/${Date.now()}-${safe}.${ext}`;
@@ -100,25 +107,25 @@ const MediaUpload = (() => {
             method: "POST",
             headers: {
                 apikey: c.anonKey,
-            Authorization: `Bearer ${session.accessToken}`,
+                Authorization: `Bearer ${session.accessToken}`,
                 "Content-Type": blob.type || (ext === "mp3" ? "audio/mpeg" : "image/jpeg"),
                 "x-upsert": "true"
             },
             body: blob
         });
         if (!res.ok) {
-            console.warn("MediaUpload: échec upload", res.status, await res.text().catch(() => ""));
-            return null;
+            const details = await res.text().catch(() => "");
+            console.warn("MediaUpload: échec upload", res.status, details);
+            throw new Error(res.status === 401 || res.status === 403
+                ? "Téléversement refusé. Vérifiez votre connexion et les politiques Supabase Storage."
+                : "Le média n'a pas pu être envoyé à Supabase Storage.");
         }
         return `${c.url}/storage/v1/object/public/event-assets/${path}`;
     }
 
     async function processAudioFile(file, eventId, label = "audio") {
         if (!file) throw new Error("Fichier audio manquant");
-        if (canUpload()) {
-            const url = await uploadBlob(eventId, file, label);
-            if (url) return url;
-        }
+        if (isCloudConfigured()) return uploadBlob(eventId, file, label);
         if (file.size > 3 * 1024 * 1024) {
             throw new Error("Fichier audio volumineux (> 3 Mo). Activez Supabase Storage pour les fichiers audio lourds ou privilégiez un lien MP3 direct / YouTube.");
         }
@@ -133,10 +140,7 @@ const MediaUpload = (() => {
             return processAudioFile(file, eventId, label);
         }
         const blob = await compressImageFile(file);
-        if (canUpload()) {
-            const url = await uploadBlob(eventId, blob, label);
-            if (url) return url;
-        }
+        if (isCloudConfigured()) return uploadBlob(eventId, blob, label);
         const dataUrl = await blobToDataUrl(blob);
         if (dataUrl.length > MAX_DATA_URL_BYTES * 4) {
             throw new Error("Image encore trop lourde après compression.");

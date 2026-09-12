@@ -581,6 +581,8 @@ async function handleDrinkRowUpload(event, imageField, preview) {
         if (preview) preview.src = url || DRINK_PREVIEW_PLACEHOLDER;
         showToast(String(url).startsWith("http") ? "Photo importée et envoyée au cloud." : "Photo importée — sauvegardez pour sync.");
         schedulePreviewRefresh(300);
+        await persistDashboard(toDashboardPayload(readFormState()), { cloudMessage: false });
+        refreshLivePreview(true);
     } catch (err) {
         showToast(err.message || "Impossible d'importer cette photo.");
     }
@@ -786,7 +788,8 @@ function wireMusicControls() {
                 preview.src = audioUrl;
                 preview.volume = Number(vol?.value || 35) / 100;
             }
-            showToast("Audio importé avec succès — enregistrez pour appliquer.");
+            await persistDashboard(toDashboardPayload(readFormState()), { cloudMessage: false });
+            showToast("Audio importé et sauvegardé.");
             schedulePreviewRefresh(400);
         } catch (err) {
             console.error("Erreur import audio:", err);

@@ -201,11 +201,10 @@ const DashboardSync = (() => {
         const next = state ? { ...state } : {};
         let changed = false;
         const rev = cfg.identityRevision || 1;
-        const stateRev = next._identityRevision || 0;
         const identityBlob = [next.title, next.subtitle, next.coupleLeft, next.coupleRight].join(" ");
         const hasLegacy = /yanick|keren/i.test(identityBlob);
 
-        if (hasLegacy || stateRev < rev) {
+        if (hasLegacy) {
             if (cfg.title && next.title !== cfg.title) {
                 next.title = cfg.title;
                 changed = true;
@@ -222,10 +221,8 @@ const DashboardSync = (() => {
                 next.coupleRight = cfg.coupleRight;
                 changed = true;
             }
-            if (next._identityRevision !== rev) {
-                next._identityRevision = rev;
-                changed = true;
-            }
+            next._identityRevision = rev;
+            changed = true;
         }
 
         if ((!next.coupleLeft || !next.coupleRight) && next.subtitle) {
