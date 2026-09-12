@@ -13,7 +13,11 @@ const MediaUpload = (() => {
 
     function canUpload() {
         const c = cfg();
-        return c.enabled && c.url && c.anonKey && window.CloudAPI && CloudAPI.isEnabled();
+        const session = window.AuthGuard && AuthGuard.getSession ? AuthGuard.getSession() : null;
+        return !!(
+            c.enabled && c.url && c.anonKey && window.CloudAPI && CloudAPI.isEnabled() &&
+            session?.accessToken && session?.userId
+        );
     }
 
     function dataUrlToBlob(dataUrl) {
@@ -91,11 +95,12 @@ const MediaUpload = (() => {
         const safe = String(label).replace(/[^a-z0-9_-]/gi, "-").slice(0, 40);
         const path = `${eventId}/${Date.now()}-${safe}.${ext}`;
         const c = cfg();
+        const session = AuthGuard.getSession();
         const res = await fetch(`${c.url}/storage/v1/object/event-assets/${path}`, {
             method: "POST",
             headers: {
                 apikey: c.anonKey,
-                Authorization: `Bearer ${c.anonKey}`,
+            Authorization: `Bearer ${session.accessToken}`,
                 "Content-Type": blob.type || (ext === "mp3" ? "audio/mpeg" : "image/jpeg"),
                 "x-upsert": "true"
             },
