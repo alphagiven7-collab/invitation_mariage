@@ -998,18 +998,6 @@ async function saveSettings(e) {
         const payload = toDashboardPayload(state);
         await persistDashboard(payload);
 
-        if (window.WeddingDB && typeof WeddingDB.updateSettings === "function") {
-            WeddingDB.updateSettings({
-                title: state.title,
-                subtitle: state.subtitle,
-                message: state.mainText,
-                primaryColor: state.primaryColor,
-                accentColor: state.accentColor,
-                heroImage: state.heroImage,
-                welcomeImage: state.welcomeImage,
-                bestPhotos: state.bestPhotos
-            });
-        }
         refreshLivePreview(true);
     };
 
@@ -1022,13 +1010,17 @@ async function saveSettings(e) {
 
 async function resetDashboard() {
     const eventId = getEventId();
-    localStorage.removeItem(getDashboardStorageKey(eventId));
-    if (window.DashboardSync) {
-        localStorage.removeItem(DashboardSync.scopedKey(eventId));
+    const state = { ...DEFAULT_STATE, ...getConfigDefaults() };
+    const payload = toDashboardPayload(state);
+    const result = await persistDashboard(payload);
+    if (!result.cloud && window.CloudAPI?.isEnabled?.()) {
+        showToast("Réinitialisation locale uniquement : Supabase n'a pas accepté la sauvegarde.");
+        return;
     }
-    hydrateForm({ ...DEFAULT_STATE, ...getConfigDefaults() });
+    localStorage.removeItem(DashboardSync?.previewKey?.(eventId) || `wedding_preview_${eventId}`);
+    hydrateForm(state);
     schedulePreviewRefresh(300);
-    showToast("Configuration réinitialisée.");
+    showToast("Configuration réinitialisée et synchronisée.");
 }
 
 function initScrollSpy() {

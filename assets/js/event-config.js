@@ -149,16 +149,21 @@ const EventConfig = (() => {
             }
         }
 
-        // 1. Vérifier si l'événement a été créé dynamiquement en local
-        const customDirect = localStorage.getItem(`wedding_event_${slug}_config`);
-        if (customDirect) {
-            try { return JSON.parse(customDirect); } catch {}
+        const isBuiltIn = BUILTIN_EVENTS.some((event) => event.slug === slug);
+
+        // Les configurations locales ne servent qu'aux événements provisoires créés sur cet appareil.
+        // Une démo intégrée doit toujours démarrer depuis son JSON versionné.
+        if (!isBuiltIn) {
+            const customDirect = localStorage.getItem(`wedding_event_${slug}_config`);
+            if (customDirect) {
+                try { return JSON.parse(customDirect); } catch {}
+            }
         }
         const customs = getCustomEvents();
-        const found = customs.find((c) => c.slug === slug);
+        const found = !isBuiltIn && customs.find((c) => c.slug === slug);
         if (found) return found;
 
-        // 2. Tenter de charger le fichier JSON physique
+        // Tenter de charger le fichier JSON physique.
         try {
             const res = await fetch(`../events/${slug}.json`, { cache: "no-store" });
             if (res.ok) return await res.json();
@@ -224,7 +229,8 @@ const EventConfig = (() => {
             throw error;
         }
 
-        const overridesRaw = localStorage.getItem(storageKey("settings"));
+        const isBuiltIn = BUILTIN_EVENTS.some((event) => event.slug === eventId);
+        const overridesRaw = !isBuiltIn && localStorage.getItem(storageKey("settings"));
         if (overridesRaw) {
             try {
                 const parsed = sanitizeLegacyIdentityOverrides(JSON.parse(overridesRaw), config);

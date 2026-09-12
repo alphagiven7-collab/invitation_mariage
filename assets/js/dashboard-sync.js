@@ -53,7 +53,7 @@ const DashboardSync = (() => {
         const cloudTime = cloud?._cloudUpdatedAt ? new Date(cloud._cloudUpdatedAt).getTime() : 0;
         const localTime = local?._savedAt ? new Date(local._savedAt).getTime() : 0;
 
-        if (options.preferCloud && cloudData) {
+        if (cloudData && (!localData || cloudTime >= localTime)) {
             return {
                 ...foundation,
                 ...localData,
@@ -63,29 +63,7 @@ const DashboardSync = (() => {
             };
         }
 
-        const cloudMedia = countRemoteMedia(cloudData);
-        const localMedia = countRemoteMedia(localData);
-        if (cloudData && cloudMedia > localMedia) {
-            return {
-                ...foundation,
-                ...localData,
-                ...cloudData,
-                _cloudUpdatedAt: cloud._cloudUpdatedAt,
-                _savedAt: local?._savedAt
-            };
-        }
-
-        if (cloudData && cloudTime > localTime + 5000) {
-            return {
-                ...foundation,
-                ...localData,
-                ...cloudData,
-                _cloudUpdatedAt: cloud._cloudUpdatedAt,
-                _savedAt: local?._savedAt
-            };
-        }
-
-        if (localData && (!cloudData || localTime >= cloudTime)) {
+        if (localData) {
             return {
                 ...foundation,
                 ...cloudData,
@@ -200,12 +178,13 @@ const DashboardSync = (() => {
 
         const next = state ? { ...state } : {};
         let changed = false;
-        const rev = cfg.identityRevision || 1;
-        const identityBlob = [next.title, next.subtitle, next.coupleLeft, next.coupleRight].join(" ");
-        const hasLegacy = /yanick|keren/i.test(identityBlob);
-        const hasObsoleteYanickKerenDefault = cfg.id === "yanick-keren" && /josue|divine/i.test(identityBlob);
+        const hasObsoleteYanickKerenDefault = cfg.id === "yanick-keren"
+            && next.title === "Mariage de Josue et Divine"
+            && next.subtitle === "Josue et Divine"
+            && next.coupleLeft === "Divine"
+            && next.coupleRight === "Josue";
 
-        if (hasLegacy || hasObsoleteYanickKerenDefault) {
+        if (hasObsoleteYanickKerenDefault) {
             if (cfg.title && next.title !== cfg.title) {
                 next.title = cfg.title;
                 changed = true;
@@ -222,7 +201,7 @@ const DashboardSync = (() => {
                 next.coupleRight = cfg.coupleRight;
                 changed = true;
             }
-            next._identityRevision = rev;
+            next._identityRevision = cfg.identityRevision || 1;
             changed = true;
         }
 

@@ -63,3 +63,18 @@ test('getDashboardStorageKey uses an event-specific key when DashboardSync is un
 
   assert.equal(sandbox.getDashboardStorageKey('event-42'), 'wedding_event_event-42_dashboard_state');
 });
+
+test('DashboardSync keeps a newer local save when the cloud state is older', () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'dashboard-sync.js'), 'utf8');
+  const sandbox = { console, window: {}, localStorage: { getItem() { return null; }, setItem() {} } };
+  sandbox.window.window = sandbox.window;
+  vm.runInNewContext(source, sandbox, { filename: 'dashboard-sync.js' });
+
+  const state = sandbox.window.DashboardSync.mergeStates(
+    { title: 'Défaut' },
+    { title: 'Ancien cloud', _cloudUpdatedAt: '2026-01-01T10:00:00.000Z' },
+    { title: 'Modification récente', _savedAt: '2026-01-01T10:05:00.000Z' },
+    { preferCloud: true }
+  );
+  assert.equal(state.title, 'Modification récente');
+});

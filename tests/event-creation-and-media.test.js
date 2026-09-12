@@ -60,6 +60,31 @@ test('EventConfig.createEvent correctly initializes and registers a new event in
   assert.equal(store['wedding_event_mariage-de-sarah-marc_config'], undefined);
 });
 
+test('EventConfig ignores stale local configuration for a built-in demo', async () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'event-config.js'), 'utf8');
+  const store = {
+    'wedding_event_yanick-keren_config': JSON.stringify({ title: 'Ancienne copie locale' })
+  };
+  const sandbox = {
+    console,
+    URLSearchParams,
+    CustomEvent: class {},
+    fetch: async () => ({ ok: true, json: async () => ({ id: 'yanick-keren', title: 'JSON officiel' }) }),
+    window: { location: { search: '?event=yanick-keren' }, dispatchEvent() {} },
+    localStorage: {
+      getItem(k) { return store[k] || null; },
+      setItem(k, v) { store[k] = String(v); }
+    }
+  };
+  sandbox.window.window = sandbox.window;
+  sandbox.global = sandbox;
+  sandbox.globalThis = sandbox;
+  vm.runInNewContext(source, sandbox, { filename: 'event-config.js' });
+
+  await sandbox.window.EventConfig.init();
+  assert.equal(sandbox.window.EventConfig.getConfig().title, 'JSON officiel');
+});
+
 test('DashboardSync does not read the legacy shared dashboard state for another event', () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'dashboard-sync.js'), 'utf8');
   const store = {
