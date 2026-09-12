@@ -100,10 +100,10 @@ function getConfigDefaults() {
         venueLng: blocks.venueLng || "",
         mapLink: blocks.mapLink || cfg?.links?.map || "",
         mapImage: blocks.mapImage || "",
-        title: cfg?.title || "Mariage de Josue et Divine",
-        subtitle: cfg?.subtitle || "Josue et Divine",
-        coupleLeft: cfg?.coupleLeft || "Divine",
-        coupleRight: cfg?.coupleRight || "Josue",
+        title: cfg?.title || "Mariage de Yanick et Keren",
+        subtitle: cfg?.subtitle || "Yanick et Keren",
+        coupleLeft: cfg?.coupleLeft || "Yanick",
+        coupleRight: cfg?.coupleRight || "Keren",
         welcomeImage: cfg?.branding?.welcomeImage || "",
         heroImage: cfg?.branding?.heroImage || "",
         welcomeMessage: cfg?.welcomeMessage || "",
@@ -138,10 +138,10 @@ function getConfigDefaults() {
 }
 
 const DEFAULT_STATE = {
-    title: "Mariage de Josue et Divine",
-    subtitle: "Josue et Divine",
-    coupleLeft: "Divine",
-    coupleRight: "Josue",
+    title: "Mariage de Yanick et Keren",
+    subtitle: "Yanick et Keren",
+    coupleLeft: "Yanick",
+    coupleRight: "Keren",
     mainText: "La cérémonie, suivie d'une réception, se tiendra le jeudi 30 avril 2026 à partir de 19h30.",
     welcomeImage: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
     heroImage: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=80",
@@ -168,9 +168,9 @@ const DEFAULT_STATE = {
     donationWhatsAppMessage: "Bonjour {couple}, je souhaite vous faire un don pour votre mariage. Merci de me communiquer les modalités.",
     dressCodeTitle: "Tenue élégante",
     dressImages: [],
-    supportEmail: "contact@josue-divine.com",
+    supportEmail: "contact@yanick-keren.com",
     rsvpLink: "",
-    metaDescription: "Invitation officielle au mariage de Josue et Divine.",
+    metaDescription: "Invitation officielle au mariage de Yanick et Keren.",
     backgroundMusicUrl: "",
     backgroundMusicVolume: 0.35,
     backgroundMusicEnabled: true,
@@ -238,6 +238,21 @@ function parseList(value, max = 12) {
         .split(",")
         .map((item) => item.trim())
         .filter(Boolean)
+        .slice(0, max);
+}
+
+function parseMediaList(value, max = 12) {
+    const raw = String(value || "").trim();
+    if (!raw) return [];
+    try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed.map(String).filter(Boolean).slice(0, max);
+    } catch {
+        /* Accept the readable newline or comma-separated legacy format below. */
+    }
+    const matches = raw.match(/data:[^,\s]+,\s*[A-Za-z0-9+/=]+|https?:\/\/[^\s,]+/gi);
+    return (matches || parseList(raw, max))
+        .map((item) => item.replace(/^(data:[^,\s]+),\s+/, "$1,"))
         .slice(0, max);
 }
 
@@ -315,7 +330,7 @@ function readFormState() {
         welcomeImage: document.getElementById("welcomeImage").value.trim(),
         primaryColor: document.getElementById("primaryColor").value,
         accentColor: document.getElementById("accentColor").value,
-        bestPhotos: parseList(document.getElementById("bestPhotos").value, 12),
+        bestPhotos: parseMediaList(document.getElementById("bestPhotos").value, 12),
         countdownDate: document.getElementById("eventDate")?.value || "",
         venueTitle: document.getElementById("venueTitle").value.trim(),
         venueAddress: document.getElementById("venueAddress").value.trim(),
@@ -344,7 +359,7 @@ function readFormState() {
         whatsappDonationPhone: document.getElementById("whatsappDonationPhone").value.trim(),
         donationWhatsAppMessage: document.getElementById("donationWhatsAppMessage").value.trim(),
         dressCodeTitle: document.getElementById("dressCodeTitle").value.trim(),
-        dressImages: parseList(document.getElementById("dressImages").value, 8),
+        dressImages: parseMediaList(document.getElementById("dressImages").value, 8),
         supportEmail: document.getElementById("supportEmail").value.trim(),
         rsvpLink: document.getElementById("rsvpLink").value.trim(),
         metaDescription: document.getElementById("metaDescription").value.trim(),
@@ -824,12 +839,12 @@ async function wireUploader(inputId, targetFieldId, previewId, multiple = false,
                         : (await filesToDataUrls([file]))[0];
                     urls.push(url);
                 }
-                const existing = parseList(field.value, max);
-                field.value = [...existing, ...urls].slice(0, max).join(", ");
+                const existing = parseMediaList(field.value, max);
+                field.value = [...existing, ...urls].slice(0, max).join("\n");
                 if (targetFieldId === "dressImages") {
-                    renderDressPreview(parseList(field.value, max));
+                    renderDressPreview(parseMediaList(field.value, max));
                 } else {
-                    renderPreview(parseList(field.value, max));
+                    renderPreview(parseMediaList(field.value, max));
                 }
             } else {
                 const url = window.MediaUpload
@@ -1128,8 +1143,8 @@ window.addEventListener("DOMContentLoaded", async () => {
         schedulePreviewRefresh();
     });
 
-    document.getElementById("bestPhotos").addEventListener("input", () => renderPreview(parseList(document.getElementById("bestPhotos").value, 12)));
-    document.getElementById("dressImages").addEventListener("input", () => renderDressPreview(parseList(document.getElementById("dressImages").value, 8)));
+    document.getElementById("bestPhotos").addEventListener("input", () => renderPreview(parseMediaList(document.getElementById("bestPhotos").value, 12)));
+    document.getElementById("dressImages").addEventListener("input", () => renderDressPreview(parseMediaList(document.getElementById("dressImages").value, 8)));
     document.getElementById("heroImage").addEventListener("input", () => renderSinglePreview("heroImage", "preview-heroImage"));
     document.getElementById("welcomeImage").addEventListener("input", () => renderSinglePreview("welcomeImage", "preview-welcomeImage"));
     document.getElementById("mapImage").addEventListener("input", () => renderSinglePreview("mapImage", "preview-mapImage"));

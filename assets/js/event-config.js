@@ -184,10 +184,13 @@ const EventConfig = (() => {
     function sanitizeLegacyIdentityOverrides(partial, base) {
         if (!partial || !base) return partial;
         const blob = JSON.stringify(partial);
-        if (!/yanick|keren/i.test(blob)) return partial;
+        const isObsoleteYanickKerenDefault = base.id === "yanick-keren"
+            && /josue|divine/i.test(blob);
+        if (!/yanick|keren/i.test(blob) && !isObsoleteYanickKerenDefault) return partial;
         const out = { ...partial };
         ["title", "subtitle", "coupleLeft", "coupleRight"].forEach((key) => {
-            if (/yanick|keren/i.test(String(out[key] || ""))) {
+            const value = String(out[key] || "");
+            if (/yanick|keren/i.test(value) || (isObsoleteYanickKerenDefault && /josue|divine/i.test(value))) {
                 if (base[key]) out[key] = base[key];
                 else delete out[key];
             }

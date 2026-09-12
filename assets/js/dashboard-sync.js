@@ -203,8 +203,9 @@ const DashboardSync = (() => {
         const rev = cfg.identityRevision || 1;
         const identityBlob = [next.title, next.subtitle, next.coupleLeft, next.coupleRight].join(" ");
         const hasLegacy = /yanick|keren/i.test(identityBlob);
+        const hasObsoleteYanickKerenDefault = cfg.id === "yanick-keren" && /josue|divine/i.test(identityBlob);
 
-        if (hasLegacy) {
+        if (hasLegacy || hasObsoleteYanickKerenDefault) {
             if (cfg.title && next.title !== cfg.title) {
                 next.title = cfg.title;
                 changed = true;
