@@ -506,6 +506,21 @@ const CloudAPI = (() => {
         return requestRpc("get_public_event_config", { p_event_id: eventId });
     }
 
+    async function getEvents() {
+        if (!isEnabled()) return [];
+        const events = await request("events", {
+            query: "?select=id,slug,type,title,config_json,created_at&order=created_at.desc"
+        });
+        return Array.isArray(events) ? events.map((event) => ({
+            id: event.id,
+            slug: event.slug,
+            type: event.type,
+            title: event.title,
+            createdAt: event.created_at,
+            ...(event.config_json || {})
+        })) : [];
+    }
+
     async function getGuestByInviteToken(token) {
         const guest = await requestRpc("get_guest_invite", { p_token: token });
         return guest ? mapGuestFromCloud(guest) : null;
@@ -725,6 +740,7 @@ const CloudAPI = (() => {
         track,
         getAnalytics,
         createEvent,
+        getEvents,
         getEventSettings,
         getPublicEventConfig,
         getGuestByInviteToken,

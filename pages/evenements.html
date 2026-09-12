@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Événements — Administration</title>
+    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=20">
+    <link rel="stylesheet" href="../assets/css/app.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
+    <link rel="stylesheet" href="../assets/css/evenements.css">
+</head>
+<body class="admin-shell text-slate-800">
+    <main class="dash-wrap">
+        <header class="admin-header">
+            <p class="admin-overline">Administration plateforme</p>
+            <h1>Tous les événements</h1>
+            <p class="admin-subtitle">Consultez, personnalisez et partagez vos invitations indépendantes.</p>
+            <div class="admin-head-actions">
+                <a href="./admin.html" class="admin-head-btn primary">➕ Créer une invitation</a>
+                <a href="../index.html" class="admin-head-btn">Accueil</a>
+                <button type="button" id="events-logout-btn" class="admin-head-btn">Déconnexion</button>
+            </div>
+        </header>
+
+        <section class="events-toolbar" aria-label="Résumé des événements">
+            <div>
+                <p class="events-count-label">Événements disponibles</p>
+                <strong id="events-count">0</strong>
+            </div>
+            <label class="events-search-label">
+                <span>Rechercher</span>
+                <input id="events-search" type="search" class="admin-input" placeholder="Nom ou type d'événement">
+            </label>
+        </section>
+
+        <p id="events-feedback" class="events-feedback" role="status"></p>
+        <section id="events-grid" class="events-grid" aria-live="polite"></section>
+        <section id="events-empty" class="admin-empty hidden">
+            <div class="admin-empty-icon">✦</div>
+            <p>Aucun événement ne correspond à votre recherche.</p>
+        </section>
+    </main>
+
+    <script src="../assets/js/supabase-config.js?v=53"></script>
+    <script src="../assets/js/django-api-config.js?v=53"></script>
+    <script src="../assets/js/django-api.js?v=53"></script>
+    <script src="../assets/js/event-config.js?v=54"></script>
+    <script src="../assets/js/cloud-api.js?v=53"></script>
+    <script src="../assets/js/auth.js?v=23"></script>
+    <script src="../assets/js/evenements-page.js?v=1"></script>
+</body>
+</html>

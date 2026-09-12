@@ -1,0 +1,134 @@
+.events-toolbar {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid #dbeafe;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.events-count-label,
+.events-search-label span {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+#events-count {
+    color: #0f172a;
+    font-size: 1.8rem;
+    line-height: 1;
+}
+
+.events-search-label {
+    width: min(100%, 320px);
+}
+
+.events-search-label .admin-input {
+    width: 100%;
+}
+
+.events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.event-card {
+    overflow: hidden;
+    border: 1px solid #dbe2ea;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.07);
+}
+
+.event-card-image {
+    display: block;
+    width: 100%;
+    height: 148px;
+    object-fit: cover;
+    background: #e2e8f0;
+}
+
+.event-card-image--empty {
+    display: grid;
+    place-items: center;
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+.event-card-body {
+    padding: 1rem;
+}
+
+.event-card-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.45rem;
+    color: #64748b;
+    font-size: 0.72rem;
+}
+
+.event-card-title {
+    margin: 0;
+    color: #0f172a;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    line-height: 1.25;
+}
+
+.event-card-subtitle {
+    min-height: 1.2rem;
+    margin: 0.35rem 0 0;
+    color: #475569;
+    font-size: 0.85rem;
+}
+
+.event-card-slug {
+    display: block;
+    margin-top: 0.75rem;
+    overflow: hidden;
+    color: #475569;
+    font-family: monospace;
+    font-size: 0.72rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.event-card-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.event-card-actions .admin-btn:last-child {
+    grid-column: 1 / -1;
+    text-align: center;
+}
+
+.events-feedback {
+    min-height: 1.2rem;
+    margin: 0 0 1rem;
+    color: #64748b;
+    font-size: 0.82rem;
+}
+
+@media (max-width: 600px) {
+    .events-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .events-search-label {
+        width: 100%;
+    }
+}
