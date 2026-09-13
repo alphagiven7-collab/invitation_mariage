@@ -72,7 +72,9 @@
                 <div class="event-card-actions">
                     <a class="admin-btn admin-btn-primary" href="./personnalisation.html?event=${slug}">Personnaliser</a>
                     <a class="admin-btn admin-btn-success" href="./admin.html?event=${slug}">Invités</a>
-                    <a class="admin-btn admin-btn-ghost" href="./invitation.html?event=${slug}" target="_blank" rel="noopener">Voir l'invitation</a>
+                    <a class="admin-btn admin-btn-ghost" href="./checkin.html?event=${slug}">Check-in</a>
+                    <a class="admin-btn admin-btn-ghost" href="./partager.html?event=${slug}">Partager</a>
+                    <a class="admin-btn admin-btn-ghost event-card-preview" href="./invitation.html?event=${slug}" target="_blank" rel="noopener">Voir l'invitation</a>
                 </div>
             </div>
         </article>`;

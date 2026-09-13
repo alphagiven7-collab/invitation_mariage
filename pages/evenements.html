@@ -15,13 +15,29 @@
         <header class="admin-header">
             <p class="admin-overline">Administration plateforme</p>
             <h1>Tous les événements</h1>
-            <p class="admin-subtitle">Consultez, personnalisez et partagez vos invitations indépendantes.</p>
+            <p class="admin-subtitle">Créez, configurez et pilotez chaque invitation depuis un seul endroit.</p>
             <div class="admin-head-actions">
                 <a href="./admin.html" class="admin-head-btn primary">➕ Créer une invitation</a>
+                <a href="./offres.html" class="admin-head-btn">Offres</a>
                 <a href="../index.html" class="admin-head-btn">Accueil</a>
                 <button type="button" id="events-logout-btn" class="admin-head-btn">Déconnexion</button>
             </div>
         </header>
+
+        <section class="admin-command-bar" aria-label="Accès rapide administration">
+            <a href="./admin.html" class="admin-command primary">
+                <strong>Nouvelle invitation</strong>
+                <span>Créer et attribuer un événement client</span>
+            </a>
+            <a href="./formulaires.html" class="admin-command">
+                <strong>Formulaires</strong>
+                <span>Configurer les demandes et contacts</span>
+            </a>
+            <a href="./partager.html" class="admin-command">
+                <strong>Partage</strong>
+                <span>Préparer vos publications et visuels</span>
+            </a>
+        </section>
 
         <section class="events-toolbar" aria-label="Résumé des événements">
             <div>
@@ -48,6 +64,6 @@
     <script src="../assets/js/event-config.js?v=61"></script>
     <script src="../assets/js/cloud-api.js?v=57"></script>
     <script src="../assets/js/auth.js?v=55"></script>
-    <script src="../assets/js/evenements-page.js?v=2"></script>
+    <script src="../assets/js/evenements-page.js?v=3"></script>
 </body>
 </html>
