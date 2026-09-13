@@ -4,3 +4,4 @@
 node_modules/
 tools/tailwindcss.exe
 tools/tailwindcss-windows-x64.exe
+.vercel
