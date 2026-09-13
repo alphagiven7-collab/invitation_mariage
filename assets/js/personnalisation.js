@@ -803,8 +803,16 @@ function wireMusicControls() {
                 preview.src = audioUrl;
                 preview.volume = Number(vol?.value || 35) / 100;
             }
-            await persistDashboard(toDashboardPayload(readFormState()), { cloudMessage: false });
-            showToast("Audio importé et sauvegardé.");
+            const saved = await persistDashboard(
+                toDashboardPayload(readFormState()),
+                { cloudMessage: false }
+            );
+            if (window.CloudAPI?.isEnabled?.() && !saved.cloud) {
+                throw new Error("Audio envoyé, mais configuration non synchronisée. Réessayez la sauvegarde avant de changer d'appareil.");
+            }
+            showToast(saved.cloud
+                ? "Audio importé et synchronisé sur tous les appareils."
+                : "Audio importé localement seulement. Configurez Supabase pour le partager.");
             schedulePreviewRefresh(400);
         } catch (err) {
             console.error("Erreur import audio:", err);
