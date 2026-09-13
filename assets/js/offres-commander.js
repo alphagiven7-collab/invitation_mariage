@@ -10,7 +10,7 @@
             id: "mariage",
             label: "Mariage",
             emoji: "💍",
-            demo: "./invitation.html?event=yanick-keren",
+            demo: "./invitation.html?event=demo",
             palette: ["#6b2c3e", "#c9a962", "#fdf2f8"]
         },
         anniversaire: {

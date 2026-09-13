@@ -10,7 +10,7 @@ const CheckinUrl = (() => {
     function buildCheckInUrl(guest, eventId) {
         const eid = eventId
             || (window.EventConfig && EventConfig.getEventId && EventConfig.getEventId())
-            || "yanick-keren";
+            || "demo";
         const token = guest && guest.token ? String(guest.token).trim() : "";
         if (!token) return "";
         const params = new URLSearchParams();

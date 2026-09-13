@@ -1,4 +1,4 @@
-        const DESIGNER_ACCESS_CODE = 'YANICK-KEREN-ADMIN';
+        const DESIGNER_ACCESS_CODE = 'MICHELLINE-DESIGNER';
         const designerModeKey = 'wedding_designer_mode';
         const dashboardStateKey = 'wedding_dashboard_state';
         let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
@@ -12,7 +12,7 @@
         function eventStorageKey(suffix) {
             const eventId = window.EventConfig && EventConfig.getEventId
                 ? EventConfig.getEventId()
-                : 'yanick-keren';
+                : 'demo';
             return `wedding_event_${eventId}_${suffix}`;
         }
 
@@ -142,7 +142,7 @@
         function buildConfirmationCode(guest, payload) {
             const token = (guest && guest.token) ? guest.token.slice(0, 8).toUpperCase() : 'GUEST';
             const stamp = Date.now().toString(36).slice(-4).toUpperCase();
-            return `YK26-${token}-${stamp}`;
+            return `EVT-${token}-${stamp}`;
         }
 
         function showRsvpConfirmation(payload, confirmCode, guest) {
@@ -166,7 +166,7 @@
                 : `Vous avez indiqué ne pas pouvoir être présent(e).`;
             document.getElementById('confirm-code-line').textContent = confirmCode;
 
-            const curEventId = EventConfig.getEventId ? EventConfig.getEventId() : 'yanick-keren';
+            const curEventId = EventConfig.getEventId ? EventConfig.getEventId() : 'demo';
             const qrData = (window.CheckinUrl && currentGuestProfile && currentGuestProfile.token)
                 ? CheckinUrl.buildCheckInUrl(currentGuestProfile, curEventId)
                 : JSON.stringify({
@@ -188,7 +188,7 @@
         function buildWhatsAppDonationUrl(state) {
             const couple = (state && state.subtitle)
                 || document.getElementById('hero-subtitle')?.textContent?.trim()
-                || 'Josue et Divine';
+                || 'les organisateurs';
             const phone = (
                 (state && state.whatsappDonationPhone)
                 || document.getElementById('donation-btn')?.dataset.whatsapp
@@ -772,15 +772,15 @@
             const mapUrl = normalizeUrl(state.mapLink || 'https://maps.google.com/?q=Sultani+River+Kinshasa');
             const siteUrl = normalizeUrl(state.siteUrl || window.location.href);
             const shareImage = normalizeUrl(state.shareImage || document.getElementById('about-cover-image').src);
-            const description = state.metaDescription || 'Invitation officielle au mariage de Josue et Divine.';
-            const supportEmail = (state.supportEmail || 'contact@josue-divine.com').trim();
+            const description = state.metaDescription || 'Invitation officielle.';
+            const supportEmail = (state.supportEmail || 'contact@michelline.cd').trim();
 
             donationBtn.dataset.link = normalizeUrl(state.donationLink || 'https://www.paypal.com');
             donationBtn.dataset.whatsapp = (state.whatsappDonationPhone || '').trim();
             donationBtn.dataset.waMessage = state.donationWhatsAppMessage || '';
             document.getElementById('rsvp-form').dataset.externalLink = normalizeUrl(state.rsvpLink || '');
             document.getElementById('venue-map-link').href = mapUrl;
-            document.getElementById('support-email-link').href = `mailto:${supportEmail}?subject=Contact%20Mariage%20Josue%20Divine`;
+            document.getElementById('support-email-link').href = `mailto:${supportEmail}?subject=Contact%20invitation`;
 
             document.getElementById('meta-description').content = description;
             document.getElementById('meta-og-title').content = document.getElementById('hero-title').textContent.trim();
@@ -825,7 +825,7 @@
             if (!isDesignerMode) return showToast('Acces reserve au concepteur');
             const q = window.EventConfig && EventConfig.preserveEventQuery
                 ? EventConfig.preserveEventQuery()
-                : `?event=${EventConfig.getEventId ? EventConfig.getEventId() : 'yanick-keren'}`;
+                : `?event=${EventConfig.getEventId ? EventConfig.getEventId() : 'demo'}`;
             window.location.href = `./personnalisation.html${q}`;
         }
 
@@ -1035,7 +1035,7 @@
             const cfg = EventConfig.getConfig && EventConfig.getConfig();
             const quizNames = (cfg && cfg.subtitle)
                 ? cfg.subtitle.replace(/\s+et\s+/i, '/').replace(/\s*&\s*/i, '/')
-                : 'Josue/Divine';
+                : 'les organisateurs';
             const answer = window.prompt(`Quiz: Qui est le plus romantique ? (${quizNames})`);
             if (!answer) return;
             showToast('Merci pour votre reponse: ' + answer);

@@ -11,7 +11,7 @@ const DrinkMenu = (() => {
 
     let menuItems = [];
     let selected = new Set();
-    let eventId = "yanick-keren";
+    let eventId = "demo";
 
     function getEventId() {
         if (window.EventConfig && EventConfig.isReady && EventConfig.isReady()) {

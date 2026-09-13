@@ -100,10 +100,10 @@ function getConfigDefaults() {
         venueLng: blocks.venueLng || "",
         mapLink: blocks.mapLink || cfg?.links?.map || "",
         mapImage: blocks.mapImage || "",
-        title: cfg?.title || "Mariage de Yanick et Keren",
-        subtitle: cfg?.subtitle || "Yanick et Keren",
-        coupleLeft: cfg?.coupleLeft || "Yanick",
-        coupleRight: cfg?.coupleRight || "Keren",
+        title: cfg?.title || "Invitation",
+        subtitle: cfg?.subtitle || "Votre événement",
+        coupleLeft: cfg?.coupleLeft || "",
+        coupleRight: cfg?.coupleRight || "",
         welcomeImage: cfg?.branding?.welcomeImage || "",
         heroImage: cfg?.branding?.heroImage || "",
         welcomeMessage: cfg?.welcomeMessage || "",
@@ -138,10 +138,10 @@ function getConfigDefaults() {
 }
 
 const DEFAULT_STATE = {
-    title: "Mariage de Yanick et Keren",
-    subtitle: "Yanick et Keren",
-    coupleLeft: "Yanick",
-    coupleRight: "Keren",
+    title: "Invitation",
+    subtitle: "Votre événement",
+    coupleLeft: "",
+    coupleRight: "",
     mainText: "La cérémonie, suivie d'une réception, se tiendra le jeudi 30 avril 2026 à partir de 19h30.",
     welcomeImage: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
     heroImage: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=80",
@@ -168,7 +168,7 @@ const DEFAULT_STATE = {
     donationWhatsAppMessage: "Bonjour {couple}, je souhaite vous faire un don pour votre mariage. Merci de me communiquer les modalités.",
     dressCodeTitle: "Tenue élégante",
     dressImages: [],
-    supportEmail: "contact@yanick-keren.com",
+    supportEmail: "contact@michelline.cd",
     rsvpLink: "",
     metaDescription: "Invitation officielle au mariage de Yanick et Keren.",
     backgroundMusicUrl: "",
@@ -189,7 +189,7 @@ let previewPaused = false;
 function getEventId() {
     return window.EventConfig && EventConfig.isReady()
         ? EventConfig.getEventId()
-        : "yanick-keren";
+        : "demo";
 }
 
 function updateCloudStatus(lastSave) {

@@ -5,7 +5,7 @@
     const SITE_BASE = "https://alphagiven7-collab.github.io/invitation_mariage";
     const OFFRES_URL = SITE_BASE + "/pages/offres.html";
     const SHORT_URL = SITE_BASE + "/o.html";
-    const DEMO_URL = SITE_BASE + "/pages/invitation.html?event=yanick-keren";
+    const DEMO_URL = SITE_BASE + "/pages/invitation.html?event=demo";
     const WA_PHONE = "243845370370";
     const WA_DISPLAY = "+243 845 370 370";
     const BRAND = "Michelline";

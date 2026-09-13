@@ -170,7 +170,7 @@ const AccessPassExport = (() => {
 
     function getCoupleLabel() {
         const cfg = window.EventConfig && EventConfig.getConfig && EventConfig.getConfig();
-        const sub = (cfg && cfg.subtitle) ? cfg.subtitle : "Josue et Divine";
+        const sub = (cfg && cfg.subtitle) ? cfg.subtitle : "Invitation privée";
         return sub.replace(/\s+et\s+/i, " & ");
     }
 

@@ -49,7 +49,7 @@ const EnvelopeExport = (() => {
 
     async function drawEnvelopePng(guest, options = {}) {
         const cfg = window.EventConfig && EventConfig.getConfig ? EventConfig.getConfig() : {};
-        const eventId = options.eventId || (EventConfig && EventConfig.getEventId()) || "yanick-keren";
+        const eventId = options.eventId || (EventConfig && EventConfig.getEventId()) || "demo";
         const checkUrl = CheckinUrl.buildCheckInUrl(guest, eventId);
         const inviteUrl = GuestManager.buildInviteLink(guest);
         const qrTarget = guest.status === "yes" && checkUrl ? checkUrl : inviteUrl;

@@ -9,7 +9,7 @@ const GuestManager = (() => {
     function getEventId() {
         if (window.EventConfig && EventConfig.isReady()) return EventConfig.getEventId();
         const params = new URLSearchParams(window.location.search);
-        return params.get("event") || "yanick-keren";
+        return params.get("event") || "demo";
     }
 
     function storageKey() {

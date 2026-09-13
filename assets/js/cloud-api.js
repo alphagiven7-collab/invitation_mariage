@@ -559,24 +559,11 @@ const CloudAPI = (() => {
         }
         if (!isEnabled()) return { cloud: false, reason: "offline" };
 
-        const created = await request("events", {
-            method: "POST",
-            body: {
-                id: event.id,
-                slug: event.slug,
-                owner_id: window.AuthGuard?.getSession?.()?.userId || null,
-                type: event.type || "wedding",
-                title: event.title,
-                config_json: event
-            },
-            prefer: "return=representation"
-        });
-        if (!extractGuestRow(created)) {
+        const created = await requestRpc("create_managed_event", { p_event: event });
+        if (!created || !created.id) {
             return { cloud: false, reason: "event_create_failed" };
         }
-
-        const settings = await saveEventSettings(event.id, event);
-        return { cloud: !!settings.cloud, reason: settings.cloud ? "ok" : "settings_save_failed" };
+        return { cloud: true, reason: "ok", event: created };
     }
 
     async function saveEventSettings(eventId, payload) {

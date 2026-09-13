@@ -28,6 +28,58 @@ AS $$
     );
 $$;
 
+ALTER TABLE public.events
+    ADD COLUMN IF NOT EXISTS is_published BOOLEAN NOT NULL DEFAULT TRUE;
+
+CREATE OR REPLACE FUNCTION public.create_managed_event(p_event JSONB)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    new_event_id TEXT := lower(trim(COALESCE(p_event->>'id', '')));
+    new_slug TEXT := lower(trim(COALESCE(p_event->>'slug', '')));
+    new_title TEXT := trim(COALESCE(p_event->>'title', ''));
+    created_event public.events;
+BEGIN
+    IF NOT public.is_platform_admin() THEN
+        RAISE EXCEPTION 'Administrateur plateforme requis';
+    END IF;
+    IF new_event_id = '' OR new_slug = '' OR new_title = '' THEN
+        RAISE EXCEPTION 'Configuration d''événement incomplète';
+    END IF;
+    IF new_event_id <> new_slug OR new_slug !~ '^[a-z0-9]+(?:-[a-z0-9]+)*$' THEN
+        RAISE EXCEPTION 'Identifiant d''événement invalide';
+    END IF;
+
+    INSERT INTO public.events (id, slug, owner_id, type, title, config_json, is_published)
+    VALUES (
+        new_event_id,
+        new_slug,
+        auth.uid(),
+        COALESCE(NULLIF(p_event->>'type', ''), 'wedding'),
+        new_title,
+        p_event - 'adminCode' - 'admin_code',
+        TRUE
+    )
+    RETURNING * INTO created_event;
+
+    INSERT INTO public.event_settings (event_id, dashboard_json, updated_at)
+    VALUES (
+        created_event.id,
+        p_event - 'adminCode' - 'admin_code',
+        now()
+    );
+
+    RETURN jsonb_build_object(
+        'id', created_event.id,
+        'slug', created_event.slug,
+        'title', created_event.title
+    );
+END;
+$$;
+
 -- Donne uniquement les champs necessaires a une invitation publique.
 CREATE OR REPLACE FUNCTION public.get_public_event_config(p_event_id TEXT)
 RETURNS JSONB
@@ -42,11 +94,12 @@ AS $$
             'slug', e.slug,
             'type', e.type,
             'title', e.title
-        ) || COALESCE(s.dashboard_json, e.config_json, '{}'::jsonb)
+        ) || COALESCE(e.config_json, '{}'::jsonb) || COALESCE(s.dashboard_json, '{}'::jsonb)
     ) - 'adminCode' - 'admin_code'
     FROM public.events e
     LEFT JOIN public.event_settings s ON s.event_id = e.id
-    WHERE e.id = p_event_id;
+    WHERE (e.id = p_event_id OR e.slug = p_event_id)
+      AND e.is_published = TRUE;
 $$;
 
 -- Le token individuel donne acces a un seul invite, jamais a la liste complete.
@@ -119,6 +172,7 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.get_public_event_config(TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.create_managed_event(JSONB) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_guest_invite(TEXT) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.submit_guest_rsvp(TEXT, TEXT, TEXT, INTEGER, INTEGER, TEXT, JSONB, TEXT) TO anon, authenticated;
 

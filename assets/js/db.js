@@ -4,7 +4,7 @@ const WeddingDB = (() => {
             return EventConfig.getEventId();
         }
         const params = new URLSearchParams(window.location.search);
-        return params.get("event") || "yanick-keren";
+        return params.get("event") || "demo";
     }
 
     function scopedKey(suffix) {
@@ -15,8 +15,8 @@ const WeddingDB = (() => {
 
     const defaults = {
         settings: {
-            title: "Mariage de Yanick et Keren",
-            subtitle: "Yanick et Keren",
+            title: "Démo Michelline",
+            subtitle: "Votre histoire, votre invitation",
             message: "Merci de célébrer ce moment précieux avec nous.",
             primaryColor: "#4caf50",
             accentColor: "#ec4899",

@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-test('EventConfig.createEvent correctly initializes and registers a new event in localStorage', () => {
+test('EventConfig.createEvent prepares an unpublished event without persisting it locally', () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'event-config.js'), 'utf8');
 
   const store = {};
@@ -41,36 +41,27 @@ test('EventConfig.createEvent correctly initializes and registers a new event in
   assert.equal(ev.slug, 'mariage-de-sarah-marc');
   assert.equal(ev.title, 'Mariage de Sarah & Marc');
   assert.equal(ev.branding.welcomeImage, 'https://cdn.example.test/sarah-marc-accueil.jpg');
-  assert.ok(store['wedding_custom_events']);
-
-  const registered = EventConfig.getRegisteredEvents();
-  assert.ok(registered.some(e => e.slug === 'mariage-de-sarah-marc'));
+  assert.equal(store['wedding_custom_events'], undefined);
+  assert.equal(store['wedding_event_mariage-de-sarah-marc_config'], undefined);
+  assert.ok(!EventConfig.getRegisteredEvents().some(e => e.slug === 'mariage-de-sarah-marc'));
 
   assert.throws(
-    () => EventConfig.createEvent({ title: 'Copie démo', slug: 'yanick-keren' }),
+    () => EventConfig.createEvent({ title: 'Copie démo', slug: 'demo' }),
     /réservé à une démo existante/
   );
-  assert.throws(
-    () => EventConfig.createEvent({ title: 'Copie locale', slug: 'mariage-de-sarah-marc' }),
-    /déjà utilisé/
-  );
-
-  assert.equal(EventConfig.discardLocalEvent('mariage-de-sarah-marc'), true);
-  assert.ok(!EventConfig.getRegisteredEvents().some(e => e.slug === 'mariage-de-sarah-marc'));
-  assert.equal(store['wedding_event_mariage-de-sarah-marc_config'], undefined);
 });
 
-test('EventConfig ignores stale local configuration for a built-in demo', async () => {
+test('EventConfig ignores stale local configuration for the built-in demo', async () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'event-config.js'), 'utf8');
   const store = {
-    'wedding_event_yanick-keren_config': JSON.stringify({ title: 'Ancienne copie locale' })
+    'wedding_event_demo_config': JSON.stringify({ title: 'Ancienne copie locale' })
   };
   const sandbox = {
     console,
     URLSearchParams,
     CustomEvent: class {},
-    fetch: async () => ({ ok: true, json: async () => ({ id: 'yanick-keren', title: 'JSON officiel' }) }),
-    window: { location: { search: '?event=yanick-keren' }, dispatchEvent() {} },
+    fetch: async () => ({ ok: true, json: async () => ({ id: 'demo', title: 'JSON officiel' }) }),
+    window: { location: { search: '?event=demo' }, dispatchEvent() {} },
     localStorage: {
       getItem(k) { return store[k] || null; },
       setItem(k, v) { store[k] = String(v); }
@@ -84,29 +75,33 @@ test('EventConfig ignores stale local configuration for a built-in demo', async 
   await sandbox.window.EventConfig.init();
   assert.equal(sandbox.window.EventConfig.getConfig().title, 'JSON officiel');
   assert.equal(
-    sandbox.window.EventConfig.getRegisteredEvents().find((event) => event.slug === 'yanick-keren').title,
-    'Démo'
+    sandbox.window.EventConfig.getRegisteredEvents().find((event) => event.slug === 'demo').title,
+    'Démo Michelline'
   );
 });
 
-test('EventConfig overlays public cloud settings onto a built-in demo for anonymous visitors', async () => {
+test('EventConfig loads a cloud-only client event when no local JSON exists', async () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'event-config.js'), 'utf8');
+    let requestedSlug = '';
   const cloudApi = {
     isEnabled: () => true,
     getEventSettings: async () => null,
-    getPublicEventConfig: async () => ({
+        getPublicEventConfig: async (slug) => {
+          requestedSlug = slug;
+          return {
       id: 'yanick-keren',
       title: 'Mariage de Léa et Marc',
       coupleLeft: 'Léa',
       coupleRight: 'Marc',
       backgroundMusicUrl: 'https://cdn.example.test/musique.mp3'
-    })
+          };
+        }
   };
   const sandbox = {
     console,
     URLSearchParams,
     CustomEvent: class {},
-    fetch: async () => ({ ok: true, json: async () => ({ id: 'yanick-keren', title: 'Mariage de Yanick et Keren', venue: 'Salle initiale' }) }),
+    fetch: async () => ({ ok: false }),
     CloudAPI: cloudApi,
     window: { location: { search: '?event=yanick-keren' }, dispatchEvent() {}, CloudAPI: cloudApi },
     localStorage: { getItem() { return null; }, setItem() {} }
@@ -118,9 +113,10 @@ test('EventConfig overlays public cloud settings onto a built-in demo for anonym
 
   await sandbox.window.EventConfig.init();
   const config = sandbox.window.EventConfig.getConfig();
+  assert.equal(requestedSlug, 'yanick-keren');
   assert.equal(config.title, 'Mariage de Léa et Marc');
   assert.equal(config.coupleLeft, 'Léa');
-  assert.equal(config.venue, 'Salle initiale');
+  assert.equal(config.venue, undefined);
   assert.equal(config.backgroundMusicUrl, 'https://cdn.example.test/musique.mp3');
 });
 

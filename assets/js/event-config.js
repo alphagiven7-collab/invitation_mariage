@@ -3,9 +3,9 @@
  * Fusionne avec les overrides localStorage (personnalisation)
  */
 const EventConfig = (() => {
-    const DEFAULT_EVENT = "yanick-keren";
+    const DEFAULT_EVENT = "demo";
     const BUILTIN_EVENTS = [
-        { id: "yanick-keren", slug: "yanick-keren", title: "Démo", type: "wedding" },
+        { id: "demo", slug: "demo", title: "Démo Michelline", type: "wedding" },
         { id: "anniversaire-grace", slug: "anniversaire-grace", title: "Anniversaire de Grace", type: "birthday" },
         { id: "conference-tech-2026", slug: "conference-tech-2026", title: "Conférence Tech Kinshasa 2026", type: "conference" }
     ];
@@ -43,20 +43,7 @@ const EventConfig = (() => {
     }
 
     function getRegisteredEvents() {
-        const customs = getCustomEvents();
-        const merged = [...BUILTIN_EVENTS];
-        customs.forEach((c) => {
-            if (c && c.slug && !merged.some((m) => m.slug === c.slug)) {
-                merged.push({
-                    id: c.slug,
-                    slug: c.slug,
-                    title: c.title || `Invitation ${c.slug}`,
-                    type: c.type || "wedding",
-                    adminCode: c.adminCode || ""
-                });
-            }
-        });
-        return merged;
+        return [...BUILTIN_EVENTS];
     }
 
     function createEvent(data) {
@@ -68,14 +55,9 @@ const EventConfig = (() => {
             .replace(/^-+|-+$/g, "");
         const slug = rawSlug || `event-${Date.now()}`;
         const adminCode = (data.adminCode || `${slug.toUpperCase().slice(0, 12)}-2026`).replace(/\s+/g, "-");
-        const customs = getCustomEvents();
         const isBuiltIn = BUILTIN_EVENTS.some((event) => event.slug === slug);
-        const existingIdx = customs.findIndex((event) => event.slug === slug);
         if (isBuiltIn) {
             throw new Error("Cet identifiant est réservé à une démo existante. Choisissez un autre slug.");
-        }
-        if (existingIdx >= 0) {
-            throw new Error("Cet identifiant est déjà utilisé. Choisissez un autre slug.");
         }
 
         const newEvent = {
@@ -108,12 +90,6 @@ const EventConfig = (() => {
             },
             createdAt: new Date().toISOString()
         };
-
-        customs.push(newEvent);
-        localStorage.setItem("wedding_custom_events", JSON.stringify(customs));
-        localStorage.setItem(`wedding_event_${slug}_config`, JSON.stringify(newEvent));
-        localStorage.setItem(`wedding_event_${slug}_settings`, JSON.stringify(newEvent));
-        localStorage.setItem(`wedding_event_${slug}_dashboard_state`, JSON.stringify(newEvent));
 
         return newEvent;
     }
@@ -151,18 +127,6 @@ const EventConfig = (() => {
 
         const isBuiltIn = BUILTIN_EVENTS.some((event) => event.slug === slug);
 
-        // Les configurations locales ne servent qu'aux événements provisoires créés sur cet appareil.
-        // Une démo intégrée doit toujours démarrer depuis son JSON versionné.
-        if (!isBuiltIn) {
-            const customDirect = localStorage.getItem(`wedding_event_${slug}_config`);
-            if (customDirect) {
-                try { return JSON.parse(customDirect); } catch {}
-            }
-        }
-        const customs = getCustomEvents();
-        const found = !isBuiltIn && customs.find((c) => c.slug === slug);
-        if (found) return found;
-
         // Le JSON versionné fournit les valeurs de départ de la démo.
         let fileConfig = null;
         try {
@@ -175,11 +139,9 @@ const EventConfig = (() => {
         // Les réglages sauvegardés sont publics en lecture uniquement via RPC.
         // Cette étape est indispensable pour les visiteurs anonymes, bloqués par RLS
         // sur la table event_settings elle-même.
-        if (window.CloudAPI && typeof CloudAPI.getEventSettings === "function" && CloudAPI.isEnabled()) {
+        if (window.CloudAPI && typeof CloudAPI.getPublicEventConfig === "function" && CloudAPI.isEnabled()) {
             try {
-                const cloudSettings = CloudAPI.getPublicEventConfig
-                    ? await CloudAPI.getPublicEventConfig(slug)
-                    : await CloudAPI.getEventSettings(slug);
+                const cloudSettings = await CloudAPI.getPublicEventConfig(slug);
                 if (cloudSettings && cloudSettings.title) {
                     return fileConfig ? deepMerge(fileConfig, cloudSettings) : cloudSettings;
                 }

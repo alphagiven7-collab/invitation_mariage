@@ -34,6 +34,8 @@ function downloadFile(content, filename, type = "text/csv") {
 }
 
 let guestsCache = [];
+let pendingWelcomeFile = null;
+let pendingWelcomePreviewUrl = "";
 
 function openEditModal(guest) {
     document.getElementById("edit-guest-id").value = guest.id;
@@ -544,25 +546,21 @@ window.addEventListener("DOMContentLoaded", async () => {
         newWelcomePreview.src = src;
         newWelcomePreview.classList.remove("hidden");
     });
-    newWelcomeUpload?.addEventListener("change", async (e) => {
+    newWelcomeUpload?.addEventListener("change", (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        try {
-            const temporaryEventId = newSlug.value.trim() || "nouvel-evenement";
-            const imageUrl = window.MediaUpload && MediaUpload.processFile
-                ? await MediaUpload.processFile(file, temporaryEventId, "welcome-image")
-                : URL.createObjectURL(file);
-            newWelcomeImage.value = imageUrl;
-            if (newWelcomePreview) {
-                newWelcomePreview.src = imageUrl;
-                newWelcomePreview.classList.remove("hidden");
-            }
-            showToast("Photo d'accueil importée.");
-        } catch (err) {
-            showToast(err.message || "Impossible d'importer cette photo.");
-        } finally {
-            e.target.value = "";
+        if (pendingWelcomePreviewUrl) {
+            URL.revokeObjectURL(pendingWelcomePreviewUrl);
         }
+        pendingWelcomeFile = file;
+        pendingWelcomePreviewUrl = URL.createObjectURL(file);
+        newWelcomeImage.value = "";
+        if (newWelcomePreview) {
+            newWelcomePreview.src = pendingWelcomePreviewUrl;
+            newWelcomePreview.classList.remove("hidden");
+        }
+        showToast("Photo prête : elle sera envoyée après la création de l'invitation.");
+        e.target.value = "";
     });
 
     document.getElementById("create-event-form")?.addEventListener("submit", async (e) => {
@@ -588,7 +586,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         const venue = document.getElementById("new-event-venue")?.value.trim() || "Kinshasa";
         const adminCode = newCode.value.trim() || `${slug.toUpperCase()}-2026`;
         const welcomeImage = newWelcomeImage?.value.trim() || "";
-        if (!welcomeImage) {
+        if (!welcomeImage && !pendingWelcomeFile) {
             showToast("Ajoutez une photo d'accueil pour cette invitation.");
             return;
         }
@@ -609,12 +607,28 @@ window.addEventListener("DOMContentLoaded", async () => {
 
             const publication = await EventConfig.publishEvent(created);
             if (window.CloudAPI && CloudAPI.isEnabled() && !publication.cloud) {
-                if (publication.reason === "event_create_failed") {
-                    EventConfig.discardLocalEvent(created.slug);
-                }
-                throw new Error("Invitation créée seulement sur cet appareil : publication Supabase impossible. Vérifiez la table events et ses permissions avant de partager le lien.");
+                throw new Error("Publication Supabase impossible. L'invitation n'est pas prête à être partagée.");
             }
 
+            if (pendingWelcomeFile) {
+                const uploadedWelcomeImage = await MediaUpload.processFile(
+                    pendingWelcomeFile,
+                    created.id,
+                    "welcome-image"
+                );
+                created.branding = { ...created.branding, welcomeImage: uploadedWelcomeImage };
+                const savedImage = await CloudAPI.saveEventSettings(created.id, {
+                    ...created,
+                    welcomeImage: uploadedWelcomeImage
+                });
+                if (!savedImage.cloud) {
+                    throw new Error("Invitation créée, mais l'image d'accueil n'a pas été sauvegardée. Ouvrez Personnaliser et réessayez l'import.");
+                }
+            }
+
+            pendingWelcomeFile = null;
+            if (pendingWelcomePreviewUrl) URL.revokeObjectURL(pendingWelcomePreviewUrl);
+            pendingWelcomePreviewUrl = "";
             closeCreateEventModal();
             populateEventSwitcher(eventId);
             openEventCreatedModal(created);

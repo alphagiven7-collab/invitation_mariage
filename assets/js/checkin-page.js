@@ -8,7 +8,7 @@
 
     function getEventId() {
         const p = new URLSearchParams(window.location.search);
-        return p.get("event") || (window.EventConfig && EventConfig.getEventId()) || "yanick-keren";
+        return p.get("event") || (window.EventConfig && EventConfig.getEventId()) || "demo";
     }
 
     function vibrate(pattern) {
@@ -164,6 +164,8 @@
         }
 
         document.getElementById("checkin-event-label").textContent = EventConfig.getConfig()?.title || eventId;
+        const adminLink = document.getElementById("checkin-admin-link");
+        if (adminLink) adminLink.href = `./admin.html?event=${encodeURIComponent(eventId)}`;
 
         document.getElementById("checkin-manual-btn")?.addEventListener("click", () => {
             const raw = document.getElementById("checkin-manual-token")?.value || "";

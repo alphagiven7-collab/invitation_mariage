@@ -121,7 +121,7 @@ const AuthGuard = (() => {
     function requireAdmin(eventId) {
         if (isEventAdmin(eventId)) return true;
         const params = new URLSearchParams(window.location.search);
-        window.location.href = `./login.html?event=${eventId || params.get("event") || "yanick-keren"}&redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+        window.location.href = `./login.html?event=${eventId || params.get("event") || "demo"}&redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
         return false;
     }
 

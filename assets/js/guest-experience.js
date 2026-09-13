@@ -29,7 +29,7 @@ const GuestExperience = (() => {
         if (window.EventConfig && EventConfig.isReady && EventConfig.isReady()) {
             return EventConfig.getEventId();
         }
-        return getParams().get("event") || "yanick-keren";
+        return getParams().get("event") || "demo";
     }
 
     function eventStorageKey(suffix) {

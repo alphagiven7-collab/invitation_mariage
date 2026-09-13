@@ -1,0 +1,35 @@
+{
+  "id": "demo",
+  "slug": "demo",
+  "type": "wedding",
+  "title": "Démo Michelline",
+  "subtitle": "Votre histoire, votre invitation",
+  "coupleLeft": "Prénom",
+  "coupleRight": "Prénom",
+  "welcomeMessage": "Découvrez une invitation numérique Michelline.",
+  "gateHint": "Saisissez votre nom pour ouvrir la démo.",
+  "mainText": "Une invitation numérique personnalisée avec confirmation RSVP et accès QR le jour J.",
+  "eventDate": "2026-12-31T18:00:00",
+  "rsvpDeadline": "2026-12-15",
+  "venue": "Votre lieu de réception",
+  "branding": {
+    "primaryColor": "#5c1830",
+    "accentColor": "#ec4899",
+    "welcomeImage": "../assets/images/models/model-mariage.png",
+    "heroImage": "../assets/images/models/model-mariage.png",
+    "ogShareImage": "https://alphagiven7-collab.github.io/invitation_mariage/assets/images/models/model-mariage.png"
+  },
+  "sections": {
+    "quiz": true,
+    "donation": true,
+    "guestbook": true,
+    "gallery": true,
+    "countdown": true,
+    "dressCode": true
+  },
+  "links": {
+    "donation": "",
+    "supportEmail": "contact@michelline.cd",
+    "map": ""
+  }
+}
