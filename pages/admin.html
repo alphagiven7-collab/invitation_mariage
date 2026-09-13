@@ -283,7 +283,7 @@
                     <button type="button" id="create-event-close-btn" class="admin-modal-close" aria-label="Fermer">×</button>
                 </div>
             </div>
-            <form id="create-event-form" class="admin-modal-body">
+            <form id="create-event-form" class="admin-modal-body" novalidate>
                 <p class="admin-modal-section-label">1. Type &amp; Titre de l'événement</p>
                 <div class="admin-form-grid admin-form-grid-compact">
                     <div class="admin-field">
@@ -369,7 +369,7 @@
             <div class="admin-modal-body space-y-4">
                 <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-1">
                     <p><strong>Lien public invitation :</strong> <span id="event-created-link-invitation" class="font-mono text-indigo-600 break-all"></span></p>
-                    <p><strong>Code d'accès Admin :</strong> <span id="event-created-admin-code" class="font-mono font-bold text-slate-800"></span></p>
+                    <p><strong>Compte client attribué :</strong> <span id="event-created-owner-email" class="font-mono font-bold text-slate-800"></span></p>
                 </div>
                 <div class="grid grid-cols-1 gap-2 pt-2">
                     <a id="event-created-action-perso" href="#" class="admin-btn admin-btn-primary text-center">🎨 Personnaliser l'invitation (Textes, Couleurs, Photos)</a>
@@ -387,7 +387,7 @@
     <script src="../assets/js/django-api-config.js?v=53"></script>
     <script src="../assets/js/django-api.js?v=53"></script>
     <script src="../assets/js/event-config.js?v=61"></script>
-    <script src="../assets/js/cloud-api.js?v=54"></script>
+    <script src="../assets/js/cloud-api.js?v=55"></script>
     <script src="../assets/js/media-upload.js?v=54"></script>
     <script src="../assets/js/auth.js?v=23"></script>
     <script src="../assets/js/guest-manager.js?v=49"></script>
@@ -396,6 +396,6 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="../assets/js/envelope-export.js?v=49"></script>
     <script src="../assets/js/admin-presence.js?v=49"></script>
-    <script src="../assets/js/admin.js?v=51"></script>
+    <script src="../assets/js/admin.js?v=52"></script>
 </body>
 </html>

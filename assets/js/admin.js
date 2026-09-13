@@ -326,7 +326,7 @@ function openEventCreatedModal(eventObj) {
     document.getElementById("event-created-name").textContent = eventObj.title;
     const invUrl = `${window.location.origin}${window.location.pathname.replace(/[^/]+$/, "invitation.html")}?event=${eventObj.slug}`;
     document.getElementById("event-created-link-invitation").textContent = invUrl;
-    document.getElementById("event-created-admin-code").textContent = eventObj.adminCode || "—";
+    document.getElementById("event-created-owner-email").textContent = eventObj.ownerEmail || "—";
 
     document.getElementById("event-created-action-perso").href = `./personnalisation.html?event=${eventObj.slug}`;
     document.getElementById("event-created-action-admin").href = `./admin.html?event=${eventObj.slug}`;
@@ -559,6 +559,12 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("create-event-form")?.addEventListener("submit", async (e) => {
         e.preventDefault();
+        const form = e.currentTarget;
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            showToast("Complétez les champs obligatoires avant de créer l'invitation.");
+            return;
+        }
         if (!AuthGuard.isPlatformAdmin()) {
             showToast("Seul l'administrateur plateforme peut créer un événement.");
             return;

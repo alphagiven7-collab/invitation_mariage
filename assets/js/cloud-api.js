@@ -53,7 +53,7 @@ const CloudAPI = (() => {
         }
     }
 
-    async function requestRpc(functionName, body) {
+    async function requestRpc(functionName, body, options = {}) {
         if (!isEnabled()) return null;
         const adminSession = window.AuthGuard && AuthGuard.getSession ? AuthGuard.getSession() : null;
         const accessToken = adminSession?.accessToken || cfg().anonKey;
@@ -68,7 +68,15 @@ const CloudAPI = (() => {
         });
         if (!response.ok) {
             const error = await response.text().catch(() => "");
+            let message = "";
+            try {
+                const parsed = JSON.parse(error);
+                message = parsed.message || parsed.hint || parsed.details || "";
+            } catch {}
             console.warn("CloudAPI RPC", functionName, response.status, error.slice(0, 240));
+            if (options.throwOnError) {
+                throw new Error(message || `Supabase a refusé la requête (${response.status}).`);
+            }
             return null;
         }
         const data = await response.json().catch(() => null);
@@ -559,7 +567,7 @@ const CloudAPI = (() => {
         }
         if (!isEnabled()) return { cloud: false, reason: "offline" };
 
-        const created = await requestRpc("create_managed_event", { p_event: event });
+        const created = await requestRpc("create_managed_event", { p_event: event }, { throwOnError: true });
         if (!created || !created.id) {
             return { cloud: false, reason: "event_create_failed" };
         }
