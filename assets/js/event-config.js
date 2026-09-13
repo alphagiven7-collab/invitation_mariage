@@ -126,26 +126,23 @@ const EventConfig = (() => {
         }
 
         const isBuiltIn = BUILTIN_EVENTS.some((event) => event.slug === slug);
-
-        // Le JSON versionné fournit les valeurs de départ de la démo.
-        let fileConfig = null;
-        try {
-            const res = await fetch(`../events/${slug}.json`, { cache: "no-store" });
-            if (res.ok) fileConfig = await res.json();
-        } catch (e) {
-            /* ignore network/fetch error */
-        }
+        const fileConfigPromise = isBuiltIn
+            ? fetch(`../events/${slug}.json`, { cache: "no-store" })
+                .then((res) => res.ok ? res.json() : null)
+                .catch(() => null)
+            : Promise.resolve(null);
 
         // Les réglages sauvegardés sont publics en lecture uniquement via RPC.
         // Cette étape est indispensable pour les visiteurs anonymes, bloqués par RLS
         // sur la table event_settings elle-même.
-        if (window.CloudAPI && typeof CloudAPI.getPublicEventConfig === "function" && CloudAPI.isEnabled()) {
-            try {
-                const cloudSettings = await CloudAPI.getPublicEventConfig(slug);
-                if (cloudSettings && cloudSettings.title) {
-                    return fileConfig ? deepMerge(fileConfig, cloudSettings) : cloudSettings;
-                }
-            } catch {}
+        const cloudConfigPromise = window.CloudAPI
+            && typeof CloudAPI.getPublicEventConfig === "function"
+            && CloudAPI.isEnabled()
+            ? CloudAPI.getPublicEventConfig(slug).catch(() => null)
+            : Promise.resolve(null);
+        const [fileConfig, cloudSettings] = await Promise.all([fileConfigPromise, cloudConfigPromise]);
+        if (cloudSettings && cloudSettings.title) {
+            return fileConfig ? deepMerge(fileConfig, cloudSettings) : cloudSettings;
         }
 
         if (fileConfig) return fileConfig;

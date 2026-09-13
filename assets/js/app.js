@@ -1346,6 +1346,8 @@
                 I18n.apply(I18n.getLang());
             }
 
+            document.body.classList.remove('app-loading');
+
             document.querySelectorAll('img:not([loading])').forEach((img, i) => {
                 if (i > 2) img.loading = 'lazy';
             });
@@ -1364,7 +1366,7 @@
                 : dashboardStateKey;
             let dashboardState = null;
 
-            if (window.DashboardSync && EventConfig.isReady()) {
+            if (window.DashboardSync && EventConfig.isReady() && isPreviewMode) {
                 const cfg = EventConfig.getConfig();
                 const defaults = window.ContentBlocks
                     ? ContentBlocks.getDefaultsFromConfig(cfg)
@@ -1395,7 +1397,7 @@
                 } catch (e) {
                     dashboardState = null;
                 }
-            } else {
+            } else if (isPreviewMode) {
                 const savedState = localStorage.getItem(scopedDashboardKey);
                 if (savedState) {
                     try {
