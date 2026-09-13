@@ -1355,7 +1355,7 @@
             }
 
             if ('serviceWorker' in navigator && !isPreviewMode) {
-                navigator.serviceWorker.register('../sw.js?v=34').catch(() => {});
+                navigator.serviceWorker.register('../sw.js?v=35').catch(() => {});
             }
 
             defaultCustomizationState = getCurrentCustomizationState();
