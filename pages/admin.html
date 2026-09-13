@@ -6,7 +6,7 @@
     <title>Administration invités</title>
     <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=20">
     <link rel="stylesheet" href="../assets/css/app.css">
-    <link rel="stylesheet" href="../assets/css/admin.css">
+    <link rel="stylesheet" href="../assets/css/admin.css?v=2">
 </head>
 <body class="admin-shell text-slate-800">
     <main class="dash-wrap">
@@ -346,11 +346,11 @@
                         <img id="new-event-welcome-preview" class="hidden mt-3 w-full h-32 object-cover rounded-lg border border-slate-200" alt="Aperçu de la photo d'accueil">
                     </div>
                 </div>
+                <div class="admin-modal-footer admin-modal-form-footer">
+                    <button type="button" id="create-event-cancel-btn" class="admin-btn admin-btn-ghost">Annuler</button>
+                    <button type="submit" id="create-event-submit-btn" class="admin-btn admin-btn-success">Créer l'invitation →</button>
+                </div>
             </form>
-            <div class="admin-modal-footer">
-                <button type="button" id="create-event-cancel-btn" class="admin-btn admin-btn-ghost">Annuler</button>
-                <button type="submit" form="create-event-form" class="admin-btn admin-btn-success">Créer l'invitation →</button>
-            </div>
         </div>
     </div>
 
@@ -396,6 +396,6 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="../assets/js/envelope-export.js?v=49"></script>
     <script src="../assets/js/admin-presence.js?v=49"></script>
-    <script src="../assets/js/admin.js?v=52"></script>
+    <script src="../assets/js/admin.js?v=53"></script>
 </body>
 </html>

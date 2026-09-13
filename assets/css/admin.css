@@ -474,6 +474,9 @@
     flex-shrink: 0;
     box-shadow: 0 -6px 18px rgba(15, 23, 42, 0.06);
 }
+.admin-modal-form-footer {
+    margin: 1rem -1.25rem -0.5rem;
+}
 .admin-btn-save {
     min-width: 148px;
     font-weight: 700;
