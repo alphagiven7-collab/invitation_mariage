@@ -1335,7 +1335,10 @@
             if (window.EventConfig) {
                 try {
                     await EventConfig.init();
-                    if (!isPreviewMode) EventConfig.applyToPage();
+                    if (!isPreviewMode) {
+                        EventConfig.applyToPage();
+                        applyCustomizationState(EventConfig.getConfig());
+                    }
                 } catch (e) {}
             }
 

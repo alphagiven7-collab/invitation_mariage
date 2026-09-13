@@ -89,6 +89,41 @@ test('EventConfig ignores stale local configuration for a built-in demo', async 
   );
 });
 
+test('EventConfig overlays public cloud settings onto a built-in demo for anonymous visitors', async () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'event-config.js'), 'utf8');
+  const cloudApi = {
+    isEnabled: () => true,
+    getEventSettings: async () => null,
+    getPublicEventConfig: async () => ({
+      id: 'yanick-keren',
+      title: 'Mariage de Léa et Marc',
+      coupleLeft: 'Léa',
+      coupleRight: 'Marc',
+      backgroundMusicUrl: 'https://cdn.example.test/musique.mp3'
+    })
+  };
+  const sandbox = {
+    console,
+    URLSearchParams,
+    CustomEvent: class {},
+    fetch: async () => ({ ok: true, json: async () => ({ id: 'yanick-keren', title: 'Mariage de Yanick et Keren', venue: 'Salle initiale' }) }),
+    CloudAPI: cloudApi,
+    window: { location: { search: '?event=yanick-keren' }, dispatchEvent() {}, CloudAPI: cloudApi },
+    localStorage: { getItem() { return null; }, setItem() {} }
+  };
+  sandbox.window.window = sandbox.window;
+  sandbox.global = sandbox;
+  sandbox.globalThis = sandbox;
+  vm.runInNewContext(source, sandbox, { filename: 'event-config.js' });
+
+  await sandbox.window.EventConfig.init();
+  const config = sandbox.window.EventConfig.getConfig();
+  assert.equal(config.title, 'Mariage de Léa et Marc');
+  assert.equal(config.coupleLeft, 'Léa');
+  assert.equal(config.venue, 'Salle initiale');
+  assert.equal(config.backgroundMusicUrl, 'https://cdn.example.test/musique.mp3');
+});
+
 test('DashboardSync does not read the legacy shared dashboard state for another event', () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'dashboard-sync.js'), 'utf8');
   const store = {

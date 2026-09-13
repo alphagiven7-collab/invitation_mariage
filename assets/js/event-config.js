@@ -163,25 +163,30 @@ const EventConfig = (() => {
         const found = !isBuiltIn && customs.find((c) => c.slug === slug);
         if (found) return found;
 
-        // Tenter de charger le fichier JSON physique.
+        // Le JSON versionné fournit les valeurs de départ de la démo.
+        let fileConfig = null;
         try {
             const res = await fetch(`../events/${slug}.json`, { cache: "no-store" });
-            if (res.ok) return await res.json();
+            if (res.ok) fileConfig = await res.json();
         } catch (e) {
             /* ignore network/fetch error */
         }
 
-        // 3. Tenter de charger la configuration publique Supabase si disponible
+        // Les réglages sauvegardés sont publics en lecture uniquement via RPC.
+        // Cette étape est indispensable pour les visiteurs anonymes, bloqués par RLS
+        // sur la table event_settings elle-même.
         if (window.CloudAPI && typeof CloudAPI.getEventSettings === "function" && CloudAPI.isEnabled()) {
             try {
                 const cloudSettings = CloudAPI.getPublicEventConfig
                     ? await CloudAPI.getPublicEventConfig(slug)
                     : await CloudAPI.getEventSettings(slug);
                 if (cloudSettings && cloudSettings.title) {
-                    return cloudSettings;
+                    return fileConfig ? deepMerge(fileConfig, cloudSettings) : cloudSettings;
                 }
             } catch {}
         }
+
+        if (fileConfig) return fileConfig;
 
         throw new Error(`Événement introuvable : ${slug}`);
     }
