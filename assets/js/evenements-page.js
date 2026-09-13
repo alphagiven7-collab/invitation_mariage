@@ -50,6 +50,28 @@
         }
     }
 
+    function getInvitationUrl(slug) {
+        const url = new URL("./invitation.html", window.location.href);
+        url.searchParams.set("event", slug);
+        return url.toString();
+    }
+
+    async function shareInvitation(slug, title) {
+        const url = getInvitationUrl(slug);
+        const text = `Voici votre invitation : ${title}`;
+        try {
+            if (navigator.share) {
+                await navigator.share({ title, text, url });
+                return;
+            }
+            await navigator.clipboard.writeText(url);
+            alert("Lien de l'invitation copié.");
+        } catch (error) {
+            if (error?.name === "AbortError") return;
+            window.prompt("Copiez ce lien d'invitation :", url);
+        }
+    }
+
     function renderEvent(event) {
         const slug = escapeHtml(event.slug);
         const title = escapeHtml(event.title || event.slug);
@@ -73,7 +95,7 @@
                     <a class="admin-btn admin-btn-primary" href="./personnalisation.html?event=${slug}">Personnaliser</a>
                     <a class="admin-btn admin-btn-success" href="./admin.html?event=${slug}">Invités</a>
                     <a class="admin-btn admin-btn-ghost" href="./checkin.html?event=${slug}">Check-in</a>
-                    <a class="admin-btn admin-btn-ghost" href="./partager.html?event=${slug}">Partager</a>
+                    <button type="button" class="admin-btn admin-btn-ghost" data-share-event="${slug}" data-share-title="${title}">Partager</button>
                     <a class="admin-btn admin-btn-ghost event-card-preview" href="./invitation.html?event=${slug}" target="_blank" rel="noopener">Voir l'invitation</a>
                 </div>
             </div>
@@ -113,6 +135,11 @@
         const events = await Promise.all(summaries.map(getEventDetails));
 
         grid.innerHTML = events.map(renderEvent).join("");
+        grid.querySelectorAll("[data-share-event]").forEach((button) => {
+            button.addEventListener("click", () => {
+                shareInvitation(button.dataset.shareEvent, button.dataset.shareTitle);
+            });
+        });
         count.textContent = String(events.length);
         feedback.textContent = "Les événements auxquels votre compte a accès sont affichés ici.";
         empty.classList.toggle("hidden", events.length !== 0);
