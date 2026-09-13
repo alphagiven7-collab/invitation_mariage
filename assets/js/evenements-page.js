@@ -40,6 +40,16 @@
         return Array.from(bySlug.values());
     }
 
+    function getRecentlyCreatedEvent() {
+        try {
+            const raw = sessionStorage.getItem("wedding_recently_created_event");
+            sessionStorage.removeItem("wedding_recently_created_event");
+            return raw ? JSON.parse(raw) : null;
+        } catch {
+            return null;
+        }
+    }
+
     function renderEvent(event) {
         const slug = escapeHtml(event.slug);
         const title = escapeHtml(event.title || event.slug);
@@ -76,16 +86,29 @@
             return;
         }
 
-        const localEvents = EventConfig.getRegisteredEvents();
-        const cloudEvents = window.CloudAPI && CloudAPI.getEvents
-            ? await CloudAPI.getEvents()
-            : [];
-        const summaries = mergeEvents(cloudEvents, localEvents);
-        const events = await Promise.all(summaries.map(getEventDetails));
         const grid = document.getElementById("events-grid");
         const count = document.getElementById("events-count");
         const feedback = document.getElementById("events-feedback");
         const empty = document.getElementById("events-empty");
+        const localEvents = EventConfig.getRegisteredEvents();
+        let cloudEvents;
+        try {
+            cloudEvents = window.CloudAPI && CloudAPI.getEvents
+                ? await CloudAPI.getEvents()
+                : [];
+        } catch (error) {
+            grid.innerHTML = "";
+            count.textContent = "0";
+            feedback.textContent = error.message || "Impossible de charger les événements.";
+            empty.classList.remove("hidden");
+            return;
+        }
+        const recentlyCreated = getRecentlyCreatedEvent();
+        const summaries = mergeEvents(
+            recentlyCreated ? [recentlyCreated, ...cloudEvents] : cloudEvents,
+            localEvents
+        );
+        const events = await Promise.all(summaries.map(getEventDetails));
 
         grid.innerHTML = events.map(renderEvent).join("");
         count.textContent = String(events.length);

@@ -521,10 +521,15 @@ const CloudAPI = (() => {
     }
 
     async function getEvents() {
-        if (!isEnabled()) return [];
+        if (!isEnabled()) {
+            throw new Error("Supabase n'est pas configuré : la liste des événements cloud est indisponible.");
+        }
         const events = await request("events", {
             query: "?select=id,slug,type,title,config_json,created_at&order=created_at.desc"
         });
+        if (events === null) {
+            throw new Error("Impossible de charger les événements. Vérifiez votre connexion et les droits du compte plateforme.");
+        }
         return Array.isArray(events) ? events.map((event) => ({
             id: event.id,
             slug: event.slug,

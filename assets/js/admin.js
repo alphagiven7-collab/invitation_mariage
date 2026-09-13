@@ -321,6 +321,9 @@ function closeCreateEventModal() {
 }
 
 function openEventCreatedModal(eventObj) {
+    try {
+        sessionStorage.setItem("wedding_recently_created_event", JSON.stringify(event));
+    } catch {}
     const modal = document.getElementById("event-created-modal");
     if (!modal) return;
     document.getElementById("event-created-name").textContent = eventObj.title;
