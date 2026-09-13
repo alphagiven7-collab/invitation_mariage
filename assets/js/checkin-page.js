@@ -101,22 +101,26 @@
     async function handleToken(token, scannedEventId = null) {
         if (busy || !token) return;
         busy = true;
-        const eventId = getEventId();
-        if (scannedEventId && scannedEventId !== eventId) {
-            showResult({
-                status: "invalid",
-                message: "Ce QR appartient à un autre événement."
+        try {
+            const eventId = getEventId();
+            if (scannedEventId && scannedEventId !== eventId) {
+                showResult({
+                    status: "invalid",
+                    message: "Ce QR appartient à un autre événement."
+                });
+                return;
+            }
+            const staff = (document.getElementById("checkin-staff-name")?.value || "").trim();
+            const result = await CheckinAPI.performCheckIn(eventId, token, {
+                scannedBy: staff || null,
+                deviceId: deviceId || null
             });
+            showResult(result, result.guest);
+        } catch {
+            showResult({ status: "error", message: "Erreur réseau — réessayez." });
+        } finally {
             setTimeout(() => { busy = false; }, 1200);
-            return;
         }
-        const staff = (document.getElementById("checkin-staff-name")?.value || "").trim();
-        const result = await CheckinAPI.performCheckIn(eventId, token, {
-            scannedBy: staff || null,
-            deviceId: deviceId || null
-        });
-        showResult(result, result.guest);
-        setTimeout(() => { busy = false; }, 1200);
     }
 
     async function onScan(decodedText) {

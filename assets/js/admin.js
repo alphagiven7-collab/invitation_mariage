@@ -638,6 +638,12 @@ window.addEventListener("DOMContentLoaded", async () => {
             openEventCreatedModal(created);
             showToast(`Événement ${title} créé avec succès !`);
         } catch (err) {
+            if (created) {
+                closeCreateEventModal();
+                openEventCreatedModal(created);
+                showToast("Invitation créée. La photo n'a pas été enregistrée : ouvrez Personnaliser pour réessayer.");
+                return;
+            }
             showToast(err.message || "Erreur création événement");
         }
     });

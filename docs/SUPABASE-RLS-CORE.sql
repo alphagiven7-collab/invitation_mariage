@@ -31,6 +31,20 @@ $$;
 ALTER TABLE public.events
     ADD COLUMN IF NOT EXISTS is_published BOOLEAN NOT NULL DEFAULT TRUE;
 
+CREATE TABLE IF NOT EXISTS public.check_ins (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_id TEXT NOT NULL REFERENCES public.events(id) ON DELETE CASCADE,
+    guest_id UUID REFERENCES public.guests(id) ON DELETE SET NULL,
+    guest_token TEXT NOT NULL,
+    scanned_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    scanned_by TEXT,
+    device_id TEXT,
+    UNIQUE (event_id, guest_token)
+);
+CREATE INDEX IF NOT EXISTS idx_check_ins_event ON public.check_ins(event_id);
+CREATE INDEX IF NOT EXISTS idx_check_ins_event_time ON public.check_ins(event_id, scanned_at DESC);
+ALTER TABLE public.guests ADD COLUMN IF NOT EXISTS checked_in_at TIMESTAMPTZ;
+
 CREATE OR REPLACE FUNCTION public.create_managed_event(p_event JSONB)
 RETURNS JSONB
 LANGUAGE plpgsql

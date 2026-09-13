@@ -172,6 +172,12 @@ const CloudAPI = (() => {
 
     // --- Invités ---
     async function getGuests(eventId) {
+        const isEventAdmin = window.AuthGuard && AuthGuard.isEventAdmin
+            ? AuthGuard.isEventAdmin(eventId)
+            : false;
+        if (isEnabled() && !isEventAdmin) {
+            return [];
+        }
         if (isDjangoEnabled()) {
             try {
                 const djangoGuests = await DjangoAPI.getGuests(eventId);

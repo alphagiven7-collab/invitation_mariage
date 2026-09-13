@@ -16,7 +16,12 @@ const AuthGuard = (() => {
 
     function getSession() {
         try {
-            return JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
+            const session = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
+            if (session?.expiresAt && Date.now() >= session.expiresAt) {
+                sessionStorage.removeItem(SESSION_KEY);
+                return null;
+            }
+            return session;
         } catch {
             return null;
         }
