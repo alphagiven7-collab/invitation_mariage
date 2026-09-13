@@ -107,6 +107,31 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.delete_managed_event(p_event_id TEXT)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    IF NOT public.is_platform_admin() THEN
+        RAISE EXCEPTION 'Administrateur plateforme requis';
+    END IF;
+
+    DELETE FROM storage.objects
+    WHERE bucket_id = 'event-assets'
+      AND name LIKE p_event_id || '/%';
+
+    DELETE FROM public.events
+    WHERE id = p_event_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Événement introuvable';
+    END IF;
+    RETURN TRUE;
+END;
+$$;
+
 -- Donne uniquement les champs necessaires a une invitation publique.
 CREATE OR REPLACE FUNCTION public.get_public_event_config(p_event_id TEXT)
 RETURNS JSONB
@@ -200,6 +225,7 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.get_public_event_config(TEXT) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.create_managed_event(JSONB) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.delete_managed_event(TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_guest_invite(TEXT) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.submit_guest_rsvp(TEXT, TEXT, TEXT, INTEGER, INTEGER, TEXT, JSONB, TEXT) TO anon, authenticated;
 

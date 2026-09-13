@@ -109,9 +109,10 @@ const EventConfig = (() => {
         if (remaining.length === customs.length) return false;
 
         localStorage.setItem("wedding_custom_events", JSON.stringify(remaining));
-        ["config", "settings", "dashboard_state"].forEach((suffix) => {
+        ["config", "settings", "dashboard_state", "guests", "deleted_guests", "guest_name"].forEach((suffix) => {
             localStorage.removeItem(`wedding_event_${normalizedSlug}_${suffix}`);
         });
+        localStorage.removeItem(`wedding_preview_${normalizedSlug}`);
         return true;
     }
 

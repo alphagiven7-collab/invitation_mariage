@@ -585,6 +585,18 @@ const CloudAPI = (() => {
         return { cloud: true, reason: "ok", event: created };
     }
 
+    async function deleteEvent(eventId) {
+        if (!eventId) throw new Error("Identifiant d'événement manquant.");
+        if (!isEnabled()) throw new Error("Supabase n'est pas configuré.");
+        const deleted = await requestRpc(
+            "delete_managed_event",
+            { p_event_id: eventId },
+            { throwOnError: true }
+        );
+        if (deleted !== true) throw new Error("Suppression de l'événement impossible.");
+        return true;
+    }
+
     async function saveEventSettings(eventId, payload) {
         const clean = { ...(payload || {}) };
         delete clean._cloudUpdatedAt;
@@ -746,6 +758,7 @@ const CloudAPI = (() => {
         track,
         getAnalytics,
         createEvent,
+        deleteEvent,
         getEvents,
         getEventSettings,
         getPublicEventConfig,

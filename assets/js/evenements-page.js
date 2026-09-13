@@ -72,6 +72,28 @@
         }
     }
 
+    async function deleteEvent(slug, title) {
+        const firstConfirmation = window.confirm(
+            `Supprimer définitivement l'événement « ${title} » ?\n\nLes invités, RSVP, check-in, réglages et médias seront effacés.`
+        );
+        if (!firstConfirmation) return;
+        const typed = window.prompt(`Pour confirmer, écrivez SUPPRIMER :\n\n${title}`);
+        if (typed !== "SUPPRIMER") return;
+
+        try {
+            await CloudAPI.deleteEvent(slug);
+            EventConfig.discardLocalEvent(slug);
+            const card = document.querySelector(`[data-event-slug="${CSS.escape(slug)}"]`);
+            card?.remove();
+            const remaining = document.querySelectorAll("[data-event-slug]").length;
+            document.getElementById("events-count").textContent = String(remaining);
+            document.getElementById("events-empty").classList.toggle("hidden", remaining !== 0);
+            document.getElementById("events-feedback").textContent = "Événement supprimé définitivement.";
+        } catch (error) {
+            window.alert(error.message || "Suppression impossible.");
+        }
+    }
+
     function renderEvent(event) {
         const slug = escapeHtml(event.slug);
         const title = escapeHtml(event.title || event.slug);
@@ -81,7 +103,7 @@
             ? `<img class="event-card-image" src="${escapeHtml(welcomeImage)}" alt="Photo d'accueil de ${title}">`
             : '<div class="event-card-image event-card-image--empty">Aucune photo d’accueil</div>';
 
-        return `<article class="event-card" data-search="${`${event.title || ""} ${event.slug || ""} ${event.type || ""}`.toLowerCase()}">
+        return `<article class="event-card" data-event-slug="${slug}" data-search="${`${event.title || ""} ${event.slug || ""} ${event.type || ""}`.toLowerCase()}">
             ${image}
             <div class="event-card-body">
                 <div class="event-card-meta">
@@ -97,6 +119,7 @@
                     <a class="admin-btn admin-btn-ghost" href="./checkin.html?event=${slug}">Check-in</a>
                     <button type="button" class="admin-btn admin-btn-ghost" data-share-event="${slug}" data-share-title="${title}">Partager</button>
                     <a class="admin-btn admin-btn-ghost event-card-preview" href="./invitation.html?event=${slug}" target="_blank" rel="noopener">Voir l'invitation</a>
+                    <button type="button" class="admin-btn admin-btn-danger event-card-delete" data-delete-event="${slug}" data-delete-title="${title}">Supprimer</button>
                 </div>
             </div>
         </article>`;
@@ -138,6 +161,11 @@
         grid.querySelectorAll("[data-share-event]").forEach((button) => {
             button.addEventListener("click", () => {
                 shareInvitation(button.dataset.shareEvent, button.dataset.shareTitle);
+            });
+        });
+        grid.querySelectorAll("[data-delete-event]").forEach((button) => {
+            button.addEventListener("click", () => {
+                deleteEvent(button.dataset.deleteEvent, button.dataset.deleteTitle);
             });
         });
         count.textContent = String(events.length);
