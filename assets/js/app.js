@@ -1459,7 +1459,9 @@
             if (window.CalendarExport) CalendarExport.init();
 
             applyDesignerVisibility();
-        })();
+        })().finally(() => {
+            document.body.classList.remove('app-loading');
+        });
 
         // Fallback listeners uniquement si pas d'onclick inline (évite double déclenchement)
         const gateOpenBtn = document.getElementById('gate-enter-btn');
