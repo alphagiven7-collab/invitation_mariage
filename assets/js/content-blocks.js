@@ -248,6 +248,15 @@ const ContentBlocks = (() => {
         if (cfg.dressImages) out.dressImages = cfg.dressImages;
         if (cfg.links?.supportEmail) out.supportEmail = cfg.links.supportEmail;
         if (cfg.metaDescription) out.metaDescription = cfg.metaDescription;
+        if (cfg.backgroundMusicUrl || cfg.ambiance?.musicUrl) {
+            out.backgroundMusicUrl = cfg.backgroundMusicUrl || cfg.ambiance.musicUrl;
+        }
+        if (cfg.backgroundMusicVolume !== undefined || cfg.ambiance?.volume !== undefined) {
+            out.backgroundMusicVolume = cfg.backgroundMusicVolume ?? cfg.ambiance.volume;
+        }
+        if (cfg.backgroundMusicEnabled !== undefined || cfg.ambiance?.enabled !== undefined) {
+            out.backgroundMusicEnabled = cfg.backgroundMusicEnabled ?? cfg.ambiance.enabled;
+        }
         return out;
     }
 
