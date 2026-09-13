@@ -170,7 +170,7 @@ const DEFAULT_STATE = {
     dressImages: [],
     supportEmail: "contact@michelline.cd",
     rsvpLink: "",
-    metaDescription: "Invitation officielle au mariage de Yanick et Keren.",
+    metaDescription: "Invitation officielle.",
     backgroundMusicUrl: "",
     backgroundMusicVolume: 0.35,
     backgroundMusicEnabled: true,

@@ -172,38 +172,11 @@ const DashboardSync = (() => {
         return { saved: localOk || cloudResult.cloud, localOk, ...cloudResult };
     }
 
-    /** Migre uniquement l'ancien jeu de données Josue/Divine de la démo. */
     function syncIdentityFromConfig(state, cfg) {
         if (!cfg) return { state: state || {}, changed: false };
 
         const next = state ? { ...state } : {};
         let changed = false;
-        const hasObsoleteYanickKerenDefault = cfg.id === "yanick-keren"
-            && next.title === "Mariage de Josue et Divine"
-            && next.subtitle === "Josue et Divine"
-            && next.coupleLeft === "Divine"
-            && next.coupleRight === "Josue";
-
-        if (hasObsoleteYanickKerenDefault) {
-            if (cfg.title && next.title !== cfg.title) {
-                next.title = cfg.title;
-                changed = true;
-            }
-            if (cfg.subtitle && next.subtitle !== cfg.subtitle) {
-                next.subtitle = cfg.subtitle;
-                changed = true;
-            }
-            if (cfg.coupleLeft && next.coupleLeft !== cfg.coupleLeft) {
-                next.coupleLeft = cfg.coupleLeft;
-                changed = true;
-            }
-            if (cfg.coupleRight && next.coupleRight !== cfg.coupleRight) {
-                next.coupleRight = cfg.coupleRight;
-                changed = true;
-            }
-            next._identityRevision = cfg.identityRevision || 1;
-            changed = true;
-        }
 
         if ((!next.coupleLeft || !next.coupleRight) && next.subtitle) {
             const m = next.subtitle.match(/^(.+?)\s+(?:et|&|\+)\s+(.+)$/i);

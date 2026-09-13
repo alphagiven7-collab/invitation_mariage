@@ -52,4 +52,4 @@ CREATE POLICY "profiles_update_own" ON public.profiles
 -- Associez ensuite les evenements existants a leur organisateur :
 -- UPDATE public.events
 -- SET owner_id = (SELECT id FROM auth.users WHERE email = 'client@exemple.com')
--- WHERE id = 'yanick-keren';
+-- WHERE id = 'demo';

@@ -1,4 +1,4 @@
-# Analyse des fonctionnalités — Invitation Mariage Yanick & Keren
+# Analyse des fonctionnalités — Plateforme d'invitations
 
 > Document de référence — état au 15 juin 2026  
 > Live : https://alphagiven7-collab.github.io/invitation_mariage/
@@ -109,7 +109,7 @@ La plateforme couvre déjà un parcours invité complet (accueil personnalisé, 
 ## 5. Architecture contenu (nouveau)
 
 ```
-events/yanick-keren.json     → defaults événement (program, practicalInfo, venueDetails)
+events/demo.json             → valeurs de départ de la démo (program, practicalInfo, venueDetails)
 localStorage wedding_dashboard_state → overrides client
 ContentBlocks.apply()        → rendu invitation.html
 personnalisation.js         → édition + persistance locale
@@ -140,4 +140,4 @@ personnalisation.js         → édition + persistance locale
 
 ---
 
-*Document généré dans le cadre de l'extension personnalisation — Yanick & Keren 2026.*
+*Document généré dans le cadre de l'extension personnalisation — plateforme 2026.*

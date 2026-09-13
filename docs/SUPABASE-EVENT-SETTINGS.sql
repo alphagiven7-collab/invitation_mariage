@@ -17,7 +17,7 @@ CREATE POLICY "event_settings_read" ON event_settings FOR SELECT USING (true);
 CREATE POLICY "event_settings_insert" ON event_settings FOR INSERT WITH CHECK (true);
 CREATE POLICY "event_settings_update" ON event_settings FOR UPDATE USING (true);
 
--- Seed vide pour yanick-keren (optionnel — le JSON sera rempli au premier save)
+-- Seed vide pour demo (optionnel — le JSON sera rempli au premier save)
 INSERT INTO event_settings (event_id, dashboard_json)
-VALUES ('yanick-keren', '{}')
+VALUES ('demo', '{}')
 ON CONFLICT (event_id) DO NOTHING;

@@ -4,7 +4,7 @@
 > **Lien court offres :** https://alphagiven7-collab.github.io/invitation_mariage/o.html  
 > **Page offres :** https://alphagiven7-collab.github.io/invitation_mariage/pages/offres.html  
 > **Kit promotion (QR, visuels, textes) :** https://alphagiven7-collab.github.io/invitation_mariage/pages/partager.html  
-> **Démo :** https://alphagiven7-collab.github.io/invitation_mariage/pages/invitation.html?event=yanick-keren  
+> **Démo :** https://alphagiven7-collab.github.io/invitation_mariage/pages/invitation.html?event=demo
 
 ---
 

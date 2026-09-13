@@ -44,13 +44,13 @@
 
 ```
 Invitation invité :
-/pages/invitation.html?event=yanick-keren&guest=marie-kasongo&t=AbX92kPq
+/pages/invitation.html?event=demo&guest=marie-kasongo&t=AbX92kPq
 
 Dashboard organisateur :
-/pages/admin.html?event=yanick-keren
+/pages/admin.html?event=demo
 
 Personnalisation :
-/pages/personnalisation.html?event=yanick-keren
+/pages/personnalisation.html?event=demo
 ```
 
 ## Migration localStorage → SQLite

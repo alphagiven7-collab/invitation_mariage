@@ -11,8 +11,8 @@
 
 | Rôle | Code | Usage |
 |------|------|--------|
-| **Super admin / concepteur plateforme** | `YANICK-KEREN-ADMIN` | Login admin (`login.html`) **ou** bouton « Mode concepteur » sur l'invitation |
-| **Client — Mariage Yanick & Keren** | `YANICK-CLIENT-2026` | Login → admin invités (`login.html?event=yanick-keren`) |
+| **Super admin / concepteur plateforme** | `MICHELLINE-DESIGNER` | Login admin (`login.html`) **ou** bouton « Mode concepteur » sur l'invitation |
+| **Démo plateforme** | `MICHELLINE-DESIGNER` | Login → admin invités (`login.html?event=demo`) |
 | **Client — Conférence tech** | `CONF-TECH-2026` | `login.html?event=conference-tech-2026` |
 | **Client — Anniversaire Grace** | `GRACE-BDAY-2026` | `login.html?event=anniversaire-grace` |
 
@@ -20,10 +20,10 @@
 
 | Page | URL |
 |------|-----|
-| Invitation invité | `/pages/invitation.html?event=yanick-keren` |
-| Lien invité (exemple) | `?event=yanick-keren&guest=slug-invite&t=TOKEN` |
-| Personnalisation | `/pages/personnalisation.html?event=yanick-keren` |
-| Admin invités | `/pages/login.html?event=yanick-keren` → code client |
+| Invitation invité | `/pages/invitation.html?event=demo` |
+| Lien invité (exemple) | `?event=demo&guest=slug-invite&t=TOKEN` |
+| Personnalisation | `/pages/personnalisation.html?event=demo` |
+| Admin invités | `/pages/login.html?event=demo` → compte Supabase autorisé |
 | Setup Supabase | `/pages/setup-supabase.html` |
 
 ### Supabase (cloud)
@@ -75,7 +75,7 @@
 
 ### Concepteur / vous
 
-- Code `YANICK-KEREN-ADMIN` → accès admin global + mode concepteur invitation
+- Code `MICHELLINE-DESIGNER` → accès admin global + mode concepteur invitation
 
 ---
 

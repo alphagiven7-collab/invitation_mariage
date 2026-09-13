@@ -50,8 +50,8 @@ git push origin main
 
 ## Étape E — Vérifier
 
-1. Ouvrez l’admin : `pages/login.html?event=yanick-keren`
-2. Code : `YANICK-CLIENT-2026`
+1. Ouvrez l’admin : `pages/login.html?event=demo`
+2. Connectez-vous avec un compte Supabase autorisé.
 3. Le bandeau doit afficher : **☁️ Supabase actif**
 4. Importez un invité → vérifiez dans Supabase → **Table Editor** → `guests`
 
@@ -68,4 +68,4 @@ git push origin main
 | "Mode local" affiché | `enabled: true` + push GitHub |
 | Erreur 401/403 | Vérifiez anon key + RLS policies |
 | Table introuvable | Relancez SUPABASE-SETUP.sql |
-| Invités non visibles | Vérifiez `event_id = yanick-keren` |
+| Invités non visibles | Vérifiez l'identifiant de l'événement concerné |

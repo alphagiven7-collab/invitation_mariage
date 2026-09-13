@@ -184,21 +184,6 @@ const EventConfig = (() => {
             throw error;
         }
 
-        const isBuiltIn = BUILTIN_EVENTS.some((event) => event.slug === eventId);
-        const overridesRaw = !isBuiltIn && localStorage.getItem(storageKey("settings"));
-        if (overridesRaw) {
-            try {
-                const parsed = sanitizeLegacyIdentityOverrides(JSON.parse(overridesRaw), config);
-                const original = JSON.parse(overridesRaw);
-                config = deepMerge(config, parsed);
-                if (JSON.stringify(parsed) !== JSON.stringify(original)) {
-                    localStorage.setItem(storageKey("settings"), JSON.stringify(parsed));
-                }
-            } catch {
-                /* ignore invalid JSON */
-            }
-        }
-
         ready = true;
         window.dispatchEvent(new CustomEvent("eventconfig:ready", { detail: config }));
         return config;

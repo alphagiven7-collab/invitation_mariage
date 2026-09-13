@@ -1,14 +1,14 @@
 # Marketing mariage — visuels & scripts vidéo
 
-> Basé sur la **démo live** modèle **Élégance Rose** (événement `yanick-keren`)  
+> Basé sur la **démo live** modèle **Élégance Rose** (événement `demo`)
 > **Michelline est à Lubumbashi** · Haut-Katanga · RDC  
-> Couple démo : **Josue & Divine** · Lieu démo : Sultani River (exemple)
+> Couple démo : **Prénom 1 & Prénom 2** · Lieu démo : lieu exemple
 
 ## Liens à utiliser
 
 | Usage | Lien |
 |-------|------|
-| **Démo mariage** | https://alphagiven7-collab.github.io/invitation_mariage/pages/invitation.html?event=yanick-keren |
+| **Démo mariage** | https://alphagiven7-collab.github.io/invitation_mariage/pages/invitation.html?event=demo |
 | **Catalogue modèles** | https://alphagiven7-collab.github.io/invitation_mariage/pages/offres.html |
 | **Lien court (bio)** | https://alphagiven7-collab.github.io/invitation_mariage/o.html |
 | **WhatsApp devis** | https://wa.me/243845370370 |

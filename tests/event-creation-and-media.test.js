@@ -89,7 +89,7 @@ test('EventConfig loads a cloud-only client event when no local JSON exists', as
         getPublicEventConfig: async (slug) => {
           requestedSlug = slug;
           return {
-      id: 'yanick-keren',
+          id: 'client-exemple',
       title: 'Mariage de Léa et Marc',
       coupleLeft: 'Léa',
       coupleRight: 'Marc',
@@ -103,7 +103,7 @@ test('EventConfig loads a cloud-only client event when no local JSON exists', as
     CustomEvent: class {},
     fetch: async () => ({ ok: false }),
     CloudAPI: cloudApi,
-    window: { location: { search: '?event=yanick-keren' }, dispatchEvent() {}, CloudAPI: cloudApi },
+    window: { location: { search: '?event=client-exemple' }, dispatchEvent() {}, CloudAPI: cloudApi },
     localStorage: { getItem() { return null; }, setItem() {} }
   };
   sandbox.window.window = sandbox.window;
@@ -113,7 +113,7 @@ test('EventConfig loads a cloud-only client event when no local JSON exists', as
 
   await sandbox.window.EventConfig.init();
   const config = sandbox.window.EventConfig.getConfig();
-  assert.equal(requestedSlug, 'yanick-keren');
+  assert.equal(requestedSlug, 'client-exemple');
   assert.equal(config.title, 'Mariage de Léa et Marc');
   assert.equal(config.coupleLeft, 'Léa');
   assert.equal(config.venue, undefined);
