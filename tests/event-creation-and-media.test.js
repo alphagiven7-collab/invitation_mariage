@@ -35,12 +35,14 @@ test('EventConfig.createEvent prepares an unpublished event without persisting i
     type: "wedding",
     coupleLeft: "Sarah",
     coupleRight: "Marc",
+    ownerEmail: "sarah@example.test",
     welcomeImage: "https://cdn.example.test/sarah-marc-accueil.jpg"
   });
 
   assert.equal(ev.slug, 'mariage-de-sarah-marc');
   assert.equal(ev.title, 'Mariage de Sarah & Marc');
   assert.equal(ev.branding.welcomeImage, 'https://cdn.example.test/sarah-marc-accueil.jpg');
+  assert.equal(ev.ownerEmail, 'sarah@example.test');
   assert.equal(store['wedding_custom_events'], undefined);
   assert.equal(store['wedding_event_mariage-de-sarah-marc_config'], undefined);
   assert.ok(!EventConfig.getRegisteredEvents().some(e => e.slug === 'mariage-de-sarah-marc'));

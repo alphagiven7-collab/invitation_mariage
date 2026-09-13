@@ -10,12 +10,18 @@
    - Region : choisissez la plus proche (ex. Frankfurt)
 4. Attendez ~2 min que le projet soit prêt
 
-## Étape B — Créer les tables (2 min)
+## Étape B — Créer les tables et sécuriser la production
 
 1. Menu gauche → **SQL Editor** → **New query**
-2. Copiez-collez tout le contenu de `docs/SUPABASE-SETUP.sql` → **Run**
-3. Même chose avec `docs/SUPABASE-SEED.sql` → **Run**
-4. Exécutez `docs/SUPABASE-RELIABILITY-MIGRATION.sql` → **Run** pour activer la création d'événements et éviter les RSVP en double.
+2. Exécutez `docs/SUPABASE-SETUP.sql` pour créer les tables.
+3. Exécutez `docs/SUPABASE-SEED.sql` seulement pour installer les exemples de démonstration.
+4. Dans **Authentication → Users**, créez d'abord le compte e-mail/mot de passe de chaque client organisateur.
+5. Exécutez `docs/SUPABASE-AUTH-FOUNDATION.sql` pour créer les profils et la colonne propriétaire.
+6. Marquez votre propre compte comme plateforme, suivant l'instruction SQL à la fin de ce fichier.
+7. Exécutez `docs/SUPABASE-RLS-CORE.sql` pour activer les accès isolés, les RPC invités, les RSVP et la création transactionnelle.
+8. Exécutez `docs/SUPABASE-STORAGE-RLS.sql` pour autoriser les images et musiques uniquement au propriétaire de l'événement.
+
+`SUPABASE-SETUP.sql` crée volontairement des politiques de démarrage permissives. Ne laissez jamais ce script comme dernière étape sur un projet exposé : `SUPABASE-RLS-CORE.sql` est obligatoire avant toute mise en production.
 
 ## Étape C — Récupérer vos clés (1 min)
 
@@ -50,10 +56,10 @@ git push origin main
 
 ## Étape E — Vérifier
 
-1. Ouvrez l’admin : `pages/login.html?event=demo`
-2. Connectez-vous avec un compte Supabase autorisé.
-3. Le bandeau doit afficher : **☁️ Supabase actif**
-4. Importez un invité → vérifiez dans Supabase → **Table Editor** → `guests`
+1. Connectez-vous avec le compte plateforme et créez un événement avec l'e-mail d'un compte client existant.
+2. Connectez-vous ensuite depuis un téléphone ou un autre navigateur avec le compte client et ouvrez `pages/admin.html?event=slug`.
+3. Modifiez un texte et importez une image ou une musique, puis ouvrez le lien invité dans une fenêtre privée : les modifications doivent apparaître.
+4. Ajoutez un invité, ouvrez son lien tokenisé, envoyez un RSVP, validez le QR depuis l'admin puis scannez-le avec `pages/checkin.html?event=slug`.
 
 ## Sécurité
 

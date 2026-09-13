@@ -517,7 +517,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     // Auto slugify
     const newTitle = document.getElementById("new-event-title");
     const newSlug = document.getElementById("new-event-slug");
-    const newCode = document.getElementById("new-event-admin-code");
+    const newOwnerEmail = document.getElementById("new-event-owner-email");
     const newWelcomeImage = document.getElementById("new-event-welcome-image");
     const newWelcomeUpload = document.getElementById("new-event-welcome-upload");
     const newWelcomePreview = document.getElementById("new-event-welcome-preview");
@@ -529,16 +529,10 @@ window.addEventListener("DOMContentLoaded", async () => {
                 .replace(/[^a-z0-9]+/g, "-")
                 .replace(/^-+|-+$/g, "");
             newSlug.value = val;
-            if (!newCode.dataset.customized && val) {
-                newCode.value = `${val.toUpperCase().slice(0, 10)}-2026`;
-            }
         }
     });
     newSlug?.addEventListener("input", () => {
         newSlug.dataset.customized = "true";
-    });
-    newCode?.addEventListener("input", () => {
-        newCode.dataset.customized = "true";
     });
     newWelcomeImage?.addEventListener("input", () => {
         const src = newWelcomeImage.value.trim();
@@ -584,7 +578,11 @@ window.addEventListener("DOMContentLoaded", async () => {
         const type = document.getElementById("new-event-type")?.value || "wedding";
         const dateVal = document.getElementById("new-event-date")?.value;
         const venue = document.getElementById("new-event-venue")?.value.trim() || "Kinshasa";
-        const adminCode = newCode.value.trim() || `${slug.toUpperCase()}-2026`;
+        const ownerEmail = newOwnerEmail?.value.trim().toLowerCase() || "";
+        if (!ownerEmail) {
+            showToast("L'e-mail du compte client est requis.");
+            return;
+        }
         const welcomeImage = newWelcomeImage?.value.trim() || "";
         if (!welcomeImage && !pendingWelcomeFile) {
             showToast("Ajoutez une photo d'accueil pour cette invitation.");
@@ -601,7 +599,7 @@ window.addEventListener("DOMContentLoaded", async () => {
                 coupleRight,
                 eventDate: dateVal ? new Date(dateVal).toISOString() : new Date(Date.now() + 30 * 86400000).toISOString(),
                 venue,
-                adminCode,
+                ownerEmail,
                 welcomeImage
             });
 

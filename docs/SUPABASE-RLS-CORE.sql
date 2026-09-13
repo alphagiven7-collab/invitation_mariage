@@ -41,6 +41,8 @@ DECLARE
     new_event_id TEXT := lower(trim(COALESCE(p_event->>'id', '')));
     new_slug TEXT := lower(trim(COALESCE(p_event->>'slug', '')));
     new_title TEXT := trim(COALESCE(p_event->>'title', ''));
+    requested_owner_email TEXT := lower(trim(COALESCE(p_event->>'ownerEmail', '')));
+    requested_owner_id UUID;
     created_event public.events;
 BEGIN
     IF NOT public.is_platform_admin() THEN
@@ -52,15 +54,26 @@ BEGIN
     IF new_event_id <> new_slug OR new_slug !~ '^[a-z0-9]+(?:-[a-z0-9]+)*$' THEN
         RAISE EXCEPTION 'Identifiant d''événement invalide';
     END IF;
+    IF requested_owner_email = '' THEN
+        RAISE EXCEPTION 'E-mail du compte client requis';
+    END IF;
+
+    SELECT id INTO requested_owner_id
+    FROM auth.users
+    WHERE lower(email) = requested_owner_email
+    LIMIT 1;
+    IF requested_owner_id IS NULL THEN
+        RAISE EXCEPTION 'Le compte client doit être créé dans Supabase Auth avant l''événement';
+    END IF;
 
     INSERT INTO public.events (id, slug, owner_id, type, title, config_json, is_published)
     VALUES (
         new_event_id,
         new_slug,
-        auth.uid(),
+        requested_owner_id,
         COALESCE(NULLIF(p_event->>'type', ''), 'wedding'),
         new_title,
-        p_event - 'adminCode' - 'admin_code',
+        p_event - 'adminCode' - 'admin_code' - 'ownerEmail',
         TRUE
     )
     RETURNING * INTO created_event;
@@ -68,7 +81,7 @@ BEGIN
     INSERT INTO public.event_settings (event_id, dashboard_json, updated_at)
     VALUES (
         created_event.id,
-        p_event - 'adminCode' - 'admin_code',
+        p_event - 'adminCode' - 'admin_code' - 'ownerEmail',
         now()
     );
 

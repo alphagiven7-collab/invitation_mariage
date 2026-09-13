@@ -54,7 +54,6 @@ const EventConfig = (() => {
             .replace(/[^a-z0-9]+/g, "-")
             .replace(/^-+|-+$/g, "");
         const slug = rawSlug || `event-${Date.now()}`;
-        const adminCode = (data.adminCode || `${slug.toUpperCase().slice(0, 12)}-2026`).replace(/\s+/g, "-");
         const isBuiltIn = BUILTIN_EVENTS.some((event) => event.slug === slug);
         if (isBuiltIn) {
             throw new Error("Cet identifiant est réservé à une démo existante. Choisissez un autre slug.");
@@ -73,7 +72,7 @@ const EventConfig = (() => {
             eventDate: data.eventDate || new Date(Date.now() + 30 * 86400000).toISOString(),
             venue: data.venue || "Kinshasa",
             rsvpDeadline: data.rsvpDeadline || new Date(Date.now() + 20 * 86400000).toISOString().slice(0, 10),
-            adminCode: adminCode,
+            ownerEmail: String(data.ownerEmail || "").trim().toLowerCase(),
             branding: {
                 primaryColor: data.primaryColor || "#5c1830",
                 accentColor: data.accentColor || "#ec4899",

@@ -672,8 +672,17 @@ const GuestExperience = (() => {
                         inviteToken: token || "",
                         profilePhotoUrl: rsvpProfilePhotoUrl || unwrapGuest(guestByToken)?.profilePhotoUrl || ""
                     });
-                } catch (e) {}
+                } catch (e) {
+                    if (token && window.CloudAPI && CloudAPI.isEnabled()) {
+                        showToast("Votre réponse n'a pas été enregistrée. Vérifiez votre connexion et réessayez.");
+                        return;
+                    }
+                }
                 updatedGuest = unwrapGuest(updatedGuest);
+                if (token && window.CloudAPI && CloudAPI.isEnabled() && !updatedGuest) {
+                    showToast("Votre réponse n'a pas été enregistrée. Vérifiez votre connexion et réessayez.");
+                    return;
+                }
                 if (!updatedGuest && payload.name) {
                     try { updatedGuest = await GuestManager.findByName(payload.name); } catch (e) {}
                 }
@@ -715,7 +724,6 @@ const GuestExperience = (() => {
             rsvpForm.addEventListener("submit", submitRsvp);
             rsvpForm.dataset.guestExperienceBound = "true";
         }
-        document.getElementById("rsvp-profile-photo")?.addEventListener("change", handleRsvpPhotoUpload);
     }
 
     function boot() {
