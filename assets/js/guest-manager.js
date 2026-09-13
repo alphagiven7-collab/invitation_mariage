@@ -260,7 +260,7 @@ const GuestManager = (() => {
             drinkChoices: Array.isArray(drinkChoices) ? drinkChoices : guest.drinkChoices || [],
             accessCode: nextAccessCode,
             respondedAt: new Date().toISOString(),
-            qrApproved: !!guest.qrApproved
+            qrApproved: status === "yes"
         };
         if (profilePhotoUrl) patch.profilePhotoUrl = profilePhotoUrl;
 

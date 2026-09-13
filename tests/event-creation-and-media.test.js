@@ -182,6 +182,47 @@ test('GuestManager persists an edited guest before syncing it', async () => {
   assert.equal(JSON.stringify(saved[0]), JSON.stringify(updated.guest));
 });
 
+test('GuestManager immediately approves the QR for a confirmed RSVP', async () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'guest-manager.js'), 'utf8');
+  const store = {};
+  let nextId = 0;
+  const eventConfig = { isReady: () => true, getEventId: () => 'event-test' };
+  const sandbox = {
+    console,
+    URLSearchParams,
+    crypto: { randomUUID: () => `uuid-${++nextId}` },
+    EventConfig: eventConfig,
+    window: { EventConfig: eventConfig, crypto: { randomUUID: () => `uuid-${++nextId}` } },
+    localStorage: {
+      getItem(k) { return store[k] || null; },
+      setItem(k, v) { store[k] = String(v); }
+    }
+  };
+  sandbox.window.window = sandbox.window;
+  sandbox.global = sandbox;
+  sandbox.globalThis = sandbox;
+  vm.runInNewContext(source, sandbox, { filename: 'guest-manager.js' });
+
+  const manager = sandbox.window.GuestManager;
+  const created = await manager.addGuest({ fullName: 'Sarah Martin', phone: '+243999999999' });
+  const confirmed = await manager.recordRSVP({
+    guestId: created.guest.id,
+    fullName: 'Sarah Martin',
+    phone: '+243999999999',
+    status: 'yes',
+    adults: 2,
+    children: 0,
+    message: '',
+    drinkChoices: [],
+    inviteToken: '',
+    profilePhotoUrl: ''
+  });
+
+  assert.equal(confirmed.status, 'yes');
+  assert.equal(confirmed.qrApproved, true);
+  assert.equal(confirmed.accessCode, confirmed.token.slice(0, 8).toUpperCase());
+});
+
 test('GuestManager parses quoted CSV values and counts duplicate imports as skipped', async () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'guest-manager.js'), 'utf8');
   const store = {};

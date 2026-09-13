@@ -140,7 +140,7 @@ const MediaUpload = (() => {
             return processAudioFile(file, eventId, label);
         }
         const blob = await compressImageFile(file);
-        if (isCloudConfigured()) return uploadBlob(eventId, blob, label);
+        if (canUpload()) return uploadBlob(eventId, blob, label);
         const dataUrl = await blobToDataUrl(blob);
         if (dataUrl.length > MAX_DATA_URL_BYTES * 4) {
             throw new Error("Image encore trop lourde après compression.");

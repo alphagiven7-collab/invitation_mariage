@@ -31,6 +31,15 @@ $$;
 ALTER TABLE public.events
     ADD COLUMN IF NOT EXISTS is_published BOOLEAN NOT NULL DEFAULT TRUE;
 
+ALTER TABLE public.guests
+    ADD COLUMN IF NOT EXISTS qr_approved BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE public.guests
+    ADD COLUMN IF NOT EXISTS access_code TEXT;
+ALTER TABLE public.guests
+    ADD COLUMN IF NOT EXISTS table_number TEXT;
+ALTER TABLE public.guests
+    ADD COLUMN IF NOT EXISTS profile_photo_url TEXT;
+
 CREATE TABLE IF NOT EXISTS public.check_ins (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     event_id TEXT NOT NULL REFERENCES public.events(id) ON DELETE CASCADE,
@@ -196,6 +205,7 @@ BEGIN
         drink_choices = COALESCE(p_drink_choices, '[]'::jsonb)::text,
         profile_photo_url = COALESCE(NULLIF(p_profile_photo_url, ''), profile_photo_url),
         access_code = COALESCE(access_code, UPPER(LEFT(token, 8))),
+        qr_approved = (p_status = 'yes'),
         responded_at = now()
     WHERE token = p_token
     RETURNING * INTO updated_guest;

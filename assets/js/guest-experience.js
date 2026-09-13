@@ -116,7 +116,7 @@ const GuestExperience = (() => {
             }
             showToast("Photo ajoutée à votre carte.");
         } catch (e) {
-            showToast("Photo illisible — essayez une autre image.");
+            showToast(e.message || "Photo illisible — essayez une autre image.");
         }
     }
 
@@ -723,6 +723,12 @@ const GuestExperience = (() => {
         if (rsvpForm && !rsvpForm.dataset.guestExperienceBound) {
             rsvpForm.addEventListener("submit", submitRsvp);
             rsvpForm.dataset.guestExperienceBound = "true";
+        }
+
+        const photoInput = document.getElementById("rsvp-profile-photo");
+        if (photoInput && !photoInput.dataset.guestExperienceBound) {
+            photoInput.addEventListener("change", handleRsvpPhotoUpload);
+            photoInput.dataset.guestExperienceBound = "true";
         }
     }
 
