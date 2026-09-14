@@ -1,0 +1,13 @@
+{
+  "rewrites": [
+    {
+      "source": "/pages/invitation.html",
+      "destination": "/api/invitation"
+    }
+  ],
+  "functions": {
+    "api/invitation.js": {
+      "includeFiles": "pages/invitation.html"
+    }
+  }
+}
