@@ -82,6 +82,22 @@ const InvitationPdf = (() => {
         if (button) button.classList.toggle("hidden", !getPersonalGuest());
     }
 
+    async function waitForPrintImages() {
+        const images = Array.from(document.querySelectorAll("#main-view img"));
+        await Promise.all(images.map(async (image) => {
+            if (!image.complete) {
+                await new Promise((resolve) => {
+                    image.addEventListener("load", resolve, { once: true });
+                    image.addEventListener("error", resolve, { once: true });
+                });
+            }
+            if (image.decode) {
+                try { await image.decode(); } catch { /* Keep printing if an optional image is unavailable. */ }
+            }
+        }));
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    }
+
     async function createCanvas(guest) {
         const config = window.EventConfig?.getConfig?.() || {};
         const canvas = document.createElement("canvas");
@@ -169,7 +185,14 @@ const InvitationPdf = (() => {
             showToast("Cette invitation PDF est disponible depuis votre lien personnel.");
             return;
         }
-        window.print();
+        const button = document.getElementById("download-invitation-pdf-btn");
+        button?.setAttribute("disabled", "disabled");
+        try {
+            await waitForPrintImages();
+            window.print();
+        } finally {
+            button?.removeAttribute("disabled");
+        }
     }
 
     function init() {
@@ -184,7 +207,7 @@ const InvitationPdf = (() => {
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
     else init();
 
-    return { init, updateButton, download };
+    return { init, updateButton, download, waitForPrintImages };
 })();
 
 window.InvitationPdf = InvitationPdf;

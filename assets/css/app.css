@@ -1115,6 +1115,8 @@ body.best-gallery-open .app-floating-tools {
         margin: 0 !important;
         padding: 0 !important;
         background: #fff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
     #welcome-gate,
@@ -1143,6 +1145,15 @@ body.best-gallery-open .app-floating-tools {
         overflow: visible !important;
         box-shadow: none !important;
         opacity: 1 !important;
+    }
+
+    #main-view img,
+    .hero-bg-image {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 }
 body.preview-mode .app-floating-tools,
