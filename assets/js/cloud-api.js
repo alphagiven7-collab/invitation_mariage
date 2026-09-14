@@ -480,11 +480,21 @@ const CloudAPI = (() => {
     }
 
     function keepLatestRsvpPerGuest(rsvps) {
-        const guestIds = new Set();
+        const identities = new Set();
         return (Array.isArray(rsvps) ? rsvps : []).filter((rsvp) => {
-            if (!rsvp || !rsvp.guest_id) return true;
-            if (guestIds.has(rsvp.guest_id)) return false;
-            guestIds.add(rsvp.guest_id);
+            if (!rsvp) return false;
+            const fullName = String(rsvp.full_name || rsvp.fullName || "")
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .trim()
+                .toLowerCase()
+                .replace(/\s+/g, " ");
+            const phone = String(rsvp.phone || "").replace(/\D/g, "");
+            const identity = fullName && phone
+                ? `contact:${fullName}:${phone}`
+                : rsvp.guest_id ? `guest:${rsvp.guest_id}` : "";
+            if (!identity || identities.has(identity)) return !identity;
+            identities.add(identity);
             return true;
         });
     }

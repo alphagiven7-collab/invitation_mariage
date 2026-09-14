@@ -242,6 +242,7 @@ END;
 $$;
 
 -- Conserve la confirmation la plus récente avant d'empêcher tout futur doublon.
+-- Les anciennes réponses sans guest_id sont reconnues par leur nom et téléphone.
 DELETE FROM public.rsvps
 WHERE id IN (
     SELECT id
@@ -249,11 +250,18 @@ WHERE id IN (
         SELECT
             id,
             row_number() OVER (
-                PARTITION BY event_id, guest_id
+                PARTITION BY
+                    event_id,
+                    CASE
+                        WHEN NULLIF(regexp_replace(COALESCE(phone, ''), '\\D', '', 'g'), '') IS NOT NULL
+                         AND NULLIF(lower(trim(COALESCE(full_name, ''))), '') IS NOT NULL
+                        THEN 'contact:' || lower(trim(full_name)) || ':' || regexp_replace(phone, '\\D', '', 'g')
+                        WHEN guest_id IS NOT NULL THEN 'guest:' || guest_id::text
+                        ELSE 'rsvp:' || id::text
+                    END
                 ORDER BY created_at DESC, id DESC
             ) AS duplicate_rank
         FROM public.rsvps
-        WHERE guest_id IS NOT NULL
     ) AS ranked_rsvps
     WHERE duplicate_rank > 1
 );

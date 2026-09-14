@@ -154,9 +154,9 @@ test('CloudAPI keeps local guests visible when the admin session is unavailable'
 test('CloudAPI keeps only the latest RSVP shown for each guest', async () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'cloud-api.js'), 'utf8');
   const rsvps = [
-    { id: 'newer', guest_id: 'guest-1', full_name: 'Sarah Martin', created_at: '2026-09-14T11:00:00Z' },
-    { id: 'older', guest_id: 'guest-1', full_name: 'Sarah Martin', created_at: '2026-09-14T10:00:00Z' },
-    { id: 'other', guest_id: 'guest-2', full_name: 'Marc Martin', created_at: '2026-09-14T09:00:00Z' }
+    { id: 'newer', guest_id: 'guest-1', full_name: 'Sarah Martin', phone: '06-01-02-03-04', created_at: '2026-09-14T11:00:00Z' },
+    { id: 'older', guest_id: null, full_name: 'Sarah Martin', phone: '06 01 02 03 04', created_at: '2026-09-14T10:00:00Z' },
+    { id: 'other', guest_id: 'guest-2', full_name: 'Marc Martin', phone: '06 01 02 03 04', created_at: '2026-09-14T09:00:00Z' }
   ];
   const sandbox = {
     console,
