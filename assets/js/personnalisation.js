@@ -120,6 +120,7 @@ function getConfigDefaults() {
         donationLink: cfg?.links?.donation || "",
         whatsappDonationPhone: cfg?.links?.whatsappDonation || cfg?.whatsappDonationPhone || "",
         donationWhatsAppMessage: cfg?.links?.donationWhatsAppMessage || "",
+        giftMessage: cfg?.giftMessage || blocks.giftMessage || "",
         dressCodeTitle: cfg?.dressCodeTitle || "Tenue élégante",
         dressImages: cfg?.dressImages || [],
         supportEmail: cfg?.links?.supportEmail || "",
@@ -166,6 +167,7 @@ const DEFAULT_STATE = {
     donationLink: "https://www.paypal.com",
     whatsappDonationPhone: "",
     donationWhatsAppMessage: "Bonjour {couple}, je souhaite vous faire un don pour votre mariage. Merci de me communiquer les modalités.",
+    giftMessage: "Votre présence est le plus beau des cadeaux. Pour toute attention particulière, contactez les organisateurs.",
     dressCodeTitle: "Tenue élégante",
     dressImages: [],
     supportEmail: "contact@michelline.cd",
@@ -358,6 +360,7 @@ function readFormState() {
         donationLink: document.getElementById("donationLink").value.trim(),
         whatsappDonationPhone: document.getElementById("whatsappDonationPhone").value.trim(),
         donationWhatsAppMessage: document.getElementById("donationWhatsAppMessage").value.trim(),
+        giftMessage: document.getElementById("giftMessage").value.trim(),
         dressCodeTitle: document.getElementById("dressCodeTitle").value.trim(),
         dressImages: parseMediaList(document.getElementById("dressImages").value, 8),
         supportEmail: document.getElementById("supportEmail").value.trim(),
@@ -424,6 +427,7 @@ function toDashboardPayload(formState) {
         donationLink: formState.donationLink,
         whatsappDonationPhone: formState.whatsappDonationPhone,
         donationWhatsAppMessage: formState.donationWhatsAppMessage,
+        giftMessage: formState.giftMessage,
         dressCodeTitle: formState.dressCodeTitle,
         dressImages: formState.dressImages,
         supportEmail: formState.supportEmail,
@@ -687,6 +691,7 @@ function hydrateForm(state) {
     document.getElementById("donationLink").value = state.donationLink || "";
     document.getElementById("whatsappDonationPhone").value = state.whatsappDonationPhone || "";
     document.getElementById("donationWhatsAppMessage").value = state.donationWhatsAppMessage || "";
+    document.getElementById("giftMessage").value = state.giftMessage || "";
     document.getElementById("dressCodeTitle").value = state.dressCodeTitle || "Tenue élégante";
     document.getElementById("dressImages").value = (state.dressImages || []).join(", ");
     document.getElementById("supportEmail").value = state.supportEmail || "";

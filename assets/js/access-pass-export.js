@@ -94,7 +94,7 @@ const AccessPassExport = (() => {
     }
 
     async function drawGuestMedallion(ctx, url, y) {
-        const r = 78;
+        const r = 112;
         const cx = W / 2;
         ctx.save();
         ctx.beginPath();
@@ -162,10 +162,35 @@ const AccessPassExport = (() => {
 
     function getCoupleBgUrl(meta) {
         const cfg = window.EventConfig && EventConfig.getConfig && EventConfig.getConfig();
-        return (cfg && cfg.branding && (cfg.branding.heroImage || cfg.branding.welcomeImage))
+        return (cfg && (cfg.heroImage || cfg.welcomeImage || cfg.branding?.heroImage || cfg.branding?.welcomeImage))
             || meta?.couplePhotoLeft
             || meta?.couplePhotoRight
             || "";
+    }
+
+    function getEventLocation() {
+        const cfg = window.EventConfig && EventConfig.getConfig && EventConfig.getConfig();
+        return cfg?.venueAddress
+            || cfg?.venueDetails?.address
+            || (typeof cfg?.venue === "string" ? cfg.venue : cfg?.venue?.title)
+            || "Adresse communiquée par les organisateurs";
+    }
+
+    function drawWrappedText(ctx, text, y, maxWidth, lineHeight) {
+        const words = String(text || "").split(/\s+/).filter(Boolean);
+        const lines = [];
+        let line = "";
+        words.forEach((word) => {
+            const candidate = line ? `${line} ${word}` : word;
+            if (line && ctx.measureText(candidate).width > maxWidth) {
+                lines.push(line);
+                line = word;
+            } else {
+                line = candidate;
+            }
+        });
+        if (line) lines.push(line);
+        lines.slice(0, 2).forEach((currentLine, index) => ctx.fillText(currentLine, W / 2, y + index * lineHeight));
     }
 
     function getCoupleLabel() {
@@ -186,6 +211,8 @@ const AccessPassExport = (() => {
             drinksLabel: drinksLabel || "—",
             profilePhotoUrl: g.profilePhotoUrl || payload?.profilePhotoUrl || "",
             coupleBgUrl: getCoupleBgUrl(meta),
+            venueAddress: getEventLocation(),
+            contactPhone: "+243 845 370 370",
             qrSrc: qrSrc || ""
         };
     }
@@ -199,7 +226,7 @@ const AccessPassExport = (() => {
         let y = 200;
         if (data.profilePhotoUrl) {
             await drawGuestMedallion(ctx, data.profilePhotoUrl, y);
-            y = 310;
+            y = 365;
         } else {
             y = 230;
         }
@@ -245,6 +272,16 @@ const AccessPassExport = (() => {
             }
         }
 
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#5c2032";
+        ctx.font = "600 14px Montserrat, sans-serif";
+        ctx.fillText("LIEU DE L'ÉVÉNEMENT", W / 2, H - 195);
+        ctx.font = "500 16px Montserrat, sans-serif";
+        ctx.fillStyle = "#5c4f4f";
+        drawWrappedText(ctx, data.venueAddress, H - 167, W - 150, 22);
+        ctx.font = "600 15px Montserrat, sans-serif";
+        ctx.fillStyle = "#5c2032";
+        ctx.fillText(`ASSISTANCE MICHELLINE EVENT : ${data.contactPhone}`, W / 2, H - 110);
         ctx.fillStyle = "#7a6363";
         ctx.font = "600 14px Montserrat, sans-serif";
         ctx.fillText("PRÉSENTEZ CE QR À L'ENTRÉE", W / 2, H - 72);

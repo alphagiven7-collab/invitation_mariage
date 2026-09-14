@@ -517,7 +517,7 @@
                 rsvpLink: document.getElementById('rsvp-form').dataset.externalLink || '',
                 donationLink: document.getElementById('donation-btn').dataset.link || 'https://www.paypal.com',
                 mapLink: document.getElementById('venue-map-link').href || '',
-                supportEmail: (document.getElementById('support-email-link').href || '').replace(/^mailto:/i, '').split('?')[0],
+                supportEmail: (document.getElementById('support-email-link')?.href || '').replace(/^mailto:/i, '').split('?')[0],
                 siteUrl: document.getElementById('meta-og-url').content || window.location.href,
                 shareImage: document.getElementById('meta-og-image').content || document.getElementById('about-cover-image').src,
                 metaDescription: document.getElementById('meta-description').content || ''
@@ -763,7 +763,8 @@
             document.documentElement.style.setProperty('--primary-color', primaryColor);
             document.documentElement.style.setProperty('--accent-color', accentColor);
             applyRsvpButtonColors(state.rsvpButtonColor || accentColor);
-            document.getElementById('queue-btn').style.backgroundColor = primaryColor;
+            const queueButton = document.getElementById('queue-btn');
+            if (queueButton) queueButton.style.backgroundColor = primaryColor;
             document.getElementById('couple-name-right').style.color = primaryColor;
             document.getElementById('donation-btn').style.backgroundColor = accentColor;
             document.getElementById('couple-name-left').style.color = accentColor;
@@ -773,14 +774,15 @@
             const siteUrl = normalizeUrl(state.siteUrl || window.location.href);
             const shareImage = normalizeUrl(state.shareImage || document.getElementById('about-cover-image').src);
             const description = state.metaDescription || 'Invitation officielle.';
-            const supportEmail = (state.supportEmail || 'contact@michelline.cd').trim();
+            const giftMessage = state.giftMessage
+                || 'Votre présence est le plus beau des cadeaux. Pour toute attention particulière, contactez les organisateurs.';
 
             donationBtn.dataset.link = normalizeUrl(state.donationLink || 'https://www.paypal.com');
             donationBtn.dataset.whatsapp = (state.whatsappDonationPhone || '').trim();
             donationBtn.dataset.waMessage = state.donationWhatsAppMessage || '';
             document.getElementById('rsvp-form').dataset.externalLink = normalizeUrl(state.rsvpLink || '');
             document.getElementById('venue-map-link').href = mapUrl;
-            document.getElementById('support-email-link').href = `mailto:${supportEmail}?subject=Contact%20invitation`;
+            document.getElementById('gift-message').textContent = giftMessage.replace(/\{couple\}/gi, state.subtitle || 'les mariés');
 
             document.getElementById('meta-description').content = description;
             document.getElementById('meta-og-title').content = document.getElementById('hero-title').textContent.trim();

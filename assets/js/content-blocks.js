@@ -244,6 +244,7 @@ const ContentBlocks = (() => {
         if (cfg.links?.donation) out.donationLink = cfg.links.donation;
         if (cfg.links?.whatsappDonation) out.whatsappDonationPhone = cfg.links.whatsappDonation;
         if (cfg.links?.donationWhatsAppMessage) out.donationWhatsAppMessage = cfg.links.donationWhatsAppMessage;
+        if (cfg.giftMessage) out.giftMessage = cfg.giftMessage;
         if (cfg.dressCodeTitle) out.dressCodeTitle = cfg.dressCodeTitle;
         if (cfg.dressImages) out.dressImages = cfg.dressImages;
         if (cfg.links?.supportEmail) out.supportEmail = cfg.links.supportEmail;

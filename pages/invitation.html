@@ -13,6 +13,8 @@
     <meta property="og:image" id="meta-og-image" content="https://michelline-invitations.vercel.app/assets/images/previews/preview-demo.png">
     <meta property="og:image:secure_url" content="https://michelline-invitations.vercel.app/assets/images/previews/preview-demo.png">
     <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" id="meta-twitter-title" content="Invitation">
     <meta name="twitter:description" id="meta-twitter-description" content="Rejoignez-nous pour célébrer notre union.">
@@ -115,7 +117,7 @@
     <main id="main-view" class="max-w-md mx-auto bg-[#fafafa] min-h-screen relative shadow-2xl overflow-hidden pb-10 hidden opacity-0 transition-opacity duration-500">
         
         <!-- 1. En-tête -->
-        <header class="hero-bg h-[60vh] flex flex-col justify-center items-center text-center text-white px-4">
+        <header class="hero-bg h-[68vh] flex flex-col justify-center items-center text-center text-white px-4">
             <h1 id="hero-title" class="font-serif text-2xl md:text-3xl mb-3 tracking-wide">Invitation</h1>
             <i data-lucide="heart" class="w-6 h-6 text-pink-300 mx-auto mb-3 animate-pulse" fill="currentColor"></i>
             <p id="hero-subtitle" class="text-sm font-light tracking-widest"></p>
@@ -340,20 +342,12 @@
             </div>
         </section>
 
-        <!-- 8. Les Cadeaux (Urne) -->
+        <!-- 8. Cadeaux -->
         <section class="px-4 mt-6">
             <div class="bg-gradient-to-b from-[#fdfbf7] to-white rounded-2xl shadow-sm p-6 text-center border border-gray-100">
-                <h3 class="font-serif text-lg text-gray-800 mb-4">Les cadeaux ?</h3>
+                <h3 class="font-serif text-lg text-gray-800 mb-4">Un geste pour les mariés</h3>
                 <div class="text-6xl mb-4">📦</div>
-                <p class="text-[11px] text-gray-500 mb-2 leading-relaxed">
-                    Pour le moment spécial, la création d'une urne d'honneur est prévue.
-                </p>
-                <p class="text-[11px] text-gray-500 mb-2 leading-relaxed">
-                    Le jour J, une urne sera disposée dans la salle afin que vous puissiez y déposer vos enveloppes en toute discrétion.
-                </p>
-                <p class="text-[11px] text-gray-500 font-medium">
-                    Merci pour votre générosité et votre présence précieuse.
-                </p>
+                <p id="gift-message" class="text-[11px] text-gray-500 mb-2 leading-relaxed">Votre présence est le plus beau des cadeaux. Pour toute attention particulière, utilisez le moyen de contact indiqué ci-dessous.</p>
             </div>
         </section>
 
@@ -398,18 +392,6 @@
                 </div>
             </div>
 
-            <!-- Quiz -->
-            <div id="quiz-card" onclick="startQuiz()" class="bg-[#2d3748] rounded-xl p-4 text-center text-white mt-3 relative overflow-hidden cursor-pointer h-24 flex flex-col justify-center">
-                <div class="absolute -right-4 -top-4 w-16 h-16 bg-white/10 rounded-full"></div>
-                <h3 class="font-bold text-lg flex justify-center items-center space-x-2">
-                    <span class="w-7 h-7 rounded-full bg-white/95 text-slate-700 flex items-center justify-center">
-                        <i data-lucide="help-circle" class="w-4 h-4"></i>
-                    </span>
-                    <span>Quiz</span>
-                </h3>
-                <p class="text-[10px] text-gray-300 mt-1">Testez vos connaissances sur le couple</p>
-            </div>
-
             <!-- Offrir un don financier -->
             <div class="bg-gradient-to-r from-pink-50 to-pink-100 border border-pink-200 rounded-xl p-5 text-center mt-3">
                 <div class="flex items-center justify-center space-x-2 mb-2 text-pink-500">
@@ -443,69 +425,14 @@
             </div>
         </section>
 
-        <!-- 11. Remise des cadeaux & Activité -->
+        <!-- 11. Informations de l'événement -->
         <section class="px-4 mt-6">
             <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-50 text-center">
                 <div class="w-10 h-10 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-3">
                     <i data-lucide="users" class="w-5 h-5"></i>
                 </div>
-                <h3 class="font-serif text-lg mb-2">Remise des cadeaux</h3>
-                <p class="text-[10px] text-gray-500 mb-4 px-2">
-                    Enregistrez-vous à l'avance pour passer remettre votre cadeau avec votre groupe et votre chanson d'accompagnement.
-                </p>
-                <div class="flex justify-center space-x-8 mb-4 border-t border-b border-gray-50 py-3">
-                    <div>
-                        <p class="text-xs font-bold text-gray-800">2</p>
-                        <p class="text-[9px] text-gray-400 uppercase">Groupes</p>
-                    </div>
-                    <div>
-                        <p class="text-xs font-bold text-gray-800">3</p>
-                        <p class="text-[9px] text-gray-400 uppercase">Personnes</p>
-                    </div>
-                </div>
-                <button id="queue-btn" onclick="openQueueInfo()" class="w-full bg-indigo-600 text-white py-2.5 rounded-xl text-xs font-bold hover:bg-indigo-700 transition">
-                    Voir la file
-                </button>
-            </div>
-            
-            <!-- Activité (Barres de progression) -->
-            <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-50 mt-4">
-                <h3 class="font-semibold text-xs text-gray-800 mb-4 flex items-center">
-                    <i data-lucide="activity" class="w-4 h-4 text-blue-500 mr-2"></i> Activité de l'événement
-                </h3>
-                
-                <div class="space-y-4">
-                    <!-- Confirmés -->
-                    <div>
-                        <div class="flex justify-between text-[10px] mb-1">
-                            <span class="text-gray-600 font-medium flex items-center"><i data-lucide="check" class="w-3 h-3 mr-1 text-green-500"></i> Confirmés</span>
-                            <span class="font-bold">92%</span>
-                        </div>
-                        <div class="w-full bg-gray-100 rounded-full h-1.5">
-                            <div class="bg-green-500 h-1.5 rounded-full" style="width: 92%"></div>
-                        </div>
-                    </div>
-                    <!-- Arrivés -->
-                    <div>
-                        <div class="flex justify-between text-[10px] mb-1">
-                            <span class="text-gray-600 font-medium flex items-center"><i data-lucide="user-check" class="w-3 h-3 mr-1 text-blue-500"></i> Arrivés</span>
-                            <span class="font-bold">0%</span>
-                        </div>
-                        <div class="w-full bg-gray-100 rounded-full h-1.5">
-                            <div class="bg-blue-500 h-1.5 rounded-full" style="width: 0%"></div>
-                        </div>
-                    </div>
-                    <!-- Livre d'or -->
-                    <div>
-                        <div class="flex justify-between text-[10px] mb-1">
-                            <span class="text-gray-600 font-medium flex items-center"><i data-lucide="book" class="w-3 h-3 mr-1 text-purple-500"></i> Livre d'or</span>
-                            <span class="font-bold">4%</span>
-                        </div>
-                        <div class="w-full bg-gray-100 rounded-full h-1.5">
-                            <div class="bg-purple-500 h-1.5 rounded-full" style="width: 4%"></div>
-                        </div>
-                    </div>
-                </div>
+                <h3 class="font-serif text-lg mb-2">Informations de l'événement</h3>
+                <p class="text-[10px] text-gray-500 px-2">Retrouvez le programme, les consignes et les informations pratiques ci-dessus.</p>
             </div>
         </section>
 
@@ -516,12 +443,12 @@
                     <i data-lucide="life-buoy" class="w-6 h-6 text-indigo-400"></i>
                 </div>
                 <h3 class="font-bold text-sm text-gray-800 mb-1">Besoin d'aide ?</h3>
-                <p class="text-[10px] text-gray-500 mb-4">Notre équipe Wedding Planner est là pour vous assister.</p>
+                <p class="text-[10px] text-gray-500 mb-4">L'équipe Michelline Event est là pour vous assister.</p>
                 <div class="text-4xl">🫶</div>
             </div>
             
             <div class="text-center mt-6 pb-6">
-                <p class="text-[10px] text-gray-400">Vous avez aimé cet espace ? <a id="support-email-link" href="mailto:contact@example.com?subject=Contact%20Invitation" class="font-bold text-gray-600 underline">Contactez-nous</a></p>
+                <p class="text-[10px] text-gray-400">Besoin de nous joindre ? <a id="support-phone-link" href="https://wa.me/243845370370" class="font-bold text-gray-600 underline">Contactez Michelline Event au +243 845 370 370</a></p>
             </div>
         </section>
     </main>
@@ -931,9 +858,9 @@
     <script src="../assets/js/dashboard-sync.js?v=55"></script>
     <script src="../assets/js/guest-manager.js?v=52"></script>
     <script src="../assets/js/checkin-url.js?v=50"></script>
-    <script src="../assets/js/access-pass-export.js?v=51"></script>
+    <script src="../assets/js/access-pass-export.js?v=52"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-    <script src="../assets/js/content-blocks.js?v=35"></script>
+    <script src="../assets/js/content-blocks.js?v=36"></script>
     <script src="../assets/js/calendar-export.js?v=34"></script>
     <script src="../assets/js/background-music.js?v=34"></script>
     <script src="../assets/js/countdown.js?v=34"></script>
@@ -941,7 +868,7 @@
     <script src="../assets/js/i18n.js?v=34"></script>
     <script src="../assets/js/drink-generic-images.js?v=34"></script>
     <script src="../assets/js/drink-menu.js?v=34"></script>
-    <script src="../assets/js/app.js?v=53"></script>
+    <script src="../assets/js/app.js?v=54"></script>
     <script src="../assets/js/guest-experience.js?v=56"></script>
     <script>
         // Fallback robuste si app.js ne se charge pas complètement
