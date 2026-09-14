@@ -1,8 +1,9 @@
 {
-  "rewrites": [
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "routes": [
     {
-      "source": "/pages/invitation.html",
-      "destination": "/api/invitation"
+      "src": "/pages/invitation\\.html",
+      "dest": "/api/invitation"
     }
   ],
   "functions": {
