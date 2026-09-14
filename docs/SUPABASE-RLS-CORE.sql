@@ -178,6 +178,7 @@ AS $$
 $$;
 
 CREATE OR REPLACE FUNCTION public.submit_guest_rsvp(
+    p_event_id TEXT,
     p_token TEXT,
     p_phone TEXT,
     p_status TEXT,
@@ -197,7 +198,8 @@ DECLARE
 BEGIN
     SELECT * INTO updated_guest
     FROM public.guests
-    WHERE token = p_token
+        WHERE event_id = p_event_id
+            AND token = p_token
     FOR UPDATE;
 
     IF NOT FOUND THEN
@@ -243,7 +245,7 @@ GRANT EXECUTE ON FUNCTION public.get_public_event_config(TEXT) TO anon, authenti
 GRANT EXECUTE ON FUNCTION public.create_managed_event(JSONB) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.delete_managed_event(TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_guest_invite(TEXT) TO anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.submit_guest_rsvp(TEXT, TEXT, TEXT, INTEGER, INTEGER, TEXT, JSONB, TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.submit_guest_rsvp(TEXT, TEXT, TEXT, TEXT, INTEGER, INTEGER, TEXT, JSONB, TEXT) TO anon, authenticated;
 
 CREATE OR REPLACE FUNCTION public.get_public_guestbook_messages(p_event_id TEXT)
 RETURNS TABLE(author_name TEXT, message TEXT, created_at TIMESTAMPTZ)

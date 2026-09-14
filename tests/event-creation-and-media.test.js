@@ -243,7 +243,7 @@ test('GuestManager immediately approves the QR for a confirmed RSVP', async () =
     children: 0,
     message: '',
     drinkChoices: [],
-    inviteToken: '',
+    inviteToken: created.guest.token,
     profilePhotoUrl: ''
   });
 
@@ -260,11 +260,38 @@ test('GuestManager immediately approves the QR for a confirmed RSVP', async () =
     children: 0,
     message: '',
     drinkChoices: ['Jus'],
-    inviteToken: '',
+    inviteToken: created.guest.token,
     profilePhotoUrl: ''
   });
   assert.equal(secondAttempt.alreadyConfirmed, true);
   assert.equal(JSON.stringify(secondAttempt.drinkChoices), '[]');
+});
+
+test('GuestManager refuses an RSVP without a personal invitation token', async () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'guest-manager.js'), 'utf8');
+  const store = {};
+  const eventConfig = { isReady: () => true, getEventId: () => 'event-test' };
+  const sandbox = {
+    console,
+    URLSearchParams,
+    crypto: { randomUUID: () => 'uuid-1' },
+    EventConfig: eventConfig,
+    window: { EventConfig: eventConfig, crypto: { randomUUID: () => 'uuid-1' } },
+    localStorage: {
+      getItem(k) { return store[k] || null; },
+      setItem(k, v) { store[k] = String(v); }
+    }
+  };
+  sandbox.window.window = sandbox.window;
+  sandbox.global = sandbox;
+  sandbox.globalThis = sandbox;
+  vm.runInNewContext(source, sandbox, { filename: 'guest-manager.js' });
+
+  await assert.rejects(
+    sandbox.window.GuestManager.recordRSVP({ fullName: 'Personne inconnue', status: 'yes', inviteToken: '' }),
+    /réservée aux personnes ajoutées/
+  );
+  assert.equal(store['wedding_event_event-test_guests'], undefined);
 });
 
 test('GuestManager parses quoted CSV values and counts duplicate imports as skipped', async () => {

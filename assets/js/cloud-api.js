@@ -590,8 +590,9 @@ const CloudAPI = (() => {
         return guest ? mapGuestFromCloud(guest) : null;
     }
 
-    async function submitGuestRsvp(token, data) {
+    async function submitGuestRsvp(eventId, token, data) {
         const guest = await requestRpc("submit_guest_rsvp", {
+            p_event_id: eventId,
             p_token: token,
             p_phone: data.phone || "",
             p_status: data.status === "yes" ? "yes" : "no",

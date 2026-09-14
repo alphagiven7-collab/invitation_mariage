@@ -222,8 +222,11 @@ const GuestManager = (() => {
     }
 
     async function recordRSVP({ guestId, fullName, phone, status, adults, children, message, drinkChoices, inviteToken, profilePhotoUrl }) {
+        if (!inviteToken) {
+            throw new Error("Cette invitation est réservée aux personnes ajoutées par l'organisateur. Contactez l'organisateur pour être ajouté(e) à la liste.");
+        }
         if (inviteToken && window.CloudAPI && CloudAPI.isEnabled() && CloudAPI.submitGuestRsvp) {
-            const cloudGuest = await CloudAPI.submitGuestRsvp(inviteToken, {
+            const cloudGuest = await CloudAPI.submitGuestRsvp(getEventId(), inviteToken, {
                 phone,
                 status,
                 adults,
@@ -243,11 +246,9 @@ const GuestManager = (() => {
         if (!guest && fullName) {
             guest = guests.find((g) => g.fullName.toLowerCase() === fullName.toLowerCase());
         }
-        if (!guest && fullName) {
-            const created = await addGuest({ fullName, phone });
-            guest = created?.guest || created;
+        if (!guest || guest.token !== inviteToken) {
+            throw new Error("Cette invitation est réservée aux personnes ajoutées par l'organisateur. Contactez l'organisateur pour être ajouté(e) à la liste.");
         }
-        if (!guest) return null;
         if (guest.status !== "pending") return { ...guest, alreadyConfirmed: true };
 
         const nextAccessCode = guest.accessCode || guest.token.slice(0, 8).toUpperCase();

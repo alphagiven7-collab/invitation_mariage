@@ -959,6 +959,12 @@
             const submitBtn = document.getElementById('rsvp-submit-btn') || event.submitter;
 
             const run = async () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = (urlParams.get('t') || '').trim();
+                if (!token) {
+                    showToast("Vous n'êtes pas encore sur la liste des invités. Contactez l'organisateur afin d'être ajouté(e) avant de confirmer votre présence.");
+                    return;
+                }
                 const payload = {
                     name: document.getElementById('rsvp-name').value.trim(),
                     phone: document.getElementById('rsvp-phone').value.trim(),
@@ -980,9 +986,11 @@
                 localStorage.setItem(eventStorageKey('rsvp_status'), payload.status);
 
                 if (window.GuestManager) {
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const token = urlParams.get('t');
                     const guestByToken = token ? await GuestManager.findByToken(token) : null;
+                    if (!guestByToken || guestByToken.eventId !== EventConfig.getEventId()) {
+                        showToast("Votre invitation n'a pas été trouvée. Contactez l'organisateur afin d'être ajouté(e) à la liste.");
+                        return;
+                    }
                     await GuestManager.recordRSVP({
                         guestId: guestByToken ? guestByToken.id : null,
                         fullName: payload.name,
@@ -1005,8 +1013,6 @@
                 const confirmCode = window.GuestExperience
                     ? GuestExperience.buildConfirmCode(currentGuestProfile, payload)
                     : buildConfirmationCode(currentGuestProfile, payload);
-                const urlParams = new URLSearchParams(window.location.search);
-                const token = urlParams.get('t');
                 if (token) {
                     localStorage.setItem(eventStorageKey(`confirm_${token}`), JSON.stringify({ payload, code: confirmCode }));
                 }

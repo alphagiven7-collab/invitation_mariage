@@ -316,6 +316,10 @@ const GuestExperience = (() => {
 
     function openRsvp() {
         prefillRsvp();
+        if (!hasPersonalInviteToken(profile) || !profile?.id) {
+            showToast("Vous n'êtes pas encore sur la liste des invités. Contactez l'organisateur afin d'être ajouté(e) avant de confirmer votre présence.");
+            return;
+        }
         if (profile && profile.status !== "pending") {
             showAlreadyConfirmed(profile);
             return;
@@ -640,6 +644,11 @@ const GuestExperience = (() => {
         const run = async () => {
             prefillRsvp();
 
+            if (!hasPersonalInviteToken(profile) || !profile?.id) {
+                showToast("Vous n'êtes pas encore sur la liste des invités. Contactez l'organisateur afin d'être ajouté(e) avant de confirmer votre présence.");
+                return;
+            }
+
             if (profile && profile.status !== "pending") {
                 showAlreadyConfirmed(profile);
                 return;
@@ -696,8 +705,9 @@ const GuestExperience = (() => {
                     showToast("Votre réponse n'a pas été enregistrée. Vérifiez votre connexion et réessayez.");
                     return;
                 }
-                if (!updatedGuest && payload.name) {
-                    try { updatedGuest = await GuestManager.findByName(payload.name); } catch (e) {}
+                if (!updatedGuest || updatedGuest.token !== token || updatedGuest.eventId !== getEventId()) {
+                    showToast("Votre invitation n'a pas été trouvée. Contactez l'organisateur afin d'être ajouté(e) à la liste.");
+                    return;
                 }
             }
 
