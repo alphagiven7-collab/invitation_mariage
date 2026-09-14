@@ -72,25 +72,28 @@
         }
     }
 
-    async function deleteEvent(eventId, slug, title) {
-        const firstConfirmation = window.confirm(
-            `Supprimer définitivement l'événement « ${title} » ?\n\nLes invités, RSVP, check-in, réglages et médias seront effacés.`
+    async function deleteEvent(eventId, slug, title, card, button) {
+        const confirmed = window.confirm(
+            `Supprimer définitivement « ${title} » ?\n\nCette action efface les invités, réponses, check-in, réglages et médias.`
         );
-        if (!firstConfirmation) return;
-        const typed = window.prompt(`Pour confirmer, écrivez SUPPRIMER :\n\n${title}`);
-        if (typed !== "SUPPRIMER") return;
+        if (!confirmed) return;
 
         try {
+            button.disabled = true;
+            button.textContent = "Suppression...";
             await CloudAPI.deleteEvent(eventId);
             EventConfig.discardLocalEvent(slug);
-            const card = document.querySelector(`[data-event-slug="${CSS.escape(slug)}"]`);
             card?.remove();
             const remaining = document.querySelectorAll("[data-event-slug]").length;
             document.getElementById("events-count").textContent = String(remaining);
             document.getElementById("events-empty").classList.toggle("hidden", remaining !== 0);
             document.getElementById("events-feedback").textContent = "Événement supprimé définitivement.";
         } catch (error) {
-            window.alert(error.message || "Suppression impossible.");
+            button.disabled = false;
+            button.textContent = "Supprimer";
+            const message = error.message || "Suppression impossible.";
+            document.getElementById("events-feedback").textContent = message;
+            window.alert(message);
         }
     }
 
@@ -166,7 +169,13 @@
         grid.querySelectorAll("[data-delete-event]").forEach((button) => {
             button.addEventListener("click", () => {
                 const card = button.closest("[data-event-id]");
-                deleteEvent(card?.dataset.eventId || button.dataset.deleteEvent, button.dataset.deleteEvent, button.dataset.deleteTitle);
+                deleteEvent(
+                    card?.dataset.eventId || button.dataset.deleteEvent,
+                    button.dataset.deleteEvent,
+                    button.dataset.deleteTitle,
+                    card,
+                    button
+                );
             });
         });
         count.textContent = String(events.length);
