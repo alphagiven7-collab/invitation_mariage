@@ -74,7 +74,7 @@ const InvitationPdf = (() => {
                 });
             });
         }
-        return `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(target)}`;
+        throw new Error("QR code indisponible");
     }
 
     function updateButton() {
