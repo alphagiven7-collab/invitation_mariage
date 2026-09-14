@@ -399,11 +399,23 @@ window.addEventListener("DOMContentLoaded", async () => {
             showToast("Nom obligatoire (2 caractères minimum).");
             return;
         }
+        let profilePhotoUrl = "";
+        const photoFile = document.getElementById("guest-profile-photo").files[0];
+        if (photoFile) {
+            try {
+                profilePhotoUrl = await MediaUpload.processFile(photoFile, eventId, "guest-profile");
+            } catch (error) {
+                showToast(error.message || "Photo impossible à ajouter.");
+                return;
+            }
+        }
         const result = await GuestManager.addGuest({
             fullName,
             phone: document.getElementById("guest-phone").value.trim(),
             email: document.getElementById("guest-email").value.trim(),
-            group: document.getElementById("guest-group").value.trim()
+            group: document.getElementById("guest-group").value.trim(),
+            tableNumber: document.getElementById("guest-table").value.trim(),
+            profilePhotoUrl
         });
         e.target.reset();
         await GuestManager.loadGuests(true);

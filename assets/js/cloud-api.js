@@ -555,7 +555,7 @@ const CloudAPI = (() => {
             p_message: data.message || "",
             p_drink_choices: Array.isArray(data.drinkChoices) ? data.drinkChoices : [],
             p_profile_photo_url: data.profilePhotoUrl || ""
-        });
+        }, { throwOnError: true });
         return guest ? mapGuestFromCloud(guest) : null;
     }
 

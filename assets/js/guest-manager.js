@@ -92,7 +92,7 @@ const GuestManager = (() => {
         }
     }
 
-    async function addGuest({ fullName, phone = "", email = "", group = "" }) {
+    async function addGuest({ fullName, phone = "", email = "", group = "", tableNumber = "", profilePhotoUrl = "" }) {
         const trimmedName = (fullName || "").trim();
         if (trimmedName.length < 2) return { guest: null, duplicate: false, cloudSynced: false };
 
@@ -120,9 +120,9 @@ const GuestManager = (() => {
             status: "pending",
             qrApproved: false,
             accessCode: "",
-            tableNumber: "",
+            tableNumber: String(tableNumber || "").trim(),
             drinkChoices: [],
-            profilePhotoUrl: "",
+            profilePhotoUrl: String(profilePhotoUrl || "").trim(),
             adults: 1,
             children: 0,
             rsvpMessage: "",
@@ -248,6 +248,7 @@ const GuestManager = (() => {
             guest = created?.guest || created;
         }
         if (!guest) return null;
+        if (guest.status !== "pending") return { ...guest, alreadyConfirmed: true };
 
         const nextAccessCode = guest.accessCode || guest.token.slice(0, 8).toUpperCase();
 

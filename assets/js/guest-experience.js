@@ -99,6 +99,15 @@ const GuestExperience = (() => {
         }
     }
 
+    function lockPersonalDetails() {
+        ["rsvp-name", "rsvp-phone", "rsvp-status", "rsvp-adults", "rsvp-children", "rsvp-message"].forEach((id) => {
+            const field = document.getElementById(id);
+            if (!field) return;
+            field.disabled = true;
+            field.closest("div")?.classList.add("hidden");
+        });
+    }
+
     async function handleRsvpPhotoUpload(event) {
         const file = event.target?.files?.[0];
         if (!file) return;
@@ -247,7 +256,7 @@ const GuestExperience = (() => {
             try {
                 const data = JSON.parse(saved);
                 if (canShowQrCode(guest, data.payload)) {
-                    setTimeout(() => showConfirmation(data.payload, data.code, guest), 800);
+                    setTimeout(() => showAlreadyConfirmed(guest), 800);
                 }
                 return;
             } catch (e) {}
@@ -263,7 +272,7 @@ const GuestExperience = (() => {
             drinkChoices: guest.drinkChoices || []
         };
         if (canShowQrCode(guest, payload)) {
-            setTimeout(() => showConfirmation(payload, buildConfirmCode(guest, payload), guest), 800);
+            setTimeout(() => showAlreadyConfirmed(guest), 800);
         }
     }
 
@@ -281,6 +290,7 @@ const GuestExperience = (() => {
         const guest = await resolveGuestFromUrl();
         if (guest) {
             applyProfile(guest);
+            lockPersonalDetails();
             showPersonalWelcome(guest);
             const token = getParams().get("t");
             if (token && window.CloudAPI && CloudAPI.isEnabled()) {
@@ -306,6 +316,10 @@ const GuestExperience = (() => {
 
     function openRsvp() {
         prefillRsvp();
+        if (profile && profile.status !== "pending") {
+            showAlreadyConfirmed(profile);
+            return;
+        }
         if (typeof window.openModal === "function") {
             window.openModal("rsvp-modal");
         } else {
@@ -464,10 +478,14 @@ const GuestExperience = (() => {
         const drinks = payload.drinkChoices || resolvedGuest?.drinkChoices || [];
         const drinksLabel = drinks.length ? drinks.join(" · ") : "Non précisé";
 
-        document.getElementById("confirm-title").textContent = isYes
+        document.getElementById("confirm-title").textContent = payload.alreadyConfirmed
+            ? "Invitation déjà confirmée"
+            : isYes
             ? "Présence confirmée avec joie"
             : "Réponse enregistrée avec gratitude";
-        document.getElementById("confirm-subtitle").textContent = isYes
+        document.getElementById("confirm-subtitle").textContent = payload.alreadyConfirmed
+            ? "Votre carte d'accès est disponible. En cas de problème, contactez l'organisateur."
+            : isYes
             ? "Votre place est réservée — gardez cette carte pour le jour J"
             : "Merci d'avoir pris le temps de répondre";
         document.getElementById("confirm-guest-line").textContent = payload.name;
@@ -616,6 +634,19 @@ const GuestExperience = (() => {
         }
     }
 
+    function showAlreadyConfirmed(guest) {
+        const payload = {
+            name: guest.fullName,
+            status: "yes",
+            adults: guest.adults || 1,
+            children: guest.children || 0,
+            drinkChoices: guest.drinkChoices || [],
+            alreadyConfirmed: true
+        };
+        showToast("Cette invitation a déjà été confirmée.");
+        showConfirmation(payload, buildConfirmCode(guest, payload), guest);
+    }
+
     function validatePhone(phone) {
         return (phone || "").replace(/\D/g, "").length >= 9;
     }
@@ -627,10 +658,15 @@ const GuestExperience = (() => {
         const run = async () => {
             prefillRsvp();
 
+            if (profile && profile.status !== "pending") {
+                showAlreadyConfirmed(profile);
+                return;
+            }
+
             const payload = {
                 name: (document.getElementById("rsvp-name")?.value || "").trim(),
                 phone: (document.getElementById("rsvp-phone")?.value || "").trim(),
-                status: document.getElementById("rsvp-status")?.value || "yes",
+                status: "yes",
                 adults: document.getElementById("rsvp-adults")?.value || "1",
                 children: document.getElementById("rsvp-children")?.value || "0",
                 message: (document.getElementById("rsvp-message")?.value || "").trim(),
@@ -644,11 +680,6 @@ const GuestExperience = (() => {
                 showToast("Nom obligatoire (2 caractères minimum).");
                 return;
             }
-            if (!validatePhone(payload.phone)) {
-                showToast("Téléphone invalide (9 chiffres minimum).");
-                return;
-            }
-
             localStorage.setItem(eventStorageKey("rsvp_data"), JSON.stringify(payload));
             localStorage.setItem(eventStorageKey("rsvp_status"), payload.status);
 
@@ -674,7 +705,7 @@ const GuestExperience = (() => {
                     });
                 } catch (e) {
                     if (token && window.CloudAPI && CloudAPI.isEnabled()) {
-                        showToast("Votre réponse n'a pas été enregistrée. Vérifiez votre connexion et réessayez.");
+                        showToast(e.message || "Votre réponse n'a pas été enregistrée. Vérifiez votre connexion et réessayez.");
                         return;
                     }
                 }

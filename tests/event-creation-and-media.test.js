@@ -221,6 +221,21 @@ test('GuestManager immediately approves the QR for a confirmed RSVP', async () =
   assert.equal(confirmed.status, 'yes');
   assert.equal(confirmed.qrApproved, true);
   assert.equal(confirmed.accessCode, confirmed.token.slice(0, 8).toUpperCase());
+
+  const secondAttempt = await manager.recordRSVP({
+    guestId: created.guest.id,
+    fullName: 'Sarah Martin',
+    phone: '+243999999999',
+    status: 'yes',
+    adults: 1,
+    children: 0,
+    message: '',
+    drinkChoices: ['Jus'],
+    inviteToken: '',
+    profilePhotoUrl: ''
+  });
+  assert.equal(secondAttempt.alreadyConfirmed, true);
+  assert.equal(JSON.stringify(secondAttempt.drinkChoices), '[]');
 });
 
 test('GuestManager parses quoted CSV values and counts duplicate imports as skipped', async () => {

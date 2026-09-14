@@ -192,27 +192,30 @@ AS $$
 DECLARE
     updated_guest public.guests;
 BEGIN
-    IF p_status NOT IN ('yes', 'no') THEN
-        RAISE EXCEPTION 'Statut RSVP invalide';
-    END IF;
-
-    UPDATE public.guests
-    SET phone = COALESCE(NULLIF(p_phone, ''), phone),
-        status = p_status,
-        adults = GREATEST(COALESCE(p_adults, 1), 1),
-        children = GREATEST(COALESCE(p_children, 0), 0),
-        rsvp_message = COALESCE(p_message, ''),
-        drink_choices = COALESCE(p_drink_choices, '[]'::jsonb)::text,
-        profile_photo_url = COALESCE(NULLIF(p_profile_photo_url, ''), profile_photo_url),
-        access_code = COALESCE(access_code, UPPER(LEFT(token, 8))),
-        qr_approved = (p_status = 'yes'),
-        responded_at = now()
+    SELECT * INTO updated_guest
+    FROM public.guests
     WHERE token = p_token
-    RETURNING * INTO updated_guest;
+    FOR UPDATE;
 
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Invitation introuvable';
     END IF;
+    IF updated_guest.status <> 'pending' THEN
+        RAISE EXCEPTION 'Cette invitation a déjà reçu une réponse. Contactez l''organisateur en cas de problème.';
+    END IF;
+    IF p_status <> 'yes' THEN
+        RAISE EXCEPTION 'Cette invitation doit être confirmée par l''organisateur pour être refusée.';
+    END IF;
+
+    UPDATE public.guests
+    SET status = 'yes',
+        drink_choices = COALESCE(p_drink_choices, '[]'::jsonb)::text,
+        profile_photo_url = COALESCE(NULLIF(p_profile_photo_url, ''), profile_photo_url),
+        access_code = COALESCE(access_code, UPPER(LEFT(token, 8))),
+        qr_approved = TRUE,
+        responded_at = now()
+    WHERE id = updated_guest.id
+    RETURNING * INTO updated_guest;
 
     INSERT INTO public.rsvps (event_id, guest_id, full_name, phone, status, adults, children, message)
     VALUES (
