@@ -40,7 +40,7 @@ let pendingWelcomePreviewUrl = "";
 function openEditModal(guest) {
     document.getElementById("edit-guest-id").value = guest.id;
     document.getElementById("edit-guest-name").value = guest.fullName || "";
-    document.getElementById("edit-guest-phone").value = guest.phone || "";
+    document.getElementById("edit-guest-phone").value = guest.phone || "+243 ";
     document.getElementById("edit-guest-email").value = guest.email || "";
     document.getElementById("edit-guest-group").value = guest.group || "";
     document.getElementById("edit-guest-status").value = guest.status || "pending";
