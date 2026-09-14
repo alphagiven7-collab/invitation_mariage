@@ -377,6 +377,18 @@
             });
         }
 
+        function applyDressImageList(urls) {
+            const images = (urls || []).filter(Boolean);
+            if (!images.length) return;
+            Array.from({ length: 8 }, (_, index) => document.getElementById(`dress-photo-${index + 1}`))
+                .forEach((image, index) => {
+                    if (!image) return;
+                    const source = images[index];
+                    image.hidden = !source;
+                    if (source) image.src = source;
+                });
+        }
+
         function setCssImageVar(name, imageUrl) {
             if (!imageUrl) return;
             const safe = String(imageUrl).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
@@ -506,7 +518,9 @@
                 practicalSectionTitle: savedBlocks.practicalSectionTitle || document.getElementById('practical-info-title')?.textContent.trim() || '',
                 program: savedBlocks.program || (window.ContentBlocks ? ContentBlocks.DEFAULT_PROGRAM : []),
                 practicalInfo: savedBlocks.practicalInfo || (window.ContentBlocks ? ContentBlocks.DEFAULT_PRACTICAL : []),
-                dressImages: Array.from({ length: 8 }, (_, i) => document.getElementById(`dress-photo-${i + 1}`).src),
+                dressImages: Array.isArray(savedBlocks.dressImages) && savedBlocks.dressImages.length
+                    ? savedBlocks.dressImages
+                    : [],
                 bestGridImages: [document.getElementById('best-photo-1').src, document.getElementById('best-photo-2').src],
                 bestMarqueeImages: Array.from({ length: 6 }, (_, i) => document.getElementById(`best-marquee-${i + 1}`).src),
                 guestbookCoverImage: document.getElementById('guestbook-cover-image').src,
@@ -718,7 +732,8 @@
                 const parsedDate = new Date(state.countdownDate).getTime();
                 if (!Number.isNaN(parsedDate) && window.EventCountdown) {
                     EventCountdown.setTarget(parsedDate);
-                    EventCountdown.applyDateToUI(state.countdownDate);
+                    EventCountdown.setEventEndTime(state.eventEndTime || '');
+                    EventCountdown.applyDateToUI(state.countdownDate, state.eventEndTime || '');
                     EventCountdown.tick();
                 }
             }
@@ -728,7 +743,7 @@
                 if (dressTitle) dressTitle.textContent = state.dressCodeTitle;
             }
             if (Array.isArray(state.dressImages)) {
-                applyImageList(['dress-photo-1', 'dress-photo-2', 'dress-photo-3', 'dress-photo-4', 'dress-photo-5', 'dress-photo-6', 'dress-photo-7', 'dress-photo-8'], state.dressImages);
+                applyDressImageList(state.dressImages);
             }
             if (Array.isArray(state.bestPhotos) && state.bestPhotos.length) {
                 applyImageList(['best-photo-1', 'best-photo-2'], state.bestPhotos.slice(0, 2));

@@ -3,6 +3,7 @@
  */
 const EventCountdown = (() => {
     let targetMs = new Date("2026-04-30T19:30:00").getTime();
+    let eventEndTime = "";
     let timerId = null;
 
     function pad(n) {
@@ -21,9 +22,26 @@ const EventCountdown = (() => {
             a.getDate() === b.getDate();
     }
 
-    function applyDateToUI(isoOrMs) {
+    function getEventEnd() {
+        const start = new Date(targetMs);
+        if (!eventEndTime || !/^\d{2}:\d{2}$/.test(eventEndTime)) {
+            return new Date(targetMs + 4 * 3600000);
+        }
+        const [hours, minutes] = eventEndTime.split(":").map(Number);
+        const end = new Date(start);
+        end.setHours(hours, minutes, 0, 0);
+        if (end <= start) end.setDate(end.getDate() + 1);
+        return end;
+    }
+
+    function setEventEndTime(value) {
+        eventEndTime = /^\d{2}:\d{2}$/.test(String(value || "")) ? String(value) : "";
+    }
+
+    function applyDateToUI(isoOrMs, endTime) {
         const t = parseTarget(isoOrMs);
         if (!t) return;
+        if (endTime !== undefined) setEventEndTime(endTime);
         const d = new Date(t);
         const dayEl = document.getElementById("event-day");
         const monthEl = document.getElementById("event-month-year");
@@ -40,7 +58,7 @@ const EventCountdown = (() => {
         if (timeEl) {
             const start = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
                 .replace(":", "h");
-            const endDate = new Date(t + 4 * 3600000);
+            const endDate = getEventEnd();
             const end = endDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
                 .replace(":", "h");
             timeEl.textContent = `${start} - ${end}`;
@@ -138,10 +156,10 @@ const EventCountdown = (() => {
     function initFromConfig(config, dashboardState) {
         if (dashboardState && dashboardState.countdownDate) {
             setTarget(dashboardState.countdownDate);
-            applyDateToUI(dashboardState.countdownDate);
+            applyDateToUI(dashboardState.countdownDate, dashboardState.eventEndTime);
         } else if (config && config.eventDate) {
             setTarget(config.eventDate);
-            applyDateToUI(config.eventDate);
+            applyDateToUI(config.eventDate, config.eventEndTime);
         }
         start();
     }
@@ -149,6 +167,8 @@ const EventCountdown = (() => {
     return {
         setTarget,
         getTarget,
+        getEventEnd,
+        setEventEndTime,
         applyDateToUI,
         tick,
         start,

@@ -91,6 +91,7 @@ const GuestExperience = (() => {
         profile = guest;
         window.currentGuestProfile = guest;
         window.guestName = guest.fullName;
+        window.dispatchEvent(new CustomEvent("guestprofile:ready"));
         localStorage.setItem(eventStorageKey("guest_name"), guest.fullName);
 
         const display = document.getElementById("display-guest-name");

@@ -123,6 +123,7 @@ function getConfigDefaults() {
         giftMessage: cfg?.giftMessage || blocks.giftMessage || "",
         dressCodeTitle: cfg?.dressCodeTitle || "Tenue élégante",
         dressImages: cfg?.dressImages || [],
+        eventEndTime: cfg?.eventEndTime || "",
         supportEmail: cfg?.links?.supportEmail || "",
         rsvpLink: cfg?.links?.rsvp || "",
         metaDescription: cfg?.metaDescription || cfg?.title || "",
@@ -334,6 +335,7 @@ function readFormState() {
         accentColor: document.getElementById("accentColor").value,
         bestPhotos: parseMediaList(document.getElementById("bestPhotos").value, 12),
         countdownDate: document.getElementById("eventDate")?.value || "",
+        eventEndTime: document.getElementById("eventEndTime")?.value || "",
         venueTitle: document.getElementById("venueTitle").value.trim(),
         venueAddress: document.getElementById("venueAddress").value.trim(),
         venueLat: document.getElementById("venueLat").value.trim(),
@@ -400,6 +402,7 @@ function toDashboardPayload(formState) {
         shareImage: photos[0] || formState.heroImage,
         message: formState.mainText,
         countdownDate: formState.countdownDate || "",
+        eventEndTime: formState.eventEndTime || "",
         venueTitle: formState.venueTitle,
         venueAddress: formState.venueAddress,
         venueLat: formState.venueLat,
@@ -730,6 +733,8 @@ function hydrateForm(state) {
             ? toDateTimeLocalValue(state.countdownDate)
             : "";
     }
+    const eventEndTimeField = document.getElementById("eventEndTime");
+    if (eventEndTimeField) eventEndTimeField.value = state.eventEndTime || "";
     renderProgramEditor(state.program || []);
     renderPracticalEditor(state.practicalInfo || []);
     renderPreview(photos);

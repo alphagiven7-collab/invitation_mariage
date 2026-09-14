@@ -281,6 +281,11 @@
                     <span>Ajouter au calendrier</span>
                 </button>
 
+                <button type="button" id="download-invitation-pdf-btn" class="hidden w-full mb-6 inline-flex justify-center items-center gap-2 py-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-800 text-xs font-semibold transition">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    <span>Télécharger mon invitation PDF</span>
+                </button>
+
                 <p id="program-section-title" class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-5 text-center">Programme de la journée</p>
                 <div id="program-timeline" class="space-y-6 relative"></div>
             </div>
@@ -880,16 +885,18 @@
     <script src="../assets/js/checkin-url.js?v=50"></script>
     <script src="../assets/js/access-pass-export.js?v=53"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+    <script src="../assets/js/invitation-pdf.js?v=1"></script>
     <script src="../assets/js/content-blocks.js?v=36"></script>
-    <script src="../assets/js/calendar-export.js?v=34"></script>
+    <script src="../assets/js/calendar-export.js?v=35"></script>
     <script src="../assets/js/background-music.js?v=34"></script>
-    <script src="../assets/js/countdown.js?v=34"></script>
+    <script src="../assets/js/countdown.js?v=35"></script>
     <script src="../assets/js/lucide-init.js?v=34"></script>
     <script src="../assets/js/i18n.js?v=34"></script>
     <script src="../assets/js/drink-generic-images.js?v=34"></script>
     <script src="../assets/js/drink-menu.js?v=34"></script>
-    <script src="../assets/js/app.js?v=58"></script>
-    <script src="../assets/js/guest-experience.js?v=61"></script>
+    <script src="../assets/js/app.js?v=59"></script>
+    <script src="../assets/js/guest-experience.js?v=62"></script>
     <script>
         // Fallback robuste si app.js ne se charge pas complètement
         (function () {

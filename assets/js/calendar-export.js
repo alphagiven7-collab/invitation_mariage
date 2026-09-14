@@ -50,7 +50,9 @@ const CalendarExport = (() => {
         if (Number.isNaN(startMs)) startMs = Date.now();
 
         const start = new Date(startMs);
-        const end = new Date(startMs + 4 * 3600000);
+        const end = window.EventCountdown && EventCountdown.getEventEnd
+            ? EventCountdown.getEventEnd()
+            : new Date(startMs + 4 * 3600000);
 
         const eventId = window.EventConfig && EventConfig.isReady()
             ? EventConfig.getEventId()
