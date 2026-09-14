@@ -122,21 +122,28 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+    target_event_id TEXT;
 BEGIN
     IF NOT public.is_platform_admin() THEN
         RAISE EXCEPTION 'Administrateur plateforme requis';
     END IF;
 
-    DELETE FROM storage.objects
-    WHERE bucket_id = 'event-assets'
-      AND name LIKE p_event_id || '/%';
+    SELECT id INTO target_event_id
+    FROM public.events
+    WHERE id = p_event_id OR slug = p_event_id
+    LIMIT 1;
 
-    DELETE FROM public.events
-    WHERE id = p_event_id;
-
-    IF NOT FOUND THEN
+    IF target_event_id IS NULL THEN
         RAISE EXCEPTION 'Événement introuvable';
     END IF;
+
+    DELETE FROM storage.objects
+    WHERE bucket_id = 'event-assets'
+      AND name LIKE target_event_id || '/%';
+
+    DELETE FROM public.events
+    WHERE id = target_event_id;
     RETURN TRUE;
 END;
 $$;

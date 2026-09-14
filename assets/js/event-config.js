@@ -233,17 +233,19 @@ const EventConfig = (() => {
         if (mainText && config.mainText) mainText.textContent = config.mainText;
 
         if (config.branding) {
-            if (config.branding.primaryColor) {
-                document.documentElement.style.setProperty("--primary-color", config.branding.primaryColor);
+            if (config.primaryColor || config.branding.primaryColor) {
+                document.documentElement.style.setProperty("--primary-color", config.primaryColor || config.branding.primaryColor);
             }
-            if (config.branding.accentColor) {
-                document.documentElement.style.setProperty("--accent-color", config.branding.accentColor);
+            if (config.accentColor || config.branding.accentColor) {
+                document.documentElement.style.setProperty("--accent-color", config.accentColor || config.branding.accentColor);
             }
-            if (config.branding.welcomeImage) {
-                document.documentElement.style.setProperty("--welcome-image-url", `url('${config.branding.welcomeImage}')`);
+            const welcomeImage = config.welcomeImage || config.branding.welcomeImage;
+            const heroImage = config.heroImage || config.branding.heroImage;
+            if (welcomeImage) {
+                document.documentElement.style.setProperty("--welcome-image-url", `url('${welcomeImage}')`);
             }
-            if (config.branding.heroImage) {
-                document.documentElement.style.setProperty("--hero-image-url", `url('${config.branding.heroImage}')`);
+            if (heroImage) {
+                document.documentElement.style.setProperty("--hero-image-url", `url('${heroImage}')`);
             }
         }
 
@@ -265,12 +267,12 @@ const EventConfig = (() => {
         if (metaDesc && desc) metaDesc.content = desc.slice(0, 160);
         if (metaDesc2 && desc) metaDesc2.content = desc.slice(0, 160);
         if (metaTwitterDesc && desc) metaTwitterDesc.content = desc.slice(0, 160);
-        if (config.branding && (config.branding.ogShareImage || config.branding.heroImage)) {
+        const welcomeImage = config.welcomeImage || config.branding?.welcomeImage;
+        if (welcomeImage) {
             const ogImg = document.getElementById("meta-og-image");
             const twImg = document.getElementById("meta-twitter-image");
-            const shareImg = config.branding.ogShareImage || config.branding.heroImage;
-            if (ogImg) ogImg.content = shareImg;
-            if (twImg) twImg.content = shareImg;
+            if (ogImg) ogImg.content = welcomeImage;
+            if (twImg) twImg.content = welcomeImage;
         }
 
         if (config.gateHint) {

@@ -72,7 +72,7 @@
         }
     }
 
-    async function deleteEvent(slug, title) {
+    async function deleteEvent(eventId, slug, title) {
         const firstConfirmation = window.confirm(
             `Supprimer définitivement l'événement « ${title} » ?\n\nLes invités, RSVP, check-in, réglages et médias seront effacés.`
         );
@@ -81,7 +81,7 @@
         if (typed !== "SUPPRIMER") return;
 
         try {
-            await CloudAPI.deleteEvent(slug);
+            await CloudAPI.deleteEvent(eventId);
             EventConfig.discardLocalEvent(slug);
             const card = document.querySelector(`[data-event-slug="${CSS.escape(slug)}"]`);
             card?.remove();
@@ -98,12 +98,12 @@
         const slug = escapeHtml(event.slug);
         const title = escapeHtml(event.title || event.slug);
         const subtitle = escapeHtml(event.subtitle || [event.coupleLeft, event.coupleRight].filter(Boolean).join(" & "));
-        const welcomeImage = event.branding?.welcomeImage || "";
+        const welcomeImage = event.welcomeImage || event.branding?.welcomeImage || "";
         const image = welcomeImage
             ? `<img class="event-card-image" src="${escapeHtml(welcomeImage)}" alt="Photo d'accueil de ${title}">`
             : '<div class="event-card-image event-card-image--empty">Aucune photo d’accueil</div>';
 
-        return `<article class="event-card" data-event-slug="${slug}" data-search="${`${event.title || ""} ${event.slug || ""} ${event.type || ""}`.toLowerCase()}">
+        return `<article class="event-card" data-event-id="${escapeHtml(event.id || event.slug)}" data-event-slug="${slug}" data-search="${`${event.title || ""} ${event.slug || ""} ${event.type || ""}`.toLowerCase()}">
             ${image}
             <div class="event-card-body">
                 <div class="event-card-meta">
@@ -165,7 +165,8 @@
         });
         grid.querySelectorAll("[data-delete-event]").forEach((button) => {
             button.addEventListener("click", () => {
-                deleteEvent(button.dataset.deleteEvent, button.dataset.deleteTitle);
+                const card = button.closest("[data-event-id]");
+                deleteEvent(card?.dataset.eventId || button.dataset.deleteEvent, button.dataset.deleteEvent, button.dataset.deleteTitle);
             });
         });
         count.textContent = String(events.length);

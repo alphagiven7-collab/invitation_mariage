@@ -18,12 +18,12 @@ function replaceMeta(html, id, value) {
 }
 
 function getShareImage(config) {
-    return config.shareImage
-        || config.branding?.ogShareImage
-        || config.branding?.heroImage
-        || config.heroImage
+    return config.welcomeImage
         || config.branding?.welcomeImage
-        || config.welcomeImage
+        || config.shareImage
+        || config.branding?.ogShareImage
+        || config.heroImage
+        || config.branding?.heroImage
         || config.mapImage
         || "";
 }
