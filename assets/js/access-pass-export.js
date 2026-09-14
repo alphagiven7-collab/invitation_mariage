@@ -248,6 +248,8 @@ const AccessPassExport = (() => {
         ctx.fillStyle = "#7a6363";
         ctx.font = "600 14px Montserrat, sans-serif";
         ctx.fillText("PRÉSENTEZ CE QR À L'ENTRÉE", W / 2, H - 72);
+        ctx.font = "600 11px Montserrat, sans-serif";
+        ctx.fillText("CARTE PERSONNELLE - NE PAS PARTAGER", W / 2, H - 44);
     }
 
     async function drawToCanvas(data) {

@@ -557,6 +557,7 @@ const GuestExperience = (() => {
         const pendingWrap = document.getElementById("confirm-pending-wrap");
         const codeLine = document.getElementById("confirm-code-line");
         const qrHint = document.getElementById("confirm-qr-hint");
+        const privateWarning = document.getElementById("confirm-private-warning");
         const downloadBtn = document.getElementById("confirm-download-btn");
 
         if (showQr) {
@@ -570,6 +571,7 @@ const GuestExperience = (() => {
                 qrHint.textContent = "Présentez ce QR à l'entrée — le staff confirme votre accès, table et boissons.";
                 qrHint.classList.remove("hidden");
             }
+            if (privateWarning) privateWarning.classList.remove("hidden");
             if (downloadBtn) downloadBtn.classList.remove("hidden");
             lastConfirmationExport = {
                 payload, accessCode, tableLabel, drinksLabel, eventTitle, guest: resolvedGuest, meta, dateLabel
@@ -586,6 +588,7 @@ const GuestExperience = (() => {
             }
             if (codeLine) codeLine.classList.add("hidden");
             if (qrHint) qrHint.classList.add("hidden");
+            if (privateWarning) privateWarning.classList.add("hidden");
             if (downloadBtn) downloadBtn.classList.add("hidden");
             lastConfirmationExport = null;
             document.querySelector(".confirm-pass-preview-wrap")?.classList.add("hidden");

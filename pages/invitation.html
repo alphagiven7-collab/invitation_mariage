@@ -901,6 +901,7 @@
                     </div>
                     <p id="confirm-code-line" class="text-xs font-mono tracking-wider text-emerald-700 bg-emerald-50 inline-block px-4 py-2 rounded-full mb-3 w-full text-center"></p>
                     <p id="confirm-qr-hint" class="text-[11px] text-gray-500 text-center mb-4">Présentez ce QR code le jour J — accueil rapide à l'entrée.</p>
+                    <p id="confirm-private-warning" class="hidden mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-center text-[11px] leading-relaxed text-amber-900">Cette carte et ce lien sont personnels. Ne les partagez pas : les transmettre revient à donner votre invitation à une autre personne.</p>
                     <div id="confirm-pending-wrap" class="hidden mb-4 rounded-xl bg-amber-50 border border-amber-100 px-4 py-3 text-left">
                         <p class="text-xs font-semibold text-amber-800 mb-1">En attente de validation</p>
                         <p id="confirm-pending-text" class="text-[11px] text-amber-700 leading-relaxed">Votre présence est enregistrée. Le QR code d'accès vous sera délivré après confirmation par les mariés.</p>
@@ -933,7 +934,7 @@
     <script src="../assets/js/dashboard-sync.js?v=55"></script>
     <script src="../assets/js/guest-manager.js?v=52"></script>
     <script src="../assets/js/checkin-url.js?v=50"></script>
-    <script src="../assets/js/access-pass-export.js?v=50"></script>
+    <script src="../assets/js/access-pass-export.js?v=51"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="../assets/js/content-blocks.js?v=35"></script>
     <script src="../assets/js/calendar-export.js?v=34"></script>
@@ -944,7 +945,7 @@
     <script src="../assets/js/drink-generic-images.js?v=34"></script>
     <script src="../assets/js/drink-menu.js?v=34"></script>
     <script src="../assets/js/app.js?v=53"></script>
-    <script src="../assets/js/guest-experience.js?v=54"></script>
+    <script src="../assets/js/guest-experience.js?v=55"></script>
     <script>
         // Fallback robuste si app.js ne se charge pas complètement
         (function () {
