@@ -108,9 +108,11 @@ const AccessPassExport = (() => {
         if (url) {
             try {
                 const img = await loadImage(url);
-                const scale = Math.max((r * 2) / img.width, (r * 2) / img.height);
+                const scale = Math.min((r * 2) / img.width, (r * 2) / img.height);
                 const iw = img.width * scale;
                 const ih = img.height * scale;
+                ctx.fillStyle = "#f8eee8";
+                ctx.fillRect(cx - r, y - r, r * 2, r * 2);
                 ctx.drawImage(img, cx - iw / 2, y - ih / 2, iw, ih);
             } catch {
                 ctx.fillStyle = "#e8dcd4";

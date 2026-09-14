@@ -15,8 +15,10 @@
         
         .hero-bg {
             background-image: linear-gradient(rgba(20, 15, 25, 0.6), rgba(20, 15, 25, 0.8)), var(--hero-image-url);
-            background-size: cover;
-            background-position: center;
+            background-size: cover, contain;
+            background-repeat: no-repeat;
+            background-position: center, center;
+            background-color: #201923;
         }
         .welcome-gate-bg {
             background-image: linear-gradient(rgba(2, 6, 23, 0.42), rgba(15, 23, 42, 0.62)), var(--welcome-image-url);
@@ -946,7 +948,8 @@ body.best-gallery-open .app-floating-tools {
     height: 72px;
     margin: 10px auto 0;
     border-radius: 999px;
-    object-fit: cover;
+    object-fit: contain;
+    background: #f8eee8;
     border: 3px solid #c9a962;
     box-shadow: 0 6px 18px rgba(92, 32, 50, 0.15);
 }
@@ -958,7 +961,8 @@ body.best-gallery-open .app-floating-tools {
     width: 64px;
     height: 64px;
     border-radius: 999px;
-    object-fit: cover;
+    object-fit: contain;
+    background: #f8eee8;
     border: 3px solid #c9a962;
     box-shadow: 0 6px 18px rgba(92, 32, 50, 0.12);
 }
