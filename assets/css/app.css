@@ -19,7 +19,7 @@
             background-position: center;
         }
         .welcome-gate-bg {
-            background-image: linear-gradient(rgba(2, 6, 23, 0.78), rgba(15, 23, 42, 0.9)), var(--welcome-image-url);
+            background-image: linear-gradient(rgba(2, 6, 23, 0.42), rgba(15, 23, 42, 0.62)), var(--welcome-image-url);
             background-size: cover;
             background-position: center;
         }
@@ -272,9 +272,9 @@
         }
         .welcome-envelope-shell {
             position: relative;
-            width: min(100%, 22rem);
-            max-height: calc(100dvh - 3rem);
-            padding: 1.25rem;
+            width: min(100%, 20rem);
+            max-height: 68dvh;
+            padding: 1rem;
             overflow-y: auto;
             background:
                 linear-gradient(145deg, rgba(255,255,255,0.93) 0%, rgba(253,246,243,0.86) 50%, rgba(255,255,255,0.92) 100%),
@@ -296,8 +296,8 @@
         }
         @media (max-height: 700px) {
             .welcome-envelope-shell {
-                max-height: calc(100dvh - 2rem);
-                padding: 1rem;
+                max-height: 68dvh;
+                padding: 0.85rem;
             }
             .welcome-envelope-shell .envelope-seal {
                 width: 2.6rem;
