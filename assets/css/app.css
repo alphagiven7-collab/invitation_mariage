@@ -1102,6 +1102,42 @@ body.best-gallery-open .app-floating-tools {
     from { opacity: 0; transform: translateY(24px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+@media print {
+    @page {
+        size: A4;
+        margin: 0;
+    }
+
+    body {
+        background: #fff !important;
+    }
+
+    #welcome-gate,
+    #app-floating-tools,
+    #download-invitation-pdf-btn,
+    #add-to-calendar-btn,
+    #rsvp-modal,
+    #rsvp-confirmation-modal,
+    #guest-list-required-modal,
+    #toast,
+    #youtube-music-host,
+    #theme-switch,
+    #lang-toggle-btn,
+    #music-toggle-btn {
+        display: none !important;
+    }
+
+    #main-view {
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        box-shadow: none !important;
+        opacity: 1 !important;
+    }
+}
 body.preview-mode .app-floating-tools,
 body.preview-mode #designer-access-btn,
 body.preview-mode #designer-customize-btn {

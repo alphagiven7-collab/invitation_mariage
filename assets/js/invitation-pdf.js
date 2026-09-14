@@ -169,23 +169,7 @@ const InvitationPdf = (() => {
             showToast("Cette invitation PDF est disponible depuis votre lien personnel.");
             return;
         }
-        const button = document.getElementById("download-invitation-pdf-btn");
-        button?.setAttribute("disabled", "disabled");
-        try {
-            const canvas = await createCanvas(guest);
-            const Pdf = window.jspdf?.jsPDF;
-            if (!Pdf) throw new Error("Bibliothèque PDF indisponible");
-            const pdf = new Pdf({ orientation: "portrait", unit: "mm", format: "a4" });
-            pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, 210, 297);
-            const filename = `invitation-${String(guest.fullName || "invite").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").replace(/(^-|-$)/g, "")}.pdf`;
-            pdf.save(filename);
-            showToast("Invitation PDF téléchargée.");
-        } catch (error) {
-            console.warn("Invitation PDF", error);
-            showToast("PDF impossible à générer. Vérifiez votre connexion puis réessayez.");
-        } finally {
-            button?.removeAttribute("disabled");
-        }
+        window.print();
     }
 
     function init() {
