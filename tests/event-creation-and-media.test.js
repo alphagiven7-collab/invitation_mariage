@@ -122,6 +122,35 @@ test('EventConfig loads a cloud-only client event when no local JSON exists', as
   assert.equal(config.backgroundMusicUrl, 'https://cdn.example.test/musique.mp3');
 });
 
+test('CloudAPI keeps local guests visible when the admin session is unavailable', async () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'cloud-api.js'), 'utf8');
+  const store = {
+    'wedding_event_event-test_guests': JSON.stringify([
+      { id: 'guest-1', slug: 'sarah-martin', fullName: 'Sarah Martin', status: 'pending' }
+    ])
+  };
+  const authGuard = { isEventAdmin: () => false };
+  const sandbox = {
+    console,
+    URLSearchParams,
+    SUPABASE_CONFIG: { enabled: true, url: 'https://example.test', anonKey: 'anon-key' },
+    AuthGuard: authGuard,
+    window: { SUPABASE_CONFIG: { enabled: true, url: 'https://example.test', anonKey: 'anon-key' }, AuthGuard: authGuard },
+    localStorage: {
+      getItem(k) { return store[k] || null; },
+      setItem(k, v) { store[k] = String(v); }
+    }
+  };
+  sandbox.window.window = sandbox.window;
+  sandbox.global = sandbox;
+  sandbox.globalThis = sandbox;
+  vm.runInNewContext(source, sandbox, { filename: 'cloud-api.js' });
+
+  const guests = await sandbox.window.CloudAPI.getGuests('event-test');
+  assert.equal(guests.length, 1);
+  assert.equal(guests[0].fullName, 'Sarah Martin');
+});
+
 test('DashboardSync does not read the legacy shared dashboard state for another event', () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'dashboard-sync.js'), 'utf8');
   const store = {

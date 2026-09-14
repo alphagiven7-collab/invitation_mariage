@@ -176,7 +176,7 @@ const CloudAPI = (() => {
             ? AuthGuard.isEventAdmin(eventId)
             : false;
         if (isEnabled() && !isEventAdmin) {
-            return [];
+            return filterDeletedGuests(eventId, readGuestsLocal(eventId));
         }
         if (isDjangoEnabled()) {
             try {
