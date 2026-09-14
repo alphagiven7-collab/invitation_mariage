@@ -474,9 +474,19 @@ const CloudAPI = (() => {
         const cloud = await request("rsvps", {
             query: `?event_id=eq.${eventId}&order=created_at.desc`
         });
-        if (cloud) return cloud;
+        if (cloud) return keepLatestRsvpPerGuest(cloud);
         const raw = localStorage.getItem(localKey(eventId, "rsvps"));
-        return raw ? JSON.parse(raw) : [];
+        return raw ? keepLatestRsvpPerGuest(JSON.parse(raw)) : [];
+    }
+
+    function keepLatestRsvpPerGuest(rsvps) {
+        const guestIds = new Set();
+        return (Array.isArray(rsvps) ? rsvps : []).filter((rsvp) => {
+            if (!rsvp || !rsvp.guest_id) return true;
+            if (guestIds.has(rsvp.guest_id)) return false;
+            guestIds.add(rsvp.guest_id);
+            return true;
+        });
     }
 
     // --- Livre d'or ---

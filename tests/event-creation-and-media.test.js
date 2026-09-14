@@ -151,6 +151,29 @@ test('CloudAPI keeps local guests visible when the admin session is unavailable'
   assert.equal(guests[0].fullName, 'Sarah Martin');
 });
 
+test('CloudAPI keeps only the latest RSVP shown for each guest', async () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'cloud-api.js'), 'utf8');
+  const rsvps = [
+    { id: 'newer', guest_id: 'guest-1', full_name: 'Sarah Martin', created_at: '2026-09-14T11:00:00Z' },
+    { id: 'older', guest_id: 'guest-1', full_name: 'Sarah Martin', created_at: '2026-09-14T10:00:00Z' },
+    { id: 'other', guest_id: 'guest-2', full_name: 'Marc Martin', created_at: '2026-09-14T09:00:00Z' }
+  ];
+  const sandbox = {
+    console,
+    URLSearchParams,
+    fetch: async () => ({ ok: true, status: 200, text: async () => JSON.stringify(rsvps) }),
+    window: { SUPABASE_CONFIG: { enabled: true, url: 'https://example.test', anonKey: 'anon-key' } },
+    localStorage: { getItem() { return null; }, setItem() {} }
+  };
+  sandbox.window.window = sandbox.window;
+  sandbox.global = sandbox;
+  sandbox.globalThis = sandbox;
+  vm.runInNewContext(source, sandbox, { filename: 'cloud-api.js' });
+
+  const visibleRsvps = await sandbox.window.CloudAPI.getRSVPs('event-test');
+  assert.deepEqual(Array.from(visibleRsvps, (rsvp) => rsvp.id), ['newer', 'other']);
+});
+
 test('DashboardSync does not read the legacy shared dashboard state for another event', () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'dashboard-sync.js'), 'utf8');
   const store = {

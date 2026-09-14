@@ -241,6 +241,27 @@ BEGIN
 END;
 $$;
 
+-- Conserve la confirmation la plus récente avant d'empêcher tout futur doublon.
+DELETE FROM public.rsvps
+WHERE id IN (
+    SELECT id
+    FROM (
+        SELECT
+            id,
+            row_number() OVER (
+                PARTITION BY event_id, guest_id
+                ORDER BY created_at DESC, id DESC
+            ) AS duplicate_rank
+        FROM public.rsvps
+        WHERE guest_id IS NOT NULL
+    ) AS ranked_rsvps
+    WHERE duplicate_rank > 1
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS rsvps_one_response_per_guest
+    ON public.rsvps (event_id, guest_id)
+    WHERE guest_id IS NOT NULL;
+
 GRANT EXECUTE ON FUNCTION public.get_public_event_config(TEXT) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.create_managed_event(JSONB) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.delete_managed_event(TEXT) TO authenticated;
