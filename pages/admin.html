@@ -60,7 +60,7 @@
                 <div id="tab-guests" class="tab-panel">
                     <section class="admin-card">
                         <h2 class="admin-card-title">Importer des invités</h2>
-                        <p class="admin-card-desc">Format CSV minimal : <code>nom,table</code> — les colonnes téléphone, groupe et email sont facultatives.</p>
+                        <p class="admin-card-desc">Format CSV minimal : <code>nom,table</code> — les colonnes téléphone et email sont facultatives.</p>
                         <div class="flex flex-wrap gap-2">
                             <input id="csv-file-input" type="file" accept=".csv" class="admin-input" style="max-width:260px">
                             <button id="import-csv-btn" type="button" class="admin-btn admin-btn-primary">Importer</button>
@@ -82,7 +82,6 @@
                             <div class="admin-field"><label for="guest-name">Nom complet *</label><input id="guest-name" class="admin-input" placeholder="Marie N." required></div>
                             <div class="admin-field"><label for="guest-phone">Téléphone</label><input id="guest-phone" type="tel" class="admin-input" value="+243 " placeholder="+243…"></div>
                             <div class="admin-field"><label for="guest-email">Email</label><input id="guest-email" class="admin-input" placeholder="email@…"></div>
-                            <div class="admin-field"><label for="guest-group">Groupe</label><input id="guest-group" class="admin-input" placeholder="Famille, Amis…"></div>
                             <div class="admin-field"><label for="guest-table">Table</label><input id="guest-table" class="admin-input" placeholder="Table 8"></div>
                             <div class="admin-field"><label for="guest-profile-photo">Photo de la carte</label><input id="guest-profile-photo" type="file" accept="image/*" class="admin-input"></div>
                             <div class="admin-field" style="grid-column:1/-1"><button type="submit" class="admin-btn admin-btn-success">+ Ajouter l'invité</button></div>
@@ -99,10 +98,11 @@
                                 <option value="yes">Confirmés</option>
                                 <option value="no">Refus</option>
                             </select>
+                            <button id="delete-selected-guests-btn" type="button" class="admin-btn admin-btn-danger" disabled>Supprimer la sélection</button>
                         </div>
                         <div class="admin-table-wrap">
                             <table class="admin-table">
-                                <thead><tr><th>Invité</th><th>Contact</th><th>Groupe</th><th>Statut</th><th>Actions</th></tr></thead>
+                                <thead><tr><th><input id="select-all-guests" type="checkbox" aria-label="Sélectionner tous les invités"></th><th>Invité</th><th>Contact</th><th>Table</th><th>Statut</th><th>Actions</th></tr></thead>
                                 <tbody id="guests-table-body"></tbody>
                             </table>
                         </div>
@@ -218,8 +218,8 @@
                         <input id="edit-guest-email" class="admin-input">
                     </div>
                     <div class="admin-field admin-field-full">
-                        <label for="edit-guest-group">Groupe</label>
-                        <input id="edit-guest-group" class="admin-input">
+                        <label for="edit-guest-table">Table</label>
+                        <input id="edit-guest-table" class="admin-input" placeholder="Table 8">
                     </div>
                 </div>
                 <p class="admin-modal-section-label">RSVP</p>
@@ -242,7 +242,7 @@
                     </div>
                 </div>
                 <details class="admin-modal-details">
-                    <summary>Options jour J (QR, table, photo)</summary>
+                    <summary>Options jour J (QR, photo)</summary>
                     <div class="admin-form-grid admin-form-grid-compact mt-2">
                         <div class="admin-field admin-field-full">
                             <label class="flex items-center gap-2 cursor-pointer">
@@ -253,10 +253,6 @@
                         <div class="admin-field">
                             <label for="edit-guest-access-code">Code d'accès</label>
                             <input id="edit-guest-access-code" class="admin-input" placeholder="A7K9M2P1">
-                        </div>
-                        <div class="admin-field">
-                            <label for="edit-guest-table">Table réservée</label>
-                            <input id="edit-guest-table" class="admin-input" placeholder="Table 12">
                         </div>
                         <div class="admin-field admin-field-full">
                             <label for="edit-guest-profile-photo">Photo profil (URL)</label>
@@ -392,12 +388,12 @@
     <script src="../assets/js/cloud-api.js?v=62"></script>
     <script src="../assets/js/media-upload.js?v=55"></script>
     <script src="../assets/js/auth.js?v=55"></script>
-    <script src="../assets/js/guest-manager.js?v=53"></script>
+    <script src="../assets/js/guest-manager.js?v=54"></script>
     <script src="../assets/js/checkin-url.js?v=49"></script>
     <script src="../assets/js/checkin-api.js?v=49"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="../assets/js/envelope-export.js?v=49"></script>
     <script src="../assets/js/admin-presence.js?v=49"></script>
-    <script src="../assets/js/admin.js?v=55"></script>
+    <script src="../assets/js/admin.js?v=56"></script>
 </body>
 </html>

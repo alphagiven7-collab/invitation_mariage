@@ -34,6 +34,7 @@ function downloadFile(content, filename, type = "text/csv") {
 }
 
 let guestsCache = [];
+let selectedGuestIds = new Set();
 let pendingWelcomeFile = null;
 let pendingWelcomePreviewUrl = "";
 
@@ -42,7 +43,7 @@ function openEditModal(guest) {
     document.getElementById("edit-guest-name").value = guest.fullName || "";
     document.getElementById("edit-guest-phone").value = guest.phone || "+243 ";
     document.getElementById("edit-guest-email").value = guest.email || "";
-    document.getElementById("edit-guest-group").value = guest.group || "";
+    document.getElementById("edit-guest-table").value = guest.tableNumber || "";
     document.getElementById("edit-guest-status").value = guest.status || "pending";
     document.getElementById("edit-guest-adults").value = guest.adults ?? 1;
     document.getElementById("edit-guest-children").value = guest.children ?? 0;
@@ -83,7 +84,7 @@ async function getFilteredGuests() {
         const matchSearch = !search
             || g.fullName.toLowerCase().includes(search)
             || (g.phone || "").includes(search)
-            || (g.group || "").toLowerCase().includes(search);
+            || (g.tableNumber || "").toLowerCase().includes(search);
         return matchFilter && matchSearch;
     });
 }
@@ -93,6 +94,8 @@ async function renderGuestsTable() {
     const tbody = document.getElementById("guests-table-body");
     const empty = document.getElementById("guests-empty");
     tbody.innerHTML = "";
+    const visibleIds = new Set(guests.map((guest) => guest.id));
+    selectedGuestIds = new Set([...selectedGuestIds].filter((id) => visibleIds.has(id)));
 
     if (!guests.length) {
         empty.classList.remove("hidden");
@@ -105,12 +108,13 @@ async function renderGuestsTable() {
         const link = GuestManager.buildInviteLink(guest);
         const waLink = GuestManager.buildWhatsAppLink(guest);
         tr.innerHTML = `
+            <td><input type="checkbox" class="guest-select" data-select-guest="${guest.id}" ${selectedGuestIds.has(guest.id) ? "checked" : ""} aria-label="Sélectionner ${escapeHtml(guest.fullName)}"></td>
             <td>
                 <strong>${escapeHtml(guest.fullName)}</strong>
                 ${guest.email ? `<br><span class="text-xs text-slate-400">${escapeHtml(guest.email)}</span>` : ""}
             </td>
             <td>${escapeHtml(guest.phone || "—")}</td>
-            <td>${escapeHtml(guest.group || "—")}</td>
+            <td>${escapeHtml(guest.tableNumber || "—")}</td>
             <td>${statusBadge(guest.status)}${guest.qrApproved ? ' <span class="admin-badge admin-badge-yes" title="QR validé">QR ✓</span>' : ''}</td>
             <td>
                 <div class="admin-actions">
@@ -123,6 +127,28 @@ async function renderGuestsTable() {
                 </div>
             </td>`;
         tbody.appendChild(tr);
+    });
+
+    const selectAll = document.getElementById("select-all-guests");
+    const deleteSelected = document.getElementById("delete-selected-guests-btn");
+    if (selectAll) {
+        selectAll.checked = guests.length > 0 && guests.every((guest) => selectedGuestIds.has(guest.id));
+        selectAll.indeterminate = selectedGuestIds.size > 0 && !selectAll.checked;
+        selectAll.onchange = () => {
+            guests.forEach((guest) => {
+                if (selectAll.checked) selectedGuestIds.add(guest.id);
+                else selectedGuestIds.delete(guest.id);
+            });
+            renderGuestsTable();
+        };
+    }
+    if (deleteSelected) deleteSelected.disabled = selectedGuestIds.size === 0;
+    tbody.querySelectorAll("[data-select-guest]").forEach((checkbox) => {
+        checkbox.addEventListener("change", () => {
+            if (checkbox.checked) selectedGuestIds.add(checkbox.dataset.selectGuest);
+            else selectedGuestIds.delete(checkbox.dataset.selectGuest);
+            renderGuestsTable();
+        });
     });
 
     tbody.querySelectorAll("[data-copy]").forEach((btn) => {
@@ -413,7 +439,6 @@ window.addEventListener("DOMContentLoaded", async () => {
             fullName,
             phone: document.getElementById("guest-phone").value.trim(),
             email: document.getElementById("guest-email").value.trim(),
-            group: document.getElementById("guest-group").value.trim(),
             tableNumber: document.getElementById("guest-table").value.trim(),
             profilePhotoUrl
         });
@@ -442,7 +467,6 @@ window.addEventListener("DOMContentLoaded", async () => {
             fullName: document.getElementById("edit-guest-name").value.trim(),
             phone: document.getElementById("edit-guest-phone").value.trim(),
             email: document.getElementById("edit-guest-email").value.trim(),
-            group: document.getElementById("edit-guest-group").value.trim(),
             status: document.getElementById("edit-guest-status").value,
             adults: Number(document.getElementById("edit-guest-adults").value) || 0,
             children: Number(document.getElementById("edit-guest-children").value) || 0,
@@ -515,6 +539,19 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("guest-search").addEventListener("input", renderGuestsTable);
     document.getElementById("guest-filter").addEventListener("change", renderGuestsTable);
+    document.getElementById("delete-selected-guests-btn").addEventListener("click", async () => {
+        const ids = [...selectedGuestIds];
+        if (!ids.length) return;
+        if (!confirm(`Supprimer ${ids.length} invité(s) ? Cette action est irréversible.`)) return;
+        let removed = 0;
+        for (const id of ids) {
+            const result = await GuestManager.removeGuest(id);
+            if (result.removed) removed++;
+        }
+        selectedGuestIds.clear();
+        await refreshAll();
+        showToast(`${removed} invité(s) supprimé(s)`);
+    });
 
     // Modal Créer un événement
     document.getElementById("create-event-open-btn")?.addEventListener("click", openCreateEventModal);
