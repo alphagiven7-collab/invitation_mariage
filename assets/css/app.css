@@ -249,6 +249,9 @@
         .guest-list-required-modal:not(.hidden) {
             display: flex;
         }
+        .guest-list-required-modal.hidden {
+            display: none;
+        }
         .guest-list-required-card {
             min-height: 20rem;
             position: relative;
