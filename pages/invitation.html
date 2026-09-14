@@ -24,7 +24,7 @@
     <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=34">
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@0.469.0"></script>
-    <link rel="stylesheet" href="../assets/css/app.css?v=51">
+    <link rel="stylesheet" href="../assets/css/app.css?v=52">
     <link rel="stylesheet" href="../assets/css/drink-menu.css?v=34">
     <script>
         if ("serviceWorker" in navigator) {
@@ -622,7 +622,7 @@
         </div>
     </div>
 
-    <div id="guest-list-required-modal" class="fixed inset-0 z-[160] hidden items-center justify-center bg-slate-950/60 backdrop-blur-sm p-5" role="dialog" aria-modal="true" aria-labelledby="guest-list-required-title" aria-describedby="guest-list-required-message">
+    <div id="guest-list-required-modal" class="guest-list-required-modal hidden" role="dialog" aria-modal="true" aria-labelledby="guest-list-required-title" aria-describedby="guest-list-required-message" onclick="if (event.target === this) closeInvitationRequiredModal()">
         <div class="guest-list-required-card w-full max-w-sm bg-white shadow-2xl border border-rose-100 p-7 text-center flex flex-col items-center justify-center">
             <div class="guest-list-required-icon mb-5" aria-hidden="true">
                 <i data-lucide="user-round-plus" class="w-8 h-8"></i>
@@ -886,7 +886,7 @@
     <script src="../assets/js/drink-generic-images.js?v=34"></script>
     <script src="../assets/js/drink-menu.js?v=34"></script>
     <script src="../assets/js/app.js?v=57"></script>
-    <script src="../assets/js/guest-experience.js?v=58"></script>
+    <script src="../assets/js/guest-experience.js?v=59"></script>
     <script>
         // Fallback robuste si app.js ne se charge pas complètement
         (function () {

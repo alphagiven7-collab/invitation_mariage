@@ -81,6 +81,10 @@ const GuestExperience = (() => {
         document.body.style.overflow = "";
     }
 
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeInvitationRequiredModal();
+    });
+
     function applyProfile(guest) {
         if (!guest || !guest.fullName) return;
         profile = guest;
