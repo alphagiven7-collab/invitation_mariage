@@ -6,6 +6,11 @@
     <title>Connexion administrateur</title>
     <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=19">
     <link rel="stylesheet" href="../assets/css/app.css">
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("../sw.js?v=36").catch(() => {});
+        }
+    </script>
 </head>
 <body class="pro-page bg-slate-100 text-slate-800 flex items-center justify-center min-h-screen">
     <div class="dash-card max-w-md w-full mx-4 shadow-2xl">

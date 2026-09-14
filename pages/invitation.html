@@ -26,6 +26,11 @@
     <script src="https://unpkg.com/lucide@0.469.0"></script>
     <link rel="stylesheet" href="../assets/css/app.css?v=51">
     <link rel="stylesheet" href="../assets/css/drink-menu.css?v=34">
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("../sw.js?v=36").catch(() => {});
+        }
+    </script>
     <style>
         body.app-loading #app-content { visibility: hidden; }
         #app-loading-screen { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; background: #fafafa; color: #4b5563; font-family: Montserrat, sans-serif; font-size: 0.875rem; }
@@ -880,7 +885,7 @@
     <script src="../assets/js/i18n.js?v=34"></script>
     <script src="../assets/js/drink-generic-images.js?v=34"></script>
     <script src="../assets/js/drink-menu.js?v=34"></script>
-    <script src="../assets/js/app.js?v=56"></script>
+    <script src="../assets/js/app.js?v=57"></script>
     <script src="../assets/js/guest-experience.js?v=58"></script>
     <script>
         // Fallback robuste si app.js ne se charge pas complètement

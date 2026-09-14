@@ -7,6 +7,11 @@
     <title>Check-in jour J — Staff</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/checkin.css?v=49">
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("../sw.js?v=36").catch(() => {});
+        }
+    </script>
 </head>
 <body class="checkin-page">
     <div class="checkin-shell">

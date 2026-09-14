@@ -1,4 +1,4 @@
-const CACHE = "invitation-v51";
+const CACHE = "invitation-v52";
 
 self.addEventListener("install", (e) => {
     self.skipWaiting();
@@ -7,7 +7,9 @@ self.addEventListener("install", (e) => {
 self.addEventListener("activate", (e) => {
     e.waitUntil(
         caches.keys().then((keys) =>
-            Promise.all(keys.map((k) => caches.delete(k)))
+            Promise.all(keys
+                .filter((key) => key.startsWith("invitation-") && key !== CACHE)
+                .map((key) => caches.delete(key)))
         ).then(() => self.clients.claim())
     );
 });
@@ -16,25 +18,41 @@ self.addEventListener("fetch", (e) => {
     if (e.request.method !== "GET") return;
 
     const url = new URL(e.request.url);
-    
-    // Pour les pages HTML : toujours réseau, avec fallback cache
-    if (url.pathname.endsWith(".html") || url.pathname.endsWith("/") || !url.pathname.split("/").pop().includes(".")) {
+
+    // Supabase et les autres services distants ne doivent jamais être mis en cache.
+    if (url.origin !== self.location.origin || url.pathname.startsWith("/api/")) return;
+
+    const isPage = url.pathname.endsWith(".html")
+        || url.pathname.endsWith("/")
+        || !url.pathname.split("/").pop().includes(".");
+
+    const refresh = () => fetch(e.request).then((response) => {
+        if (response && response.ok) {
+            caches.open(CACHE).then((cache) => cache.put(e.request, response.clone()));
+        }
+        return response;
+    });
+
+    // Une page déjà ouverte s'affiche sans attendre un réseau lent, puis est actualisée.
+    if (isPage) {
         e.respondWith(
-            fetch(e.request).catch(() => caches.match(e.request))
+            caches.match(e.request).then((cached) => {
+                const update = refresh();
+                e.waitUntil(update.catch(() => undefined));
+                return cached || update.catch(() => new Response("Connexion indisponible", { status: 503 }));
+            })
         );
         return;
     }
 
-    // Pour tout le reste (JS, CSS, images, JSON) : réseau d'abord
+    // Les ressources versionnées sont immuables : servir le cache en priorité.
     e.respondWith(
-        fetch(e.request)
-            .then((res) => {
-                if (res && res.ok) {
-                    const clone = res.clone();
-                    caches.open(CACHE).then((c) => c.put(e.request, clone));
-                }
-                return res;
-            })
-            .catch(() => caches.match(e.request))
+        caches.match(e.request).then((cached) => {
+            if (cached) {
+                e.waitUntil(refresh().catch(() => undefined));
+                return cached;
+            }
+            return refresh().catch(() => new Response("Ressource indisponible", { status: 503 }));
+        })
     );
 });
