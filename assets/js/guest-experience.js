@@ -75,10 +75,11 @@ const GuestExperience = (() => {
 
     function closeInvitationRequiredModal() {
         const modal = document.getElementById("guest-list-required-modal");
-        if (!modal) return;
+        if (!modal || modal.classList.contains("hidden")) return;
         modal.classList.add("hidden");
         modal.classList.remove("flex");
-        document.body.style.overflow = "";
+        document.body.classList.remove("overflow-hidden");
+        document.body.style.overflow = "auto";
     }
 
     document.addEventListener("keydown", (event) => {
