@@ -15,10 +15,8 @@
         
         .hero-bg {
             background-image: linear-gradient(rgba(20, 15, 25, 0.6), rgba(20, 15, 25, 0.8)), var(--hero-image-url);
-            background-size: cover, contain;
-            background-repeat: no-repeat;
-            background-position: center, center;
-            background-color: #201923;
+            background-size: cover;
+            background-position: center;
         }
         .welcome-gate-bg {
             background-image: linear-gradient(rgba(2, 6, 23, 0.42), rgba(15, 23, 42, 0.62)), var(--welcome-image-url);
