@@ -74,7 +74,7 @@ const InvitationPdf = (() => {
                 });
             });
         }
-        throw new Error("QR code indisponible");
+        return `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(target)}`;
     }
 
     function updateButton() {
@@ -144,11 +144,17 @@ const InvitationPdf = (() => {
         context.font = "26px sans-serif";
         venue.split("\n").filter(Boolean).slice(0, 2).forEach((line, index) => context.fillText(line, WIDTH / 2, 1155 + index * 38));
 
-        const qr = await qrDataUrl(window.location.href);
-        const qrImage = await loadImage(qr);
-        context.fillStyle = "#ffffff";
-        context.fillRect(WIDTH / 2 - 145, 1235, 290, 290);
-        context.drawImage(qrImage, WIDTH / 2 - 125, 1255, 250, 250);
+        try {
+            const qr = await qrDataUrl(window.location.href);
+            const qrImage = await loadImage(qr);
+            context.fillStyle = "#ffffff";
+            context.fillRect(WIDTH / 2 - 145, 1235, 290, 290);
+            context.drawImage(qrImage, WIDTH / 2 - 125, 1255, 250, 250);
+        } catch {
+            context.fillStyle = "#766767";
+            context.font = "23px sans-serif";
+            context.fillText("Votre invitation personnelle", WIDTH / 2, 1375);
+        }
         context.fillStyle = "#766767";
         context.font = "23px sans-serif";
         context.fillText("Conservez cette invitation personnelle", WIDTH / 2, 1580);
