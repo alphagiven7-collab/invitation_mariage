@@ -343,6 +343,14 @@ test('GuestManager parses quoted CSV values and counts duplicate imports as skip
   vm.runInNewContext(source, sandbox, { filename: 'guest-manager.js' });
 
   const manager = sandbox.window.GuestManager;
+  const minimalRows = manager.parseCSV('\uFEFFnom,table\n"Aline Kabeya",Table 4');
+  assert.deepEqual(JSON.parse(JSON.stringify(minimalRows[0])), {
+    fullName: 'Aline Kabeya',
+    phone: '',
+    group: '',
+    email: '',
+    tableNumber: 'Table 4'
+  });
   const rows = manager.parseCSV('nom,telephone,groupe,email\n"Sarah, Martin",+243999,"Famille, proche",sarah@example.test');
   assert.equal(rows[0].fullName, 'Sarah, Martin');
   assert.equal(rows[0].group, 'Famille, proche');

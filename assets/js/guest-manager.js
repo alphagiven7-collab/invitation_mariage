@@ -324,11 +324,19 @@ const GuestManager = (() => {
         const records = parseCsvRecords(text);
         if (records.length < 2) return [];
 
-        const header = records[0].map((h) => h.toLowerCase());
+        const normalizeHeader = (value) => String(value || "")
+            .replace(/^\uFEFF/, "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .trim()
+            .toLowerCase()
+            .replace(/[\s-]+/g, "_");
+        const header = records[0].map(normalizeHeader);
         const nameIdx = header.findIndex((h) => ["nom", "name", "full_name", "fullname"].includes(h));
         const phoneIdx = header.findIndex((h) => ["telephone", "phone", "tel", "mobile"].includes(h));
         const groupIdx = header.findIndex((h) => ["groupe", "group", "group_name"].includes(h));
         const emailIdx = header.findIndex((h) => ["email", "mail"].includes(h));
+        const tableIdx = header.findIndex((h) => ["table", "table_number", "numero_table", "num_table"].includes(h));
 
         if (nameIdx === -1) throw new Error("Colonne 'nom' obligatoire dans le CSV");
 
@@ -341,7 +349,8 @@ const GuestManager = (() => {
                 fullName,
                 phone: phoneIdx >= 0 ? cols[phoneIdx] : "",
                 group: groupIdx >= 0 ? cols[groupIdx] : "",
-                email: emailIdx >= 0 ? cols[emailIdx] : ""
+                email: emailIdx >= 0 ? cols[emailIdx] : "",
+                tableNumber: tableIdx >= 0 ? cols[tableIdx] : ""
             });
         }
         return rows;
