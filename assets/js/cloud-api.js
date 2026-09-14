@@ -83,6 +83,51 @@ const CloudAPI = (() => {
         return Array.isArray(data) ? data[0] || null : data;
     }
 
+    async function requestStorage(path, { method = "GET", body = null } = {}) {
+        const session = window.AuthGuard && AuthGuard.getSession ? AuthGuard.getSession() : null;
+        if (!session?.accessToken) {
+            throw new Error("Votre session administrateur a expiré. Reconnectez-vous avant de supprimer l'événement.");
+        }
+        const response = await fetch(`${cfg().url}/storage/v1/${path}`, {
+            method,
+            headers: {
+                apikey: cfg().anonKey,
+                Authorization: `Bearer ${session.accessToken}`,
+                "Content-Type": "application/json"
+            },
+            body: body ? JSON.stringify(body) : undefined
+        });
+        if (!response.ok) {
+            const details = await response.text().catch(() => "");
+            throw new Error(`Suppression des médias refusée par Supabase Storage (${response.status}). ${details}`.trim());
+        }
+        return response.json().catch(() => null);
+    }
+
+    async function deleteEventAssets(eventId) {
+        const prefix = `${String(eventId || "").trim()}/`;
+        if (prefix === "/") return 0;
+        let deletedCount = 0;
+
+        while (true) {
+            const objects = await requestStorage("object/list/event-assets", {
+                method: "POST",
+                body: { prefix, limit: 1000, offset: 0 }
+            });
+            const paths = (Array.isArray(objects) ? objects : [])
+                .filter((object) => object?.name && object.id)
+                .map((object) => object.name.startsWith(prefix) ? object.name : `${prefix}${object.name}`);
+            if (!paths.length) return deletedCount;
+
+            await requestStorage("object/event-assets", {
+                method: "DELETE",
+                body: { prefixes: paths }
+            });
+            deletedCount += paths.length;
+            if (paths.length < 1000) return deletedCount;
+        }
+    }
+
     function deletedGuestsKey(eventId) {
         return localKey(eventId, "deleted_guests");
     }
@@ -588,13 +633,20 @@ const CloudAPI = (() => {
     async function deleteEvent(eventId) {
         if (!eventId) throw new Error("Identifiant d'événement manquant.");
         if (!isEnabled()) throw new Error("Supabase n'est pas configuré.");
+        let mediaCleanupWarning = "";
+        try {
+            await deleteEventAssets(eventId);
+        } catch (error) {
+            console.warn("CloudAPI: nettoyage Storage impossible", error);
+            mediaCleanupWarning = " L'événement a été supprimé, mais certains médias pourront rester dans le stockage.";
+        }
         const deleted = await requestRpc(
             "delete_managed_event",
             { p_event_id: eventId },
             { throwOnError: true }
         );
         if (deleted !== true) throw new Error("Suppression de l'événement impossible.");
-        return true;
+        return { deleted: true, mediaCleanupWarning };
     }
 
     async function saveEventSettings(eventId, payload) {
@@ -759,6 +811,7 @@ const CloudAPI = (() => {
         getAnalytics,
         createEvent,
         deleteEvent,
+        deleteEventAssets,
         getEvents,
         getEventSettings,
         getPublicEventConfig,

@@ -138,10 +138,6 @@ BEGIN
         RAISE EXCEPTION 'Événement introuvable';
     END IF;
 
-    DELETE FROM storage.objects
-    WHERE bucket_id = 'event-assets'
-      AND name LIKE target_event_id || '/%';
-
     DELETE FROM public.events
     WHERE id = target_event_id;
     RETURN TRUE;

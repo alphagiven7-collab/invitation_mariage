@@ -81,13 +81,13 @@
         try {
             button.disabled = true;
             button.textContent = "Suppression...";
-            await CloudAPI.deleteEvent(eventId);
+            const result = await CloudAPI.deleteEvent(eventId);
             EventConfig.discardLocalEvent(slug);
             card?.remove();
             const remaining = document.querySelectorAll("[data-event-slug]").length;
             document.getElementById("events-count").textContent = String(remaining);
             document.getElementById("events-empty").classList.toggle("hidden", remaining !== 0);
-            document.getElementById("events-feedback").textContent = "Événement supprimé définitivement.";
+            document.getElementById("events-feedback").textContent = `Événement supprimé définitivement.${result?.mediaCleanupWarning || ""}`;
         } catch (error) {
             button.disabled = false;
             button.textContent = "Supprimer";
