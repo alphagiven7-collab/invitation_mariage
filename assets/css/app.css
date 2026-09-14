@@ -307,15 +307,15 @@
         .welcome-envelope-shell {
             position: relative;
             width: min(100%, 20rem);
-            max-height: 68dvh;
+            max-height: calc(100dvh - 2.5rem);
             padding: 1rem;
+            overflow-x: hidden;
             overflow-y: auto;
             background:
                 linear-gradient(145deg, rgba(255,255,255,0.93) 0%, rgba(253,246,243,0.86) 50%, rgba(255,255,255,0.92) 100%),
                 url("../images/prints/envelope-elegance.png") center center / cover no-repeat;
             border: 1px solid rgba(236, 72, 153, 0.18);
             box-shadow: 0 24px 48px rgba(31, 41, 55, 0.25);
-            overflow: hidden;
         }
         .gate-confirm-btn {
             border-radius: 9999px !important;
@@ -330,7 +330,7 @@
         }
         @media (max-height: 700px) {
             .welcome-envelope-shell {
-                max-height: 68dvh;
+                max-height: calc(100dvh - 2.5rem);
                 padding: 0.85rem;
             }
             .welcome-envelope-shell .envelope-seal {
