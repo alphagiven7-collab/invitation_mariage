@@ -272,6 +272,10 @@
         }
         .welcome-envelope-shell {
             position: relative;
+            width: min(100%, 22rem);
+            max-height: calc(100dvh - 3rem);
+            padding: 1.25rem;
+            overflow-y: auto;
             background:
                 linear-gradient(145deg, rgba(255,255,255,0.93) 0%, rgba(253,246,243,0.86) 50%, rgba(255,255,255,0.92) 100%),
                 url("../images/prints/envelope-elegance.png") center center / cover no-repeat;
@@ -289,6 +293,23 @@
             height: 180px;
             background: radial-gradient(circle, rgba(236,72,153,0.18), transparent 70%);
             pointer-events: none;
+        }
+        @media (max-height: 700px) {
+            .welcome-envelope-shell {
+                max-height: calc(100dvh - 2rem);
+                padding: 1rem;
+            }
+            .welcome-envelope-shell .envelope-seal {
+                width: 2.6rem;
+                height: 2.6rem;
+                margin-bottom: 0.65rem;
+            }
+            .welcome-envelope-shell .gate-personal-seal {
+                margin-bottom: 0.5rem;
+            }
+            .welcome-envelope-shell #welcome-gate-hint {
+                margin-bottom: 0.8rem;
+            }
         }
         .welcome-envelope-shell::after {
             content: '';
