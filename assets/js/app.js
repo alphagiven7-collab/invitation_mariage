@@ -703,7 +703,11 @@
             if (state.aboutStory2) document.getElementById('about-story-paragraph-2').textContent = state.aboutStory2;
 
             if (state.welcomeImage) setCssImageVar('--welcome-image-url', state.welcomeImage);
-            if (state.heroImage) setCssImageVar('--hero-image-url', state.heroImage);
+            if (state.heroImage) {
+                setCssImageVar('--hero-image-url', state.heroImage);
+                const heroImage = document.getElementById('hero-image');
+                if (heroImage) heroImage.src = state.heroImage;
+            }
             if (state.aboutImage) {
                 document.getElementById('about-cover-image').src = state.aboutImage;
                 document.getElementById('about-modal-image').src = state.aboutImage;

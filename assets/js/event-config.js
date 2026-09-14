@@ -212,6 +212,10 @@ const EventConfig = (() => {
         setText("couple-name-left", config.coupleLeft);
         setText("couple-name-right", config.coupleRight);
 
+        const heroImage = document.getElementById("hero-image");
+        const heroImageUrl = config.heroImage || config.branding?.heroImage;
+        if (heroImage && heroImageUrl) heroImage.src = heroImageUrl;
+
         const coupleDisplay = document.getElementById("invite-couple-display");
         if (coupleDisplay) {
             if (config.coupleLeft || config.coupleRight) {

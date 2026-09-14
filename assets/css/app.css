@@ -14,9 +14,31 @@
         .font-cursive { font-family: 'Great Vibes', cursive; }
         
         .hero-bg {
-            background-image: linear-gradient(rgba(20, 15, 25, 0.6), rgba(20, 15, 25, 0.8)), var(--hero-image-url);
-            background-size: cover;
-            background-position: center;
+            position: relative;
+            overflow: hidden;
+            background: #201923;
+        }
+        .hero-bg::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(rgba(20, 15, 25, 0.6), rgba(20, 15, 25, 0.8));
+            pointer-events: none;
+        }
+        .hero-bg-image {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        .hero-bg-content {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
         .welcome-gate-bg {
             background-image: linear-gradient(rgba(2, 6, 23, 0.42), rgba(15, 23, 42, 0.62)), var(--welcome-image-url);
