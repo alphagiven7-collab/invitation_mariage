@@ -440,24 +440,6 @@ const GuestExperience = (() => {
         }
     }
 
-    function renderPassPreview(exportData, qrSrc) {
-        const previewCanvas = document.getElementById("confirm-pass-preview");
-        if (!previewCanvas || !window.AccessPassExport || !exportData) return;
-        const passData = AccessPassExport.buildData({
-            payload: exportData.payload,
-            guest: exportData.guest,
-            accessCode: exportData.accessCode,
-            tableLabel: exportData.tableLabel,
-            drinksLabel: exportData.drinksLabel,
-            eventTitle: exportData.eventTitle,
-            dateLabel: exportData.dateLabel,
-            meta: exportData.meta,
-            qrSrc: qrSrc || document.getElementById("rsvp-qr-image")?.src || ""
-        });
-        AccessPassExport.renderPreview(previewCanvas, passData).catch(() => {});
-        previewCanvas.closest(".confirm-pass-preview-wrap")?.classList.remove("hidden");
-    }
-
     function showConfirmation(payload, code, guest) {
         const resolvedGuest = unwrapGuest(guest) || profile;
         if (rsvpProfilePhotoUrl && resolvedGuest) {
@@ -576,9 +558,7 @@ const GuestExperience = (() => {
             lastConfirmationExport = {
                 payload, accessCode, tableLabel, drinksLabel, eventTitle, guest: resolvedGuest, meta, dateLabel
             };
-            setQrImage(buildQrPayload(payload, accessCode, resolvedGuest), (qrSrc) => {
-                renderPassPreview(lastConfirmationExport, qrSrc);
-            });
+            setQrImage(buildQrPayload(payload, accessCode, resolvedGuest));
         } else {
             if (qrWrap) qrWrap.classList.add("hidden");
             if (pendingWrap) pendingWrap.classList.toggle("hidden", !isYes);
@@ -591,7 +571,6 @@ const GuestExperience = (() => {
             if (privateWarning) privateWarning.classList.add("hidden");
             if (downloadBtn) downloadBtn.classList.add("hidden");
             lastConfirmationExport = null;
-            document.querySelector(".confirm-pass-preview-wrap")?.classList.add("hidden");
         }
 
         const modal = document.getElementById("rsvp-confirmation-modal");

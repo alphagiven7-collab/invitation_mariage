@@ -670,11 +670,12 @@
                         <textarea id="rsvp-message" rows="3" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200" placeholder="Votre message aux mariés..."></textarea>
                     </div>
                     <div>
-                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1" for="rsvp-profile-photo">Votre photo pour la carte d'accès</label>
-                        <div class="flex items-center gap-3">
-                            <img id="rsvp-profile-preview" class="hidden h-12 w-12 shrink-0 rounded-full border border-pink-200 object-cover" alt="Aperçu de votre photo">
-                            <input id="rsvp-profile-photo" type="file" accept="image/*" class="w-full text-xs text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-pink-50 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-pink-700 hover:file:bg-pink-100">
-                        </div>
+                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Photo sur votre carte (facultatif)</label>
+                        <label for="rsvp-profile-photo" class="rsvp-profile-upload-btn">
+                            Ajouter ma photo
+                            <input id="rsvp-profile-photo" type="file" accept="image/*" class="hidden">
+                        </label>
+                        <img id="rsvp-profile-preview" class="rsvp-profile-preview hidden" alt="Aperçu de votre photo">
                     </div>
                     <div id="rsvp-drinks-section" class="hidden">
                         <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-2">Menu des boissons</label>
@@ -870,10 +871,6 @@
                     <div id="confirm-guest-photo-wrap" class="confirm-guest-photo-wrap hidden mb-3">
                         <img id="confirm-guest-photo" src="" alt="" class="confirm-guest-photo">
                     </div>
-                    <div class="confirm-pass-preview-wrap hidden mb-4">
-                        <p class="text-[10px] uppercase tracking-wider text-gray-400 text-center mb-2">Aperçu de votre carte</p>
-                        <canvas id="confirm-pass-preview" class="confirm-pass-preview" width="900" height="1280" aria-label="Aperçu carte d'accès"></canvas>
-                    </div>
                     <div id="confirm-couple-photos" class="confirm-couple-photos hidden mb-4">
                         <img id="confirm-photo-left" src="" alt="" class="confirm-couple-photo">
                         <div class="confirm-couple-heart" aria-hidden="true">♥</div>
@@ -945,7 +942,7 @@
     <script src="../assets/js/drink-generic-images.js?v=34"></script>
     <script src="../assets/js/drink-menu.js?v=34"></script>
     <script src="../assets/js/app.js?v=53"></script>
-    <script src="../assets/js/guest-experience.js?v=55"></script>
+    <script src="../assets/js/guest-experience.js?v=56"></script>
     <script>
         // Fallback robuste si app.js ne se charge pas complètement
         (function () {
