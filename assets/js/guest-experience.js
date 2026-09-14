@@ -317,6 +317,9 @@ const GuestExperience = (() => {
             applyProfile(guest);
             lockPersonalDetails();
             showPersonalWelcome(guest);
+            if (guest.status === "yes" && hasPersonalInviteToken(guest) && typeof window.openMainSite === "function") {
+                await window.openMainSite(null, { skipLoader: true });
+            }
             const token = getParams().get("t");
             if (token && window.CloudAPI && CloudAPI.isEnabled()) {
                 try {
