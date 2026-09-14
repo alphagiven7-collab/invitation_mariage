@@ -15,6 +15,13 @@ AS $$
     );
 $$;
 
+CREATE TABLE IF NOT EXISTS public.event_collaborators (
+    event_id TEXT NOT NULL REFERENCES public.events(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (event_id, user_id)
+);
+
 CREATE OR REPLACE FUNCTION public.can_manage_event(p_event_id TEXT)
 RETURNS BOOLEAN
 LANGUAGE sql
@@ -25,6 +32,9 @@ AS $$
     SELECT public.is_platform_admin() OR EXISTS (
         SELECT 1 FROM public.events
         WHERE id = p_event_id AND owner_id = auth.uid()
+    ) OR EXISTS (
+        SELECT 1 FROM public.event_collaborators
+        WHERE event_id = p_event_id AND user_id = auth.uid()
     );
 $$;
 
@@ -275,6 +285,7 @@ GRANT EXECUTE ON FUNCTION public.create_managed_event(JSONB) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.delete_managed_event(TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_guest_invite(TEXT) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.submit_guest_rsvp(TEXT, TEXT, TEXT, TEXT, INTEGER, INTEGER, TEXT, JSONB, TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.can_manage_event(TEXT) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.get_public_guestbook_messages(p_event_id TEXT)
 RETURNS TABLE(author_name TEXT, message TEXT, created_at TIMESTAMPTZ)
@@ -328,6 +339,7 @@ ALTER TABLE public.event_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.check_ins ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.guestbook_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.analytics_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.event_collaborators ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "events_read" ON public.events;
 DROP POLICY IF EXISTS "events_insert" ON public.events;
@@ -335,6 +347,10 @@ DROP POLICY IF EXISTS "events_owner_all" ON public.events;
 CREATE POLICY "events_owner_all" ON public.events
     FOR ALL USING (public.can_manage_event(id))
     WITH CHECK (public.is_platform_admin() OR owner_id = auth.uid());
+
+DROP POLICY IF EXISTS "event_collaborators_owner_read" ON public.event_collaborators;
+CREATE POLICY "event_collaborators_owner_read" ON public.event_collaborators
+    FOR SELECT USING (public.can_manage_event(event_id));
 
 DROP POLICY IF EXISTS "guests_read" ON public.guests;
 DROP POLICY IF EXISTS "guests_insert" ON public.guests;
@@ -383,3 +399,10 @@ CREATE POLICY "analytics_owner_read" ON public.analytics_events
     FOR SELECT USING (public.can_manage_event(event_id));
 CREATE POLICY "analytics_public_insert" ON public.analytics_events
     FOR INSERT WITH CHECK (true);
+
+-- Pour ajouter un second organisateur à un événement, exécutez dans SQL Editor :
+-- INSERT INTO public.event_collaborators (event_id, user_id)
+-- SELECT 'mariage-de-herve-et-noella', id
+-- FROM auth.users
+-- WHERE lower(email) = 'mukendiherve92@gmail.com'
+-- ON CONFLICT (event_id, user_id) DO NOTHING;

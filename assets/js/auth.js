@@ -79,21 +79,23 @@ const AuthGuard = (() => {
         return Array.isArray(rows) ? rows[0] || null : null;
     }
 
-    async function ownsEvent(accessToken, userId, eventId) {
+    async function canManageEvent(accessToken, eventId) {
         if (!eventId) return false;
         const config = getSupabaseConfig();
         const response = await fetch(
-            `${config.url}/rest/v1/events?id=eq.${encodeURIComponent(eventId)}&owner_id=eq.${encodeURIComponent(userId)}&select=id&limit=1`,
+            `${config.url}/rest/v1/rpc/can_manage_event`,
             {
+                method: "POST",
                 headers: {
                     apikey: config.anonKey,
-                    Authorization: `Bearer ${accessToken}`
-                }
+                    Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ p_event_id: eventId })
             }
         );
         if (!response.ok) return false;
-        const rows = await response.json().catch(() => []);
-        return Array.isArray(rows) && rows.length > 0;
+        return (await response.json().catch(() => false)) === true;
     }
 
     async function loginWithPassword(email, password, eventId) {
@@ -104,7 +106,7 @@ const AuthGuard = (() => {
 
         const profile = await getProfile(auth.access_token, user.id);
         const platformAdmin = profile?.role === "platform";
-        const eventAdmin = !platformAdmin && await ownsEvent(auth.access_token, user.id, eventId);
+        const eventAdmin = !platformAdmin && await canManageEvent(auth.access_token, eventId);
         if (!platformAdmin && !eventAdmin) {
             throw new Error("Ce compte n'est pas autorisé pour cet événement.");
         }

@@ -122,6 +122,43 @@ test('EventConfig loads a cloud-only client event when no local JSON exists', as
   assert.equal(config.backgroundMusicUrl, 'https://cdn.example.test/musique.mp3');
 });
 
+test('AuthGuard accepts a collaborator authorized for an event', async () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'auth.js'), 'utf8');
+  const storage = {};
+  const requestedUrls = [];
+  const sandbox = {
+    console,
+    URLSearchParams,
+    sessionStorage: {
+      getItem(key) { return storage[key] || null; },
+      setItem(key, value) { storage[key] = String(value); },
+      removeItem(key) { delete storage[key]; }
+    },
+    window: {
+      SUPABASE_CONFIG: { enabled: true, url: 'https://supabase.example.test', anonKey: 'anon-key' },
+      location: { href: '', pathname: '/pages/login.html', search: '' }
+    },
+    fetch: async (url) => {
+      requestedUrls.push(url);
+      if (url.includes('/auth/v1/token')) {
+        return { ok: true, json: async () => ({ user: { id: 'user-42', email: 'collaborator@example.test' }, access_token: 'token', expires_in: 3600 }) };
+      }
+      if (url.includes('/profiles?')) return { ok: true, json: async () => [{ role: 'client' }] };
+      if (url.includes('/rpc/can_manage_event')) return { ok: true, json: async () => true };
+      throw new Error(`Unexpected URL: ${url}`);
+    }
+  };
+  sandbox.window.window = sandbox.window;
+  sandbox.global = sandbox;
+  sandbox.globalThis = sandbox;
+  vm.runInNewContext(source, sandbox, { filename: 'auth.js' });
+
+  const result = await sandbox.window.AuthGuard.loginWithPassword('collaborator@example.test', 'secret', 'event-42');
+  assert.equal(result.role, 'event');
+  assert.equal(sandbox.window.AuthGuard.isEventAdmin('event-42'), true);
+  assert.ok(requestedUrls.some((url) => url.includes('/rpc/can_manage_event')));
+});
+
 test('CloudAPI keeps local guests visible when the admin session is unavailable', async () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'cloud-api.js'), 'utf8');
   const store = {
