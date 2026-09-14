@@ -962,7 +962,11 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const token = (urlParams.get('t') || '').trim();
                 if (!token) {
-                    showToast("Vous n'êtes pas encore sur la liste des invités. Contactez l'organisateur afin d'être ajouté(e) avant de confirmer votre présence.");
+                    if (window.GuestExperience?.showInvitationRequiredModal) {
+                        window.GuestExperience.showInvitationRequiredModal();
+                    } else {
+                        showToast("Vous n'êtes pas encore sur la liste des invités. Contactez l'organisateur afin d'être ajouté(e) avant de confirmer votre présence.");
+                    }
                     return;
                 }
                 const payload = {

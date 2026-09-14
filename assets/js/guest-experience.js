@@ -61,6 +61,26 @@ const GuestExperience = (() => {
         }
     }
 
+    function showInvitationRequiredModal() {
+        const modal = document.getElementById("guest-list-required-modal");
+        if (!modal) {
+            showToast("Vous n'êtes pas encore sur la liste des invités. Contactez l'organisateur afin d'être ajouté(e) avant de confirmer votre présence.");
+            return;
+        }
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        document.body.style.overflow = "hidden";
+        document.getElementById("guest-list-required-close")?.focus();
+    }
+
+    function closeInvitationRequiredModal() {
+        const modal = document.getElementById("guest-list-required-modal");
+        if (!modal) return;
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+        document.body.style.overflow = "";
+    }
+
     function applyProfile(guest) {
         if (!guest || !guest.fullName) return;
         profile = guest;
@@ -317,7 +337,7 @@ const GuestExperience = (() => {
     function openRsvp() {
         prefillRsvp();
         if (!hasPersonalInviteToken(profile) || !profile?.id) {
-            showToast("Vous n'êtes pas encore sur la liste des invités. Contactez l'organisateur afin d'être ajouté(e) avant de confirmer votre présence.");
+            showInvitationRequiredModal();
             return;
         }
         if (profile && profile.status !== "pending") {
@@ -645,7 +665,7 @@ const GuestExperience = (() => {
             prefillRsvp();
 
             if (!hasPersonalInviteToken(profile) || !profile?.id) {
-                showToast("Vous n'êtes pas encore sur la liste des invités. Contactez l'organisateur afin d'être ajouté(e) avant de confirmer votre présence.");
+                showInvitationRequiredModal();
                 return;
             }
 
@@ -778,8 +798,11 @@ const GuestExperience = (() => {
         buildConfirmCode,
         showConfirmation,
         canShowQrCode,
-        hasPersonalInviteToken
+        hasPersonalInviteToken,
+        showInvitationRequiredModal,
+        closeInvitationRequiredModal
     };
 })();
 
 window.GuestExperience = GuestExperience;
+    window.closeInvitationRequiredModal = GuestExperience.closeInvitationRequiredModal;

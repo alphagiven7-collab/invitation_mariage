@@ -24,7 +24,7 @@
     <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=34">
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@0.469.0"></script>
-    <link rel="stylesheet" href="../assets/css/app.css?v=50">
+    <link rel="stylesheet" href="../assets/css/app.css?v=51">
     <link rel="stylesheet" href="../assets/css/drink-menu.css?v=34">
     <style>
         body.app-loading #app-content { visibility: hidden; }
@@ -617,6 +617,18 @@
         </div>
     </div>
 
+    <div id="guest-list-required-modal" class="fixed inset-0 z-[160] hidden items-center justify-center bg-slate-950/60 backdrop-blur-sm p-5" role="dialog" aria-modal="true" aria-labelledby="guest-list-required-title" aria-describedby="guest-list-required-message">
+        <div class="guest-list-required-card w-full max-w-sm bg-white shadow-2xl border border-rose-100 p-7 text-center flex flex-col items-center justify-center">
+            <div class="guest-list-required-icon mb-5" aria-hidden="true">
+                <i data-lucide="user-round-plus" class="w-8 h-8"></i>
+            </div>
+            <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-rose-500 mb-3">Invitation personnelle requise</p>
+            <h3 id="guest-list-required-title" class="font-serif text-2xl leading-tight text-gray-900 mb-4">Vous n'êtes pas encore sur la liste des invités</h3>
+            <p id="guest-list-required-message" class="guest-list-required-message text-gray-600 mb-7">Contactez l'organisateur afin d'être ajouté(e) à la liste avant de confirmer votre présence.</p>
+            <button id="guest-list-required-close" type="button" onclick="closeInvitationRequiredModal()" class="w-full bg-gray-900 hover:bg-black text-white rounded-lg py-3 text-sm font-semibold transition">J'ai compris</button>
+        </div>
+    </div>
+
     <div id="customizer-page" class="fixed inset-0 z-[130] bg-slate-950/85 backdrop-blur-sm hidden overflow-y-auto">
         <div class="max-w-5xl mx-auto min-h-screen px-4 py-6">
             <div class="bg-white rounded-3xl border border-gray-200 shadow-2xl overflow-hidden">
@@ -868,8 +880,8 @@
     <script src="../assets/js/i18n.js?v=34"></script>
     <script src="../assets/js/drink-generic-images.js?v=34"></script>
     <script src="../assets/js/drink-menu.js?v=34"></script>
-    <script src="../assets/js/app.js?v=55"></script>
-    <script src="../assets/js/guest-experience.js?v=57"></script>
+    <script src="../assets/js/app.js?v=56"></script>
+    <script src="../assets/js/guest-experience.js?v=58"></script>
     <script>
         // Fallback robuste si app.js ne se charge pas complètement
         (function () {

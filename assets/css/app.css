@@ -235,6 +235,23 @@
             transition: all .2s ease;
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .guest-list-required-card {
+            min-height: 20rem;
+            border-radius: 0.5rem;
+        }
+        .guest-list-required-icon {
+            display: grid;
+            place-items: center;
+            width: 4.5rem;
+            height: 4.5rem;
+            border-radius: 999px;
+            background: #fff1f2;
+            color: #e11d48;
+        }
+        .guest-list-required-message {
+            font-size: 1.0625rem;
+            line-height: 1.65;
+        }
         .welcome-envelope-shell {
             position: relative;
             background:
