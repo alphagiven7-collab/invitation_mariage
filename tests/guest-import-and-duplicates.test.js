@@ -100,6 +100,45 @@ test('Guests can be added without a phone number and the old country-prefix defa
   assert.equal((await manager.loadGuests()).length, 2);
 });
 
+test('Marking a guest as a couple preserves their invitation data and cannot create a duplicate', async () => {
+  const manager = setup();
+  const first = (await manager.addGuest({ fullName: 'Marie Noël', phone: '+243 999', tableNumber: '8' })).guest;
+  const token = first.token;
+  const slug = first.slug;
+  const id = first.id;
+  const marked = await manager.markGuestAsCouple(first.id);
+  assert.equal(marked.guest.fullName, 'Couple Marie Noël');
+  assert.equal(marked.guest.phone, '+243 999');
+  assert.equal(marked.guest.tableNumber, '8');
+  assert.equal(marked.guest.token, token);
+  assert.equal(marked.guest.slug, slug);
+  assert.equal(marked.guest.id, id);
+  assert.equal((await manager.markGuestAsCouple(first.id)).alreadyCouple, true);
+
+  const conflictManager = setup(null, [
+    { id: 'paul', fullName: 'Paul Noël', phone: '', status: 'pending' },
+    { id: 'couple-paul', fullName: 'Couple Paul Noël', phone: '+243 999', status: 'pending' }
+  ]);
+  const conflict = await conflictManager.markGuestAsCouple('paul');
+  assert.equal(conflict.guest, null);
+  assert.equal(conflict.duplicate, true);
+});
+
+test('A couple label and the same bare name are treated as the same guest name', async () => {
+  const manager = setup();
+  const first = await manager.addGuest({ fullName: 'Couple Paul Noël' });
+  const repeated = await manager.addGuest({ fullName: 'Paul Noël', phone: '+243 999' });
+  assert.equal(repeated.duplicate, true);
+  assert.equal(repeated.guest.id, first.guest.id);
+});
+
+test('Name lookup keeps an old bare name compatible after it is marked as a couple', async () => {
+  const manager = setup();
+  const guest = (await manager.addGuest({ fullName: 'Marie Noël' })).guest;
+  await manager.markGuestAsCouple(guest.id);
+  assert.equal((await manager.findByName('Marie Noël')).id, guest.id);
+});
+
 test('Duplicate deletion requires explicit selection, confirmation and a retained guest', async () => {
   const initial = [
     { id: '1', fullName: 'Marie Noël', phone: '+243 999', status: 'yes' },

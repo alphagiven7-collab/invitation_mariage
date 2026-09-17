@@ -80,7 +80,13 @@ const GuestManager = (() => {
     }
 
     function nameKey(guest) {
-        return String(guest.fullName || "").normalize("NFC").trim().toLowerCase().replace(/\s+/g, " ");
+        return String(guest.fullName || "").normalize("NFC").trim().toLowerCase()
+            .replace(/\s+/g, " ")
+            .replace(/^couple\s+/, "");
+    }
+
+    function isCoupleName(fullName) {
+        return /^couple\s+/i.test(String(fullName || "").trim());
     }
 
     function createGuest(row) {
@@ -226,8 +232,7 @@ const GuestManager = (() => {
     async function findByName(fullName) {
         if (!fullName || fullName.trim().length < 2) return null;
         const guests = await loadGuests();
-        const normalized = fullName.trim().toLowerCase();
-        return guests.find((g) => g.fullName.trim().toLowerCase() === normalized) || null;
+        return guests.find((guest) => nameKey(guest) === nameKey({ fullName })) || null;
     }
 
     async function updateGuest(id, patch) {
@@ -241,7 +246,7 @@ const GuestManager = (() => {
         }
         if (patch.phone !== undefined) next.phone = cleanPhone(patch.phone);
         if (patch.email !== undefined) next.email = (patch.email || "").trim();
-        if (patch.fullName !== undefined && nameKey(next) !== nameKey(guests[idx]) &&
+        if (patch.fullName !== undefined &&
             guests.some((guest) => guest.id !== id && nameKey(guest) === nameKey(next))) return null;
         if (patch.group !== undefined) next.group = (patch.group || "").trim();
         if (patch.qrApproved !== undefined) next.qrApproved = !!patch.qrApproved;
@@ -275,6 +280,23 @@ const GuestManager = (() => {
         return { guest: saved, cloudSynced };
     }
 
+    async function markGuestAsCouple(id) {
+        const guests = await loadGuests();
+        const guest = guests.find((item) => item.id === id);
+        if (!guest) return { guest: null, alreadyCouple: false, duplicate: false };
+        if (isCoupleName(guest.fullName)) {
+            return { guest, alreadyCouple: true, duplicate: false };
+        }
+
+        const fullName = `Couple ${String(guest.fullName || "").trim()}`;
+        if (guests.some((item) => item.id !== id && nameKey(item) === nameKey({ fullName }))) {
+            return { guest: null, alreadyCouple: false, duplicate: true };
+        }
+
+        const result = await updateGuest(id, { fullName });
+        return { ...result, alreadyCouple: false, duplicate: false };
+    }
+
     async function recordRSVP({ guestId, fullName, phone, status, adults, children, message, drinkChoices, inviteToken, profilePhotoUrl }) {
         if (!inviteToken) {
             throw new Error("Cette invitation est réservée aux personnes ajoutées par l'organisateur. Contactez l'organisateur pour être ajouté(e) à la liste.");
@@ -298,7 +320,7 @@ const GuestManager = (() => {
         const guests = await loadGuests();
         let guest = guestId ? guests.find((g) => g.id === guestId) : null;
         if (!guest && fullName) {
-            guest = guests.find((g) => g.fullName.toLowerCase() === fullName.toLowerCase());
+            guest = guests.find((item) => nameKey(item) === nameKey({ fullName }));
         }
         if (!guest || guest.token !== inviteToken) {
             throw new Error("Cette invitation est réservée aux personnes ajoutées par l'organisateur. Contactez l'organisateur pour être ajouté(e) à la liste.");
@@ -715,6 +737,7 @@ const GuestManager = (() => {
         findBySlug,
         findByName,
         updateGuest,
+        markGuestAsCouple,
         recordRSVP,
         parseCSV,
         decodeCSV,

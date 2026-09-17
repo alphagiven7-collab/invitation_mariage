@@ -205,6 +205,9 @@ async function renderGuestsTable() {
             <td data-label="Sélection"><input type="checkbox" class="guest-select" data-select-guest="${guest.id}" ${selectedGuestIds.has(guest.id) ? "checked" : ""} aria-label="Sélectionner ${escapeHtml(guest.fullName)}"></td>
             <td data-label="Invité">
                 <strong>${escapeHtml(guest.fullName)}</strong>
+                ${/^couple\s+/i.test(String(guest.fullName || "").trim())
+                    ? '<span class="admin-badge admin-badge-couple">Couple</span>'
+                    : `<button type="button" class="admin-btn admin-btn-ghost admin-btn-couple" data-couple="${guest.id}" title="Marquer ${escapeHtml(guest.fullName)} comme couple" aria-label="Marquer ${escapeHtml(guest.fullName)} comme couple">👫 Couple</button>`}
                 ${guest.email ? `<br><span class="text-xs text-slate-400">${escapeHtml(guest.email)}</span>` : ""}
             </td>
             <td data-label="Contact">${escapeHtml(guest.phone || "—")}</td>
@@ -261,6 +264,29 @@ async function renderGuestsTable() {
         btn.addEventListener("click", () => {
             const guest = guestsCache.find((g) => g.id === btn.dataset.edit);
             if (guest) openEditModal(guest);
+        });
+    });
+
+    tbody.querySelectorAll("[data-couple]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+            const guest = guestsCache.find((item) => item.id === btn.dataset.couple);
+            if (!guest) return;
+            btn.disabled = true;
+            try {
+                const result = await GuestManager.markGuestAsCouple(guest.id);
+                if (result?.guest) {
+                    showToast(`${result.guest.fullName} enregistré comme couple.`);
+                    await refreshAll();
+                } else if (result?.duplicate) {
+                    showToast("Un autre invité porte déjà ce nom de couple.");
+                } else {
+                    showToast("Impossible de marquer cet invité comme couple.");
+                }
+            } catch (error) {
+                showToast(error.message || "Impossible de marquer cet invité comme couple.");
+            } finally {
+                btn.disabled = false;
+            }
         });
     });
 
@@ -388,6 +414,7 @@ async function renderAnalytics() {
 async function renderRSVPList() {
     const eventId = EventConfig.getEventId();
     const rsvps = CloudAPI.isEnabled() ? await CloudAPI.getRSVPs(eventId) : [];
+    const guestsById = new Map((await GuestManager.loadGuests()).map((guest) => [guest.id, guest]));
     const tbody = document.getElementById("rsvps-table-body");
     const empty = document.getElementById("rsvps-empty");
     tbody.innerHTML = "";
@@ -398,9 +425,10 @@ async function renderRSVPList() {
     empty.classList.add("hidden");
     rsvps.forEach((r) => {
         const tr = document.createElement("tr");
+        const guest = guestsById.get(r.guest_id || r.guestId);
         const st = r.status === "yes" ? statusBadge("yes") : r.status === "no" ? statusBadge("no") : statusBadge("pending");
         const message = String(r.message || "").trim();
-        tr.innerHTML = `<td><strong>${escapeHtml(r.full_name || r.fullName)}</strong></td><td>${escapeHtml(r.phone || "—")}</td><td>${st}</td><td>${r.adults || 0}</td><td>${r.children || 0}</td><td data-label="Message" title="${escapeHtml(message)}">${escapeHtml(message || "—")}</td><td>${r.created_at ? new Date(r.created_at).toLocaleString("fr-FR") : "—"}</td>`;
+        tr.innerHTML = `<td><strong>${escapeHtml(guest?.fullName || r.full_name || r.fullName)}</strong></td><td>${escapeHtml(r.phone || guest?.phone || "—")}</td><td>${st}</td><td>${r.adults || 0}</td><td>${r.children || 0}</td><td data-label="Message" title="${escapeHtml(message)}">${escapeHtml(message || "—")}</td><td>${r.created_at ? new Date(r.created_at).toLocaleString("fr-FR") : "—"}</td>`;
         tbody.appendChild(tr);
     });
 }

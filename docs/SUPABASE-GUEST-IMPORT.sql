@@ -6,7 +6,10 @@ BEGIN;
 CREATE OR REPLACE FUNCTION public.guest_import_identity(p_name TEXT, p_phone TEXT, p_email TEXT)
 RETURNS TEXT LANGUAGE sql IMMUTABLE SET search_path = public AS $$
     SELECT jsonb_build_array(
-        regexp_replace(lower(trim(normalize(coalesce(p_name, ''), NFC))), '\s+', ' ', 'g'),
+        regexp_replace(
+            regexp_replace(lower(trim(normalize(coalesce(p_name, ''), NFC))), '\s+', ' ', 'g'),
+            '^couple\s+', '', 'i'
+        ),
         '',
         ''
     )::text;
@@ -22,6 +25,7 @@ BEGIN
     IF EXISTS (
         SELECT 1 FROM public.guests g
         WHERE g.event_id = NEW.event_id
+          AND g.id IS DISTINCT FROM NEW.id
           AND public.guest_import_identity(g.full_name, g.phone, g.email) = identity_value
     ) THEN
         RAISE EXCEPTION 'Doublon : un invité avec ce nom existe déjà dans cet événement.'
@@ -33,7 +37,7 @@ $$;
 
 DROP TRIGGER IF EXISTS prevent_guest_import_duplicate ON public.guests;
 CREATE TRIGGER prevent_guest_import_duplicate
-    BEFORE INSERT ON public.guests FOR EACH ROW
+    BEFORE INSERT OR UPDATE ON public.guests FOR EACH ROW
     EXECUTE FUNCTION public.prevent_guest_import_duplicate();
 
 COMMIT;

@@ -111,7 +111,8 @@
 
             const guestbookArea = document.getElementById('guestbook-textarea');
             if (guestbookArea && guestName) {
-                guestbookArea.placeholder = `Votre message pour ${guestName.split(' ')[0]} et le couple...`;
+                const shortName = /^couple\s+/i.test(guestName) ? guestName : guestName.split(' ')[0];
+                guestbookArea.placeholder = `Votre message pour ${shortName} et le couple...`;
             }
         }
 
@@ -130,7 +131,8 @@
                 else if (cfg.subtitle) couple = cfg.subtitle;
                 else if (cfg.title) couple = cfg.title;
             }
-            const firstName = (guest.fullName || '').split(' ')[0];
+            const guestName = String(guest.fullName || '').trim();
+            const firstName = /^couple\s+/i.test(guestName) ? guestName : guestName.split(' ')[0];
 
             document.getElementById('gate-personal-greeting').textContent = `Cher/Chère ${guest.fullName}`;
             document.getElementById('gate-personal-message').innerHTML =

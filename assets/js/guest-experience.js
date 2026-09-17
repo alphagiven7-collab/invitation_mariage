@@ -173,7 +173,8 @@ const GuestExperience = (() => {
         personal.classList.remove("hidden");
         personal.classList.add("gate-personal-visible");
 
-        const first = (guest.fullName || "Invité").split(" ")[0];
+        const fullName = String(guest.fullName || "Invité").trim();
+        const first = /^couple\s+/i.test(fullName) ? fullName : fullName.split(" ")[0];
         const couple = getCoupleLabel();
         const greeting = document.getElementById("gate-personal-greeting");
         const message = document.getElementById("gate-personal-message");

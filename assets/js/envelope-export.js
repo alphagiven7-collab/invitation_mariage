@@ -98,7 +98,8 @@ const EnvelopeExport = (() => {
         ctx.font = "700 36px Georgia, serif";
         ctx.fillText(guest.fullName || "Invité(e)", 450, 310);
 
-        const first = (guest.fullName || "").split(" ")[0];
+        const fullName = String(guest.fullName || "").trim();
+        const first = /^couple\s+/i.test(fullName) ? fullName : fullName.split(" ")[0];
         ctx.font = "400 22px Montserrat, sans-serif";
         ctx.fillStyle = "#5c4f4f";
         ctx.fillText(`${first}, ouvrez votre enveloppe`, 450, 360);
