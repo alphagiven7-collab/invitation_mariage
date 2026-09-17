@@ -17,6 +17,10 @@ const GuestExperience = (() => {
         return new URLSearchParams(window.location.search);
     }
 
+    function isPrintRequested() {
+        return getParams().get("print") === "1";
+    }
+
     function slugToName(slug) {
         return (slug || "")
             .split("-")
@@ -62,6 +66,12 @@ const GuestExperience = (() => {
     }
 
     function showInvitationRequiredModal() {
+        const eventConfig = window.EventConfig?.getConfig?.() || {};
+        if (isOpenRsvpEvent(eventConfig)) {
+            if (typeof window.openModal === "function") window.openModal("rsvp-modal");
+            else document.getElementById("rsvp-modal")?.classList.remove("hidden");
+            return;
+        }
         const modal = document.getElementById("guest-list-required-modal");
         if (!modal) {
             showToast("Vous n'êtes pas encore sur la liste des invités. Contactez l'organisateur afin d'être ajouté(e) avant de confirmer votre présence.");
@@ -126,12 +136,10 @@ const GuestExperience = (() => {
     }
 
     function lockPersonalDetails() {
-        ["rsvp-name", "rsvp-phone", "rsvp-status", "rsvp-adults", "rsvp-children", "rsvp-message"].forEach((id) => {
-            const field = document.getElementById(id);
-            if (!field) return;
-            field.disabled = true;
-            field.closest("div")?.classList.add("hidden");
-        });
+        const nameField = document.getElementById("rsvp-name");
+        if (!nameField) return;
+        nameField.disabled = true;
+        nameField.closest("div")?.classList.add("hidden");
     }
 
     async function handleRsvpPhotoUpload(event) {
@@ -310,6 +318,8 @@ const GuestExperience = (() => {
             try {
                 await EventConfig.init();
                 if (EventConfig.applyToPage) EventConfig.applyToPage();
+                applyRsvpModeForm();
+                await loadPublicRsvpMessages();
             } catch (e) {}
         }
 
@@ -318,19 +328,22 @@ const GuestExperience = (() => {
             applyProfile(guest);
             lockPersonalDetails();
             showPersonalWelcome(guest);
-            if (guest.status === "yes" && hasPersonalInviteToken(guest) && typeof window.openMainSite === "function") {
+            if ((guest.status === "yes" || isPrintRequested())
+                && hasPersonalInviteToken(guest)
+                && typeof window.openMainSite === "function") {
                 await window.openMainSite(null, { skipLoader: true });
             }
+            if (isPrintRequested()) window.dispatchEvent(new CustomEvent("personalinvitation:ready"));
             const token = getParams().get("t");
             if (token && window.CloudAPI && CloudAPI.isEnabled()) {
                 try {
                     CloudAPI.track(getEventId(), "guest_link_open", { guestToken: token });
                 } catch (e) {}
             }
-            await tryRestoreConfirmation();
+            if (!isPrintRequested()) await tryRestoreConfirmation();
             return true;
         }
-        await tryRestoreConfirmation();
+        if (!isPrintRequested()) await tryRestoreConfirmation();
         return false;
     }
 
@@ -343,13 +356,109 @@ const GuestExperience = (() => {
         if (saved) applyProfile({ fullName: saved, phone: "", status: "pending", adults: 1, children: 0 });
     }
 
-    function openRsvp() {
+    function isOpenRsvpEvent(config = window.EventConfig?.getConfig?.() || {}) {
+        return config.rsvpMode === "open" || config.type === "open-rsvp";
+    }
+
+    function applyRsvpModeForm() {
+        const eventConfig = window.EventConfig?.getConfig?.() || {};
+        const isOpenRsvp = isOpenRsvpEvent(eventConfig);
+        const families = eventConfig.confirmationFamilies || {};
+        const maleFamily = String(families.male || "").trim() || "Côté de la famille de l'homme";
+        const femaleFamily = String(families.female || "").trim() || "Côté de la famille de la femme";
+        const maleChoice = document.getElementById("open-rsvp-male-family");
+        const femaleChoice = document.getElementById("open-rsvp-female-family");
+        if (maleChoice) maleChoice.textContent = maleFamily;
+        if (femaleChoice) femaleChoice.textContent = femaleFamily;
+        document.getElementById("dress-marquee-wrapper")?.classList.toggle("hidden", isOpenRsvp);
+        const dressPatterns = document.getElementById("dress-patterns");
+        dressPatterns?.classList.toggle("open-rsvp-attire", isOpenRsvp);
+        dressPatterns?.classList.toggle("grid-cols-1", isOpenRsvp);
+        dressPatterns?.classList.toggle("grid-cols-2", !isOpenRsvp);
+        document.getElementById("rsvp-phone-field")?.classList.toggle("hidden", isOpenRsvp);
+        document.getElementById("rsvp-count-fields")?.classList.toggle("hidden", isOpenRsvp);
+        document.getElementById("rsvp-message-field")?.classList.toggle("hidden", isOpenRsvp);
+        document.getElementById("rsvp-photo-field")?.classList.toggle("hidden", isOpenRsvp);
+        document.getElementById("rsvp-drinks-section")?.classList.remove("hidden");
+        document.getElementById("open-rsvp-side-field")?.classList.toggle("hidden", !isOpenRsvp);
+        document.querySelectorAll('input[name="open-rsvp-side"]').forEach((field) => {
+            field.required = isOpenRsvp;
+        });
+        const submitButton = document.getElementById("rsvp-submit-btn");
+        if (submitButton) submitButton.textContent = isOpenRsvp
+            ? "Envoyer ma réponse et ouvrir WhatsApp"
+            : "Envoyer ma réponse RSVP";
+        ["rsvp-phone", "rsvp-adults", "rsvp-children", "rsvp-message"].forEach((id) => {
+            const field = document.getElementById(id);
+            if (!field) return;
+            field.disabled = false;
+            field.readOnly = false;
+        });
+        document.getElementById("rsvp-phone")?.removeAttribute("required");
+    }
+
+    function initials(fullName) {
+        return String(fullName || "Invité")
+            .split(/\s+/)
+            .filter(Boolean)
+            .map((part) => part[0])
+            .join("")
+            .slice(0, 2)
+            .toUpperCase() || "IN";
+    }
+
+    function renderPublicRsvpMessages(messages) {
+        const list = document.getElementById("rsvp-messages-list");
+        const empty = document.getElementById("rsvp-messages-empty");
+        if (!list || !empty) return;
+
+        list.replaceChildren();
+        empty.classList.toggle("hidden", messages.length > 0);
+        messages.forEach((message) => {
+            const item = document.createElement("article");
+            item.className = "border border-rose-100 bg-rose-50/40 rounded-xl p-4";
+            const header = document.createElement("div");
+            header.className = "flex items-center gap-2 mb-2";
+            const avatar = document.createElement("span");
+            avatar.className = "flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rose-200 text-[10px] font-bold text-rose-700";
+            avatar.textContent = initials(message.author_name || message.authorName);
+            const metadata = document.createElement("div");
+            const author = document.createElement("p");
+            author.className = "text-xs font-bold text-gray-800";
+            author.textContent = message.author_name || message.authorName || "Invité";
+            const date = document.createElement("p");
+            date.className = "text-[10px] text-gray-400";
+            const sentAt = message.created_at || message.createdAt;
+            date.textContent = sentAt ? new Date(sentAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "";
+            const body = document.createElement("p");
+            body.className = "text-xs leading-relaxed text-gray-600";
+            body.textContent = message.message || "";
+            metadata.append(author, date);
+            header.append(avatar, metadata);
+            item.append(header, body);
+            list.appendChild(item);
+        });
+    }
+
+    async function loadPublicRsvpMessages() {
+        if (!window.CloudAPI?.isEnabled?.() || !window.CloudAPI.getPublicRsvpMessages) return;
+        const messages = await CloudAPI.getPublicRsvpMessages(getEventId());
+        renderPublicRsvpMessages(messages);
+    }
+
+    async function openRsvp() {
         prefillRsvp();
-        if (!hasPersonalInviteToken(profile) || !profile?.id) {
-            showInvitationRequiredModal();
-            return;
+        if (window.EventConfig?.init && !window.EventConfig.isReady?.()) {
+            try { await EventConfig.init(); } catch (error) {
+                showToast("Impossible de charger la configuration de cette invitation.");
+                return;
+            }
         }
-        if (profile && profile.status !== "pending") {
+        applyRsvpModeForm();
+        const eventConfig = window.EventConfig?.getConfig?.() || {};
+        const isOpenRsvp = isOpenRsvpEvent(eventConfig);
+        const hasPersonalInvite = hasPersonalInviteToken(profile) && !!profile?.id;
+        if (hasPersonalInvite && profile.status !== "pending") {
             showAlreadyConfirmed(profile);
             return;
         }
@@ -386,9 +495,13 @@ const GuestExperience = (() => {
 
     function formatEventDateLabel() {
         const cfg = window.EventConfig && EventConfig.getConfig && EventConfig.getConfig();
-        if (!cfg || !cfg.eventDate) return "";
+        const activeDate = cfg?.countdownDate
+            || (window.EventCountdown && EventCountdown.getTarget
+            ? EventCountdown.getTarget()
+            : cfg?.eventDate);
+        if (!activeDate) return "";
         try {
-            return new Date(cfg.eventDate).toLocaleDateString("fr-FR", {
+            return new Date(activeDate).toLocaleDateString("fr-FR", {
                 weekday: "long",
                 day: "numeric",
                 month: "long",
@@ -666,19 +779,59 @@ const GuestExperience = (() => {
         return (phone || "").replace(/\D/g, "").length >= 9;
     }
 
+    function redirectOpenRsvpToWhatsApp(payload, eventConfig, contactType) {
+        const contact = eventConfig?.confirmationContacts?.[contactType];
+        const phone = String(contact || "").replace(/\D/g, "");
+        if (!phone) {
+            showToast("Le numéro WhatsApp du côté choisi n'est pas encore configuré.");
+            return;
+        }
+        const contactLabel = String(eventConfig?.confirmationFamilies?.[contactType] || "").trim()
+            || (contactType === "male" ? "Côté de la famille de l'homme" : "Côté de la famille de la femme");
+        const response = payload.status === "yes" ? "Je serai présent(e)" : "Je ne pourrai pas être présent(e)";
+        const drinks = payload.drinkChoices.length ? payload.drinkChoices.join(", ") : "Non précisé";
+        const defaultMessage = [
+            "Bonjour,",
+            "",
+            `${payload.name} a répondu pour ${eventConfig.title || "l'événement"}.`,
+            `Réponse : ${response}`,
+            `Côté : ${contactLabel}`,
+            `Boissons : ${drinks}`,
+            "",
+            "Merci de prendre cette confirmation en compte."
+        ].join("\n");
+        const replacements = {
+            nom: payload.name,
+            evenement: eventConfig.title || "Invitation",
+            reponse: response,
+            cote: contactLabel,
+            boissons: drinks
+        };
+        const message = String(eventConfig.openRsvpWhatsAppMessage || defaultMessage)
+            .replace(/^Confirmation RSVP envoyée depuis Michelline Invitations\s*$/gim, "")
+            .replace(/\{(nom|evenement|reponse|cote|boissons)\}/g, (_, key) => replacements[key])
+            .replace(/\n{3,}/g, "\n\n")
+            .trim();
+        window.location.href = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    }
+
     async function submitRsvp(event) {
         event.preventDefault();
         const submitBtn = document.getElementById("rsvp-submit-btn") || event.submitter;
 
         const run = async () => {
             prefillRsvp();
-
-            if (!hasPersonalInviteToken(profile) || !profile?.id) {
-                showInvitationRequiredModal();
-                return;
+            if (window.EventConfig?.init && !window.EventConfig.isReady?.()) {
+                try { await EventConfig.init(); } catch (error) {
+                    showToast("Impossible de charger la configuration de cette invitation.");
+                    return;
+                }
             }
 
-            if (profile && profile.status !== "pending") {
+            const eventConfig = window.EventConfig?.getConfig?.() || {};
+            const isOpenRsvp = isOpenRsvpEvent(eventConfig);
+            const hasPersonalInvite = hasPersonalInviteToken(profile) && !!profile?.id;
+            if (hasPersonalInvite && profile.status !== "pending") {
                 showAlreadyConfirmed(profile);
                 return;
             }
@@ -686,7 +839,7 @@ const GuestExperience = (() => {
             const payload = {
                 name: (document.getElementById("rsvp-name")?.value || "").trim(),
                 phone: (document.getElementById("rsvp-phone")?.value || "").trim(),
-                status: "yes",
+                status: document.querySelector('input[name="rsvp-status"]:checked')?.value || "yes",
                 adults: document.getElementById("rsvp-adults")?.value || "1",
                 children: document.getElementById("rsvp-children")?.value || "0",
                 message: (document.getElementById("rsvp-message")?.value || "").trim(),
@@ -700,11 +853,33 @@ const GuestExperience = (() => {
                 showToast("Nom obligatoire (2 caractères minimum).");
                 return;
             }
+            const openRsvpSide = document.querySelector('input[name="open-rsvp-side"]:checked')?.value || "";
+            if (isOpenRsvp && !openRsvpSide) {
+                showToast("Choisissez le côté homme ou femme.");
+                return;
+            }
             localStorage.setItem(eventStorageKey("rsvp_data"), JSON.stringify(payload));
             localStorage.setItem(eventStorageKey("rsvp_status"), payload.status);
 
             let updatedGuest = null;
-            if (window.GuestManager) {
+            if (!hasPersonalInvite) {
+                if (!window.CloudAPI?.isEnabled?.() || !window.CloudAPI?.submitOpenRsvp) {
+                    showToast("Confirmation indisponible. Réessayez avec une connexion Internet.");
+                    return;
+                }
+                try {
+                    await CloudAPI.submitOpenRsvp(getEventId(), {
+                        fullName: payload.name,
+                        status: payload.status,
+                        side: openRsvpSide,
+                        drinkChoices: payload.drinkChoices
+                    });
+                } catch (error) {
+                    showToast(error.message || "Votre réponse n'a pas été enregistrée.");
+                    return;
+                }
+            }
+            if (hasPersonalInvite && window.GuestManager) {
                 const token = getParams().get("t");
                 let guestByToken = null;
                 if (token) {
@@ -745,11 +920,22 @@ const GuestExperience = (() => {
                     CloudAPI.track(getEventId(), "rsvp_submit", { status: payload.status });
                 } catch (e) {}
             }
+            await loadPublicRsvpMessages();
 
             if (typeof window.closeModal === "function") {
                 window.closeModal("rsvp-modal");
             } else {
                 document.getElementById("rsvp-modal")?.classList.add("hidden");
+            }
+
+            if (isOpenRsvp) {
+                redirectOpenRsvpToWhatsApp(payload, eventConfig, openRsvpSide);
+                return;
+            }
+
+            if (!hasPersonalInvite) {
+                showConfirmation(payload, "", null);
+                return;
             }
 
             const confirmCode = buildConfirmCode(updatedGuest || profile, payload);
@@ -815,3 +1001,4 @@ const GuestExperience = (() => {
 
 window.GuestExperience = GuestExperience;
     window.closeInvitationRequiredModal = GuestExperience.closeInvitationRequiredModal;
+window.chooseOpenRsvpContact = GuestExperience.chooseOpenRsvpContact;

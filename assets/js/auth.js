@@ -14,10 +14,19 @@ const AuthGuard = (() => {
         return !!(config.enabled && config.url && config.anonKey);
     }
 
+    function getSessionStorage() {
+        if (window.localStorage) return window.localStorage;
+        if (typeof localStorage !== "undefined") return localStorage;
+        if (window.sessionStorage) return window.sessionStorage;
+        return sessionStorage;
+    }
+
     function getSession() {
         try {
-            const session = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
+            const storage = getSessionStorage();
+            const session = JSON.parse(storage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY) || "null");
             if (session?.expiresAt && Date.now() >= session.expiresAt) {
+                storage.removeItem(SESSION_KEY);
                 sessionStorage.removeItem(SESSION_KEY);
                 return null;
             }
@@ -28,10 +37,11 @@ const AuthGuard = (() => {
     }
 
     function setSession(data) {
-        sessionStorage.setItem(SESSION_KEY, JSON.stringify(data));
+        getSessionStorage().setItem(SESSION_KEY, JSON.stringify(data));
     }
 
     function clearSession() {
+        getSessionStorage().removeItem(SESSION_KEY);
         sessionStorage.removeItem(SESSION_KEY);
     }
 

@@ -228,6 +228,14 @@
                 }
             }
 
+            const eventConfig = window.EventConfig?.getConfig?.() || {};
+            const isOpenRsvp = eventConfig.rsvpMode === 'open' || eventConfig.type === 'open-rsvp';
+            if (isOpenRsvp) {
+                guestName = '';
+                openMainSite(null, { skipLoader: true });
+                return;
+            }
+
             const urlParams = new URLSearchParams(window.location.search);
             const token = (urlParams.get('t') || '').trim();
             const guestParam = (urlParams.get('guest') || urlParams.get('nom') || '').trim();
@@ -955,6 +963,16 @@
 
         function confirmPresence(ev) {
             const run = () => {
+                const config = window.EventConfig?.getConfig?.() || {};
+                const isOpenRsvp = config.rsvpMode === 'open' || config.type === 'open-rsvp';
+                if (isOpenRsvp) {
+                    if (window.GuestExperience?.openRsvp) {
+                        GuestExperience.openRsvp();
+                    } else {
+                        openModal('rsvp-modal');
+                    }
+                    return;
+                }
                 if (window.GuestExperience) {
                     GuestExperience.openRsvp();
                     return;
@@ -980,6 +998,18 @@
             const run = async () => {
                 const urlParams = new URLSearchParams(window.location.search);
                 const token = (urlParams.get('t') || '').trim();
+                if (window.EventConfig?.init && !window.EventConfig.isReady?.()) {
+                    try { await EventConfig.init(); } catch (error) {
+                        showToast("Impossible de charger la configuration de cette invitation.");
+                        return;
+                    }
+                }
+                const config = window.EventConfig?.getConfig?.() || {};
+                const isOpenRsvp = config.rsvpMode === 'open' || config.type === 'open-rsvp';
+                if (isOpenRsvp && window.GuestExperience?.submitRsvp) {
+                    await window.GuestExperience.submitRsvp(event);
+                    return;
+                }
                 if (!token) {
                     if (window.GuestExperience?.showInvitationRequiredModal) {
                         window.GuestExperience.showInvitationRequiredModal();
@@ -1091,8 +1121,12 @@
 
         function renderGuestbookMessages(messages) {
             const container = document.getElementById('guestbook-messages');
-            if (!container) return;
-            container.innerHTML = '';
+            const publicContainer = document.getElementById('guestbook-public-messages');
+            const publicEmpty = document.getElementById('guestbook-public-empty');
+            if (!container && !publicContainer) return;
+            if (container) container.innerHTML = '';
+            if (publicContainer) publicContainer.innerHTML = '';
+            if (publicEmpty) publicEmpty.classList.toggle('hidden', messages.length > 0);
             messages.forEach(item => {
                 const initials = (item.author || 'Invité')
                     .split(' ')
@@ -1120,7 +1154,8 @@
                 metadata.append(author, sentAt);
                 header.append(avatar, metadata);
                 card.append(header, content);
-                container.appendChild(card);
+                container?.appendChild(card);
+                if (publicContainer) publicContainer.appendChild(card.cloneNode(true));
             });
         }
 

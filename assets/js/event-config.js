@@ -73,6 +73,10 @@ const EventConfig = (() => {
             venue: data.venue || "Kinshasa",
             rsvpDeadline: data.rsvpDeadline || new Date(Date.now() + 20 * 86400000).toISOString().slice(0, 10),
             ownerEmail: String(data.ownerEmail || "").trim().toLowerCase(),
+            rsvpMode: data.rsvpMode || "personal",
+            confirmationContacts: data.confirmationContacts || { male: "", female: "" },
+            dressCodeMen: data.dressCodeMen || "",
+            dressCodeWomen: data.dressCodeWomen || "",
             branding: {
                 primaryColor: data.primaryColor || "#5c1830",
                 accentColor: data.accentColor || "#ec4899",
@@ -208,9 +212,45 @@ const EventConfig = (() => {
 
         setText("hero-title", config.title);
         setText("hero-subtitle", config.subtitle);
+        document.documentElement.style.setProperty("--hero-overlay-opacity", String(config.heroOverlayOpacity ?? 0.58));
+        document.documentElement.style.setProperty("--hero-title-font", config.heroTitleFont || "Playfair Display");
+        document.documentElement.style.setProperty("--hero-subtitle-font", config.heroSubtitleFont || "Montserrat");
+        document.documentElement.style.setProperty("--hero-title-size", `${config.heroTitleSize ?? 48}px`);
+        document.documentElement.style.setProperty("--hero-title-color", config.heroTitleColor || "#ffffff");
+        document.documentElement.style.setProperty("--hero-subtitle-size", `${config.heroSubtitleSize ?? 18}px`);
+        document.documentElement.style.setProperty("--hero-subtitle-color", config.heroSubtitleColor || "#ffffff");
         setText("venue-title", config.venue);
         setText("couple-name-left", config.coupleLeft);
         setText("couple-name-right", config.coupleRight);
+        [
+            ["men", config.dressCodeMen],
+            ["women", config.dressCodeWomen]
+        ].forEach(([side, value]) => {
+            document.querySelectorAll(`[data-dress-code="${side}"]`).forEach((element) => {
+                element.textContent = value || "";
+            });
+        });
+
+        [
+            ["dressPatternMen", "dress-pattern-men", "dress-pattern-men-wrap"],
+            ["dressPatternWomen", "dress-pattern-women", "dress-pattern-women-wrap"]
+        ].forEach(([configKey, imageId, wrapId]) => {
+            const image = document.getElementById(imageId);
+            const wrap = document.getElementById(wrapId);
+            const source = String(config[configKey] || "").trim();
+            if (image && source) image.src = source;
+            wrap?.classList.toggle("hidden", !source);
+        });
+        const dressPatterns = document.getElementById("dress-patterns");
+        const hasMenPattern = !!String(config.dressPatternMen || "").trim();
+        const hasWomenPattern = !!String(config.dressPatternWomen || "").trim();
+        const patternCount = Number(hasMenPattern) + Number(hasWomenPattern);
+        dressPatterns?.classList.toggle("hidden", patternCount === 0);
+
+        const dressDetails = document.getElementById("dress-code-details");
+        if (dressDetails) {
+            dressDetails.classList.toggle("hidden", patternCount > 0 || (!config.dressCodeMen && !config.dressCodeWomen));
+        }
 
         const heroImage = document.getElementById("hero-image");
         const heroImageUrl = config.heroImage || config.branding?.heroImage;

@@ -16,7 +16,7 @@ const CloudAPI = (() => {
         return c.enabled && c.url && c.anonKey;
     }
 
-    async function request(table, { method = "GET", query = "", body = null, prefer = "" } = {}) {
+    async function request(table, { method = "GET", query = "", body = null, prefer = "", throwOnError = false } = {}) {
         if (!isEnabled()) return null;
         const adminSession = window.AuthGuard && AuthGuard.getSession ? AuthGuard.getSession() : null;
         const accessToken = adminSession?.accessToken || cfg().anonKey;
@@ -40,6 +40,11 @@ const CloudAPI = (() => {
         }
         if (!res.ok) {
             const errText = await res.text().catch(() => "");
+            if (throwOnError) {
+                let message = "";
+                try { message = JSON.parse(errText).message || ""; } catch {}
+                throw new Error(`Supabase (${res.status}) : ${message || "requête refusée"}`);
+            }
             console.warn("CloudAPI", table, method, res.status, errText.slice(0, 240));
             return null;
         }
@@ -221,36 +226,42 @@ const CloudAPI = (() => {
             ? AuthGuard.isEventAdmin(eventId)
             : false;
         if (isEnabled() && !isEventAdmin) {
-            return filterDeletedGuests(eventId, readGuestsLocal(eventId));
+            throw new Error("Connexion organisateur requise pour charger les invités Supabase.");
         }
         if (isDjangoEnabled()) {
             try {
                 const djangoGuests = await DjangoAPI.getGuests(eventId);
-                const localGuests = readGuestsLocal(eventId);
-                const merged = djangoGuests.length || localGuests.length
-                    ? mergeGuestLists(djangoGuests, localGuests)
-                    : [];
-                return filterDeletedGuests(eventId, merged);
+                await saveGuestsLocal(eventId, djangoGuests);
+                return djangoGuests;
             } catch (err) {
                 console.warn("CloudAPI: Django getGuests fallback.", err);
             }
         }
 
-        let cloudGuests = [];
-        const cloud = await request("guests", {
-            query: `?event_id=eq.${eventId}&order=created_at.desc`
-        });
-        if (Array.isArray(cloud)) {
-            cloudGuests = cloud.map(mapGuestFromCloud);
+        if (!isEnabled()) return readGuestsLocal(eventId);
+        const cloudGuests = [];
+        let offset = 0;
+        while (true) {
+            const cloud = await request("guests", {
+                query: `?event_id=eq.${encodeURIComponent(eventId)}&order=created_at.desc,id.asc&limit=500&offset=${offset}`,
+                throwOnError: true
+            });
+            if (!Array.isArray(cloud)) throw new Error("Synchronisation Supabase impossible pour cet événement.");
+            cloudGuests.push(...cloud.map(mapGuestFromCloud));
+            if (cloud.length < 500) break;
+            offset += cloud.length;
         }
-        const localGuests = readGuestsLocal(eventId);
-        const merged = cloudGuests.length || localGuests.length
-            ? mergeGuestLists(cloudGuests, localGuests)
-            : [];
-        return filterDeletedGuests(eventId, merged);
+        await saveGuestsLocal(eventId, cloudGuests);
+        return cloudGuests;
     }
 
     async function saveGuestsLocal(eventId, guests) {
+        if (isEnabled()) {
+            if (typeof localStorage.removeItem === "function") {
+                localStorage.removeItem(localKey(eventId, "guests"));
+            }
+            return;
+        }
         localStorage.setItem(localKey(eventId, "guests"), JSON.stringify(guests));
     }
 
@@ -307,7 +318,7 @@ const CloudAPI = (() => {
         return null;
     }
 
-    async function upsertGuest(eventId, guest) {
+    async function upsertGuest(eventId, guest, { saveLocal = true, requireExisting = false, createOnly = false } = {}) {
         let workingGuest = { ...guest };
 
         if (isDjangoEnabled()) {
@@ -327,14 +338,34 @@ const CloudAPI = (() => {
 
         if (isEnabled()) {
             const payloadsFor = () => guestPayloadVariants(eventId, workingGuest);
-            const existing = await request("guests", {
-                query: `?event_id=eq.${eventId}&slug=eq.${encodeURIComponent(workingGuest.slug)}&select=id`
-            });
-
-            if (existing && existing.length) {
-                const cloudId = existing[0].id;
-                cloudGuest = await writeGuestRecord("PATCH", `?id=eq.${cloudId}`, payloadsFor());
+            if (createOnly) {
+                // Explicit insert: never overwrite an existing invitation, token or RSVP.
+                const result = await request("guests", {
+                    method: "POST", body: { ...payloadsFor()[0], id: workingGuest.id },
+                    prefer: "return=representation", throwOnError: true
+                });
+                cloudGuest = extractGuestRow(result);
+                if (!cloudGuest) throw new Error("Supabase n'a pas confirmé la création de l'invité.");
+            } else if (workingGuest.id) {
+                cloudGuest = await writeGuestRecord(
+                    "PATCH",
+                    `?id=eq.${encodeURIComponent(workingGuest.id)}&event_id=eq.${encodeURIComponent(eventId)}`,
+                    payloadsFor()
+                );
+                if (!cloudGuest) return { guest: null, cloudSynced: false };
             } else {
+                const existing = await request("guests", {
+                    query: `?event_id=eq.${eventId}&slug=eq.${encodeURIComponent(workingGuest.slug)}&select=id`
+                });
+                if (existing && existing.length) {
+                    const cloudId = existing[0].id;
+                    cloudGuest = await writeGuestRecord("PATCH", `?id=eq.${cloudId}`, payloadsFor());
+                }
+            }
+            if (requireExisting && !cloudGuest) {
+                return { guest: null, cloudSynced: false };
+            }
+            if (!cloudGuest) {
                 cloudGuest = await writeGuestRecord("POST", "", payloadsFor());
                 if (!cloudGuest) {
                     workingGuest = { ...workingGuest, token: generateGuestToken() };
@@ -346,7 +377,7 @@ const CloudAPI = (() => {
         const merged = cloudGuest ? mapGuestFromCloud(cloudGuest) : workingGuest;
         const guests = readGuestsLocal(eventId).filter((g) => g.slug !== merged.slug);
         guests.unshift(merged);
-        await saveGuestsLocal(eventId, guests);
+                if (saveLocal) await saveGuestsLocal(eventId, guests);
         return {
             guest: merged,
             cloudSynced: !isEnabled() || !!cloudGuest
@@ -374,16 +405,16 @@ const CloudAPI = (() => {
         const target = allGuests.find((g) => g.id === guestId);
         if (!target) {
             markGuestDeleted(eventId, { id: guestId });
-            return { removed: true, cloudSynced: false, reason: "not_found" };
+            return { removed: false, cloudSynced: false, reason: "not_found" };
         }
-
-        markGuestDeleted(eventId, target);
-        const guests = allGuests.filter((g) => g.id !== guestId);
-        await saveGuestsLocal(eventId, guests);
 
         if (isDjangoEnabled()) {
             try {
                 const result = await DjangoAPI.removeGuest(eventId, target);
+                if (result.cloudSynced) {
+                    markGuestDeleted(eventId, target);
+                    await saveGuestsLocal(eventId, allGuests.filter((guest) => guest.id !== guestId));
+                }
                 return { removed: true, cloudSynced: result.cloudSynced, reason: "ok" };
             } catch (err) {
                 console.warn("CloudAPI: Django delete fallback.", err);
@@ -391,32 +422,40 @@ const CloudAPI = (() => {
         }
 
         if (!isEnabled()) {
+            markGuestDeleted(eventId, target);
+            await saveGuestsLocal(eventId, allGuests.filter((guest) => guest.id !== guestId));
             return { removed: true, cloudSynced: true, reason: "local_only" };
         }
 
-        let cloudSynced = false;
-        const tries = [
-            `?id=eq.${guestId}`,
-            target.slug ? `?event_id=eq.${eventId}&slug=eq.${encodeURIComponent(target.slug)}` : null,
-            target.token ? `?event_id=eq.${eventId}&token=eq.${encodeURIComponent(target.token)}` : null
-        ].filter(Boolean);
-
-        for (const query of tries) {
-            const deleted = await request("guests", { method: "DELETE", query });
-            if (deleted === true) {
-                cloudSynced = true;
-                break;
-            }
-        }
-
-        if (!cloudSynced) {
+        const deleted = await requestRpc("delete_managed_guest", {
+            p_event_id: eventId,
+            p_guest_id: guestId
+        });
+        if (deleted !== true) {
             console.warn(
-                "CloudAPI: invité masqué localement mais Supabase DELETE a échoué. " +
-                "Exécutez docs/SUPABASE-FIX-DELETE.sql et vérifiez la clé anon (eyJ…)."
+                "CloudAPI: suppression refusée ou migration Supabase manquante. " +
+                "Exécutez docs/SUPABASE-RSVP-INTEGRITY.sql dans Supabase."
             );
+            return { removed: false, cloudSynced: false, reason: "cloud_delete_failed" };
         }
 
-        return { removed: true, cloudSynced, reason: cloudSynced ? "ok" : "cloud_delete_failed" };
+        markGuestDeleted(eventId, target);
+        await saveGuestsLocal(eventId, allGuests.filter((guest) => guest.id !== guestId));
+        return { removed: true, cloudSynced: true, reason: "ok" };
+    }
+
+    async function removeGuestsCloud(eventId, guestIds, knownGuests = null) {
+        const ids = [...new Set((guestIds || []).filter(Boolean))];
+        if (!ids.length) return { removed: 0, cloudSynced: true };
+        const results = [];
+        for (const guestId of ids) {
+            try { results.push(await removeGuestCloud(eventId, guestId)); }
+            catch (error) { results.push({ removed: false, cloudSynced: false, reason: error.message }); }
+        }
+        return {
+            removed: results.filter((result) => result.removed).length,
+            cloudSynced: results.every((result) => result.cloudSynced)
+        };
     }
 
     // --- RSVP ---
@@ -468,6 +507,27 @@ const CloudAPI = (() => {
         else list.unshift(localRecord);
         localStorage.setItem(key, JSON.stringify(list));
         return payload;
+    }
+
+    async function submitPublicRsvp(eventId, data) {
+        return requestRpc("submit_public_rsvp", {
+            p_event_id: eventId,
+            p_full_name: data.fullName,
+            p_phone: data.phone || "",
+            p_adults: Number(data.adults) || 1,
+            p_children: Number(data.children) || 0,
+            p_message: data.message || ""
+        }, { throwOnError: true });
+    }
+
+    async function submitOpenRsvp(eventId, data) {
+        return requestRpc("submit_open_rsvp", {
+            p_event_id: eventId,
+            p_full_name: data.fullName,
+            p_status: data.status === "no" ? "no" : "yes",
+            p_side: data.side,
+            p_drink_choices: Array.isArray(data.drinkChoices) ? data.drinkChoices : []
+        }, { throwOnError: true });
     }
 
     async function getRSVPs(eventId) {
@@ -524,6 +584,20 @@ const CloudAPI = (() => {
         if (cloud) return cloud;
         const raw = localStorage.getItem(localKey(eventId, "guestbook"));
         return raw ? JSON.parse(raw) : [];
+    }
+
+    async function deleteGuestbookMessage(eventId, messageId) {
+        if (!messageId) return false;
+        if (isEnabled()) {
+            return request("guestbook_messages", {
+                method: "DELETE",
+                query: `?id=eq.${encodeURIComponent(messageId)}&event_id=eq.${encodeURIComponent(eventId)}`
+            });
+        }
+        const key = localKey(eventId, "guestbook");
+        const messages = JSON.parse(localStorage.getItem(key) || "[]").filter((message) => message.id !== messageId);
+        localStorage.setItem(key, JSON.stringify(messages));
+        return true;
     }
 
     // --- Analytics ---
@@ -627,6 +701,11 @@ const CloudAPI = (() => {
 
     async function getPublicGuestbookMessages(eventId) {
         const messages = await requestRpc("get_public_guestbook_messages", { p_event_id: eventId });
+        return Array.isArray(messages) ? messages : [];
+    }
+
+    async function getPublicRsvpMessages(eventId) {
+        const messages = await requestRpc("get_public_rsvp_messages", { p_event_id: eventId });
         return Array.isArray(messages) ? messages : [];
     }
 
@@ -822,12 +901,16 @@ const CloudAPI = (() => {
         saveGuestsLocal,
         restoreDeletedGuest,
         upsertGuest,
+        removeGuestsCloud,
         syncAllGuests,
         removeGuestCloud,
         recordRSVP,
+        submitPublicRsvp,
+        submitOpenRsvp,
         getRSVPs,
         addGuestbookMessage,
         getGuestbookMessages,
+        deleteGuestbookMessage,
         track,
         getAnalytics,
         createEvent,
@@ -839,6 +922,7 @@ const CloudAPI = (() => {
         getGuestByInviteToken,
         submitGuestRsvp,
         getPublicGuestbookMessages,
+        getPublicRsvpMessages,
         postGuestbookMessage,
         saveEventSettings,
         getCheckIns,

@@ -10,7 +10,6 @@ const AdminPresence = (() => {
     }
 
     async function loadData() {
-        await GuestManager.loadGuests(true);
         const guests = await GuestManager.loadGuests();
         checkInsCache = (window.CheckinAPI && CheckinAPI.listCheckIns)
             ? await CheckinAPI.listCheckIns(getEventId())
@@ -103,7 +102,7 @@ const AdminPresence = (() => {
                 <td><strong>${escapeHtml(g.fullName)}</strong></td>
                 <td>${statusHtml}</td>
                 <td>${escapeHtml(row.scannedAt)}</td>
-                <td>${escapeHtml(g.tableNumber || "—")}</td>
+                <td>${escapeHtml(tableLabel(g))}</td>
                 <td>${g.adults || 0} / ${g.children || 0}</td>
                 <td>${escapeHtml(row.staff)}</td>`;
             tbody.appendChild(tr);
@@ -115,6 +114,13 @@ const AdminPresence = (() => {
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;");
+    }
+
+    function tableLabel(guest) {
+        const number = String(guest?.tableNumber || "").trim();
+        const name = String(guest?.group || guest?.tableName || "").trim();
+        if (number && name) return `${number} · ${name}`;
+        return number || name || "—";
     }
 
     function exportCsv() {

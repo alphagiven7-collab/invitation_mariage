@@ -1,4 +1,4 @@
-const CACHE = "invitation-v52";
+const CACHE = "invitation-v55";
 
 self.addEventListener("install", (e) => {
     self.skipWaiting();
@@ -33,14 +33,14 @@ self.addEventListener("fetch", (e) => {
         return response;
     });
 
-    // Une page déjà ouverte s'affiche sans attendre un réseau lent, puis est actualisée.
+    // Les pages doivent refléter immédiatement les changements publiés.
     if (isPage) {
         e.respondWith(
-            caches.match(e.request).then((cached) => {
-                const update = refresh();
-                e.waitUntil(update.catch(() => undefined));
-                return cached || update.catch(() => new Response("Connexion indisponible", { status: 503 }));
-            })
+            refresh().catch(() =>
+                caches.match(e.request).then((cached) =>
+                    cached || new Response("Connexion indisponible", { status: 503 })
+                )
+            )
         );
         return;
     }

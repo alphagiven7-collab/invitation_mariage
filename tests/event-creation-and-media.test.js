@@ -53,6 +53,32 @@ test('EventConfig.createEvent prepares an unpublished event without persisting i
   );
 });
 
+test('EventConfig.createEvent keeps open RSVP contacts separate from personal events', () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'event-config.js'), 'utf8');
+  const sandbox = {
+    console,
+    URLSearchParams,
+    window: { location: { search: '?event=ouvert-test' } },
+    localStorage: { getItem() { return null; }, setItem() {} }
+  };
+  sandbox.window.window = sandbox.window;
+  sandbox.global = sandbox;
+  sandbox.globalThis = sandbox;
+  vm.runInNewContext(source, sandbox, { filename: 'event-config.js' });
+
+  const event = sandbox.window.EventConfig.createEvent({
+    title: 'Soiree ouverte',
+    type: 'open-rsvp',
+    rsvpMode: 'open',
+    confirmationContacts: { male: '+243810000001', female: '+243810000002' }
+  });
+
+  assert.equal(event.type, 'open-rsvp');
+  assert.equal(event.rsvpMode, 'open');
+  assert.equal(event.confirmationContacts.male, '+243810000001');
+  assert.equal(event.confirmationContacts.female, '+243810000002');
+});
+
 test('EventConfig ignores stale local configuration for the built-in demo', async () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'event-config.js'), 'utf8');
   const store = {
@@ -159,7 +185,7 @@ test('AuthGuard accepts a collaborator authorized for an event', async () => {
   assert.ok(requestedUrls.some((url) => url.includes('/rpc/can_manage_event')));
 });
 
-test('CloudAPI keeps local guests visible when the admin session is unavailable', async () => {
+test('CloudAPI never displays local guests when the Supabase admin session is unavailable', async () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'cloud-api.js'), 'utf8');
   const store = {
     'wedding_event_event-test_guests': JSON.stringify([
@@ -183,9 +209,42 @@ test('CloudAPI keeps local guests visible when the admin session is unavailable'
   sandbox.globalThis = sandbox;
   vm.runInNewContext(source, sandbox, { filename: 'cloud-api.js' });
 
+  await assert.rejects(
+    sandbox.window.CloudAPI.getGuests('event-test'),
+    /Connexion organisateur requise/
+  );
+});
+
+test('CloudAPI uses the Supabase guest list instead of stale local guest data', async () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'cloud-api.js'), 'utf8');
+  const store = {
+    'wedding_event_event-test_guests': JSON.stringify([
+      { id: 'old-guest', slug: 'old-guest', fullName: 'Ancienne liste locale', status: 'pending' }
+    ])
+  };
+  const authGuard = { isEventAdmin: () => true, getSession: () => ({ accessToken: 'token' }) };
+  const sandbox = {
+    console,
+    URLSearchParams,
+    SUPABASE_CONFIG: { enabled: true, url: 'https://example.test', anonKey: 'anon-key' },
+    AuthGuard: authGuard,
+    window: { SUPABASE_CONFIG: { enabled: true, url: 'https://example.test', anonKey: 'anon-key' }, AuthGuard: authGuard },
+    fetch: async () => ({ ok: true, status: 200, text: async () => JSON.stringify([
+      { id: 'cloud-guest', event_id: 'event-test', slug: 'cloud-guest', full_name: 'Liste Supabase', status: 'yes' }
+    ]) }),
+    localStorage: {
+      getItem(key) { return store[key] || null; },
+      setItem(key, value) { store[key] = String(value); }
+    }
+  };
+  sandbox.window.window = sandbox.window;
+  sandbox.global = sandbox;
+  sandbox.globalThis = sandbox;
+  vm.runInNewContext(source, sandbox, { filename: 'cloud-api.js' });
+
   const guests = await sandbox.window.CloudAPI.getGuests('event-test');
   assert.equal(guests.length, 1);
-  assert.equal(guests[0].fullName, 'Sarah Martin');
+  assert.equal(guests[0].fullName, 'Liste Supabase');
 });
 
 test('CloudAPI keeps only the latest RSVP shown for each guest', async () => {
@@ -395,6 +454,102 @@ test('GuestManager parses quoted CSV values and counts duplicate imports as skip
   const second = await manager.importCSVRows(rows);
   assert.deepEqual({ imported: first.imported, skipped: first.skipped }, { imported: 1, skipped: 0 });
   assert.deepEqual({ imported: second.imported, skipped: second.skipped }, { imported: 0, skipped: 1 });
+});
+
+test('GuestManager previews CSV corrections only for pending guests without a table', async () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'guest-manager.js'), 'utf8');
+  const store = {};
+  let nextId = 0;
+  const eventConfig = {
+    isReady: () => true,
+    getEventId: () => 'event-test',
+    buildInvitationBaseUrl: () => 'https://example.test/pages/invitation.html'
+  };
+  const sandbox = {
+    console,
+    URLSearchParams,
+    crypto: { randomUUID: () => `uuid-${++nextId}` },
+    EventConfig: eventConfig,
+    window: { EventConfig: eventConfig, crypto: { randomUUID: () => `uuid-${++nextId}` } },
+    localStorage: {
+      getItem(key) { return store[key] || null; },
+      setItem(key, value) { store[key] = String(value); }
+    }
+  };
+  sandbox.window.window = sandbox.window;
+  sandbox.global = sandbox;
+  sandbox.globalThis = sandbox;
+  vm.runInNewContext(source, sandbox, { filename: 'guest-manager.js' });
+
+  const manager = sandbox.window.GuestManager;
+  const pending = (await manager.addGuest({ fullName: 'Valeri Sukami' })).guest;
+  const confirmed = (await manager.addGuest({ fullName: 'David Lokaya' })).guest;
+  await manager.updateGuest(confirmed.id, { status: 'yes' });
+  const assigned = (await manager.addGuest({ fullName: 'Nelson M.' })).guest;
+  await manager.updateGuest(assigned.id, { tableNumber: '13' });
+
+  const preview = await manager.previewCsvCorrections([
+    { fullName: 'Valere Sukami', tableNumber: '17', tableName: 'Juges' },
+    { fullName: 'David Lokaya', tableNumber: '14', tableName: 'Esaie' },
+    { fullName: 'Nelson M.', tableNumber: '13', tableName: 'Ecclesiaste' }
+  ]);
+  assert.equal(preview.matches.length, 1);
+  assert.equal(preview.matches[0].guestId, pending.id);
+  assert.equal(preview.matches[0].tableNumber, '17');
+
+  const result = await manager.applyCsvCorrections(preview.matches);
+  assert.equal(result.updated, 1);
+  const guests = await manager.loadGuests();
+  assert.equal(guests.find((guest) => guest.id === pending.id).fullName, 'Valere Sukami');
+  assert.equal(guests.find((guest) => guest.id === confirmed.id).status, 'yes');
+  assert.equal(guests.find((guest) => guest.id === assigned.id).tableNumber, '13');
+});
+
+test('GuestManager preserves only confirmed guests with a phone number during CSV replacement', async () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'guest-manager.js'), 'utf8');
+  const store = {};
+  let nextId = 0;
+  const eventConfig = {
+    isReady: () => true,
+    getEventId: () => 'event-test',
+    buildInvitationBaseUrl: () => 'https://example.test/pages/invitation.html'
+  };
+  const sandbox = {
+    console,
+    URLSearchParams,
+    crypto: { randomUUID: () => `uuid-${++nextId}` },
+    EventConfig: eventConfig,
+    window: { EventConfig: eventConfig, crypto: { randomUUID: () => `uuid-${++nextId}` } },
+    localStorage: {
+      getItem(key) { return store[key] || null; },
+      setItem(key, value) { store[key] = String(value); }
+    }
+  };
+  sandbox.window.window = sandbox.window;
+  sandbox.global = sandbox;
+  sandbox.globalThis = sandbox;
+  vm.runInNewContext(source, sandbox, { filename: 'guest-manager.js' });
+
+  const manager = sandbox.window.GuestManager;
+  await manager.addGuest({ fullName: 'Ancien nom erroné' });
+  const confirmed = (await manager.addGuest({ fullName: 'Invité confirmé', phone: '+243 999 123 456' })).guest;
+  await manager.updateGuest(confirmed.id, { status: 'yes' });
+  const confirmedWithoutPhone = (await manager.addGuest({ fullName: 'Confirmé sans téléphone' })).guest;
+  await manager.updateGuest(confirmedWithoutPhone.id, { status: 'yes' });
+  const assigned = (await manager.addGuest({ fullName: 'Déjà placé', tableNumber: '8' })).guest;
+
+  const result = await manager.replaceGuestsExceptConfirmedWithPhone([
+    { fullName: 'Nelson', tableNumber: '13', tableName: 'Ecclésiaste' },
+    { fullName: 'David', tableNumber: '13', tableName: 'Ecclésiaste' }
+  ]);
+  assert.deepEqual({ removed: result.removed, imported: result.imported }, { removed: 3, imported: 2 });
+  const guests = await manager.loadGuests();
+  assert.equal(guests.some((guest) => guest.fullName === 'Ancien nom erroné'), false);
+  assert.equal(guests.find((guest) => guest.id === confirmed.id).status, 'yes');
+  assert.equal(guests.find((guest) => guest.id === confirmed.id).phone, '+243 999 123 456');
+  assert.equal(guests.some((guest) => guest.id === confirmedWithoutPhone.id), false);
+  assert.equal(guests.some((guest) => guest.id === assigned.id), false);
+  assert.equal(guests.find((guest) => guest.fullName === 'Nelson').tableNumber, '13');
 });
 
 test('CheckinAPI refuses unapproved QR codes and records approved guests per event', async () => {

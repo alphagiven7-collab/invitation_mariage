@@ -22,13 +22,13 @@
     <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#4caf50">
     <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=34">
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Great+Vibes&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@0.469.0"></script>
-    <link rel="stylesheet" href="../assets/css/app.css?v=64">
+    <link rel="stylesheet" href="../assets/css/app.css?v=73">
     <link rel="stylesheet" href="../assets/css/drink-menu.css?v=34">
     <script>
         if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("../sw.js?v=36").catch(() => {});
+            navigator.serviceWorker.register("../sw.js?v=38").catch(() => {});
         }
     </script>
     <style>
@@ -221,7 +221,27 @@
                     <div class="w-8 h-8 rounded-full bg-[#2d3748] shadow-inner border border-gray-100"></div>
                 </div>
 
-                <div class="dress-marquee-wrapper">
+                <div id="dress-code-details" class="hidden grid grid-cols-2 gap-2 mb-5 text-left">
+                    <p class="rounded-lg bg-slate-50 px-3 py-2 text-[11px] text-slate-600"><strong class="block text-slate-800">Homme</strong><span data-dress-code="men"></span></p>
+                    <p class="rounded-lg bg-rose-50 px-3 py-2 text-[11px] text-slate-600"><strong class="block text-slate-800">Femme</strong><span data-dress-code="women"></span></p>
+                </div>
+
+                <div id="dress-patterns" class="hidden grid grid-cols-2 gap-4 mb-5">
+                    <figure id="dress-pattern-men-wrap" class="dress-attire-photo hidden text-left">
+                        <img id="dress-pattern-men" alt="Tenue attendue côté homme">
+                        <figcaption>
+                            <strong>Côté Homme</strong><span data-dress-code="men"></span>
+                        </figcaption>
+                    </figure>
+                    <figure id="dress-pattern-women-wrap" class="dress-attire-photo hidden text-left">
+                        <img id="dress-pattern-women" alt="Tenue attendue côté femme">
+                        <figcaption>
+                            <strong>Côté Femme</strong><span data-dress-code="women"></span>
+                        </figcaption>
+                    </figure>
+                </div>
+
+                <div id="dress-marquee-wrapper" class="dress-marquee-wrapper">
                     <div class="dress-marquee-track">
                         <img id="dress-photo-1" src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 1">
                         <img id="dress-photo-2" src="https://images.unsplash.com/photo-1591369822096-ffd140ec948f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 2">
@@ -283,7 +303,7 @@
 
                 <button type="button" id="download-invitation-pdf-btn" class="hidden w-full mb-6 inline-flex justify-center items-center gap-2 py-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-800 text-xs font-semibold transition">
                     <i data-lucide="download" class="w-4 h-4"></i>
-                    <span>Imprimer mon invitation PDF</span>
+                    <span>Imprimer l'invitation</span>
                 </button>
 
                 <p id="program-section-title" class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-5 text-center">Programme de la journée</p>
@@ -464,6 +484,27 @@
                 <p class="text-[10px] text-gray-400">Besoin de nous joindre ? <a id="support-phone-link" href="https://wa.me/243845370370" class="font-bold text-gray-600 underline">Contactez Michelline Event au +243 845 370 370</a></p>
             </div>
         </section>
+
+        <section id="rsvp-messages-section" class="px-4 mb-12" aria-labelledby="rsvp-messages-title">
+            <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
+                <div class="text-center mb-4">
+                    <p class="text-[10px] font-semibold uppercase tracking-widest text-pink-500">Vos mots comptent</p>
+                    <h3 id="rsvp-messages-title" class="font-serif text-xl text-gray-800 mt-1">Messages des invités</h3>
+                </div>
+                <div id="rsvp-messages-list" class="space-y-3" aria-live="polite"></div>
+                <p id="rsvp-messages-empty" class="text-center text-xs text-gray-400 py-3">Les premiers messages apparaîtront ici.</p>
+            </div>
+        </section>
+
+        <section id="guestbook-public-section" class="px-4 mb-12" aria-labelledby="guestbook-public-title">
+            <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
+                <div class="text-center mb-4">
+                    <h3 id="guestbook-public-title" class="font-serif text-xl text-gray-800">Livre d'or</h3>
+                </div>
+                <div id="guestbook-public-messages" class="space-y-3"></div>
+                <p id="guestbook-public-empty" class="text-center text-xs text-gray-400 py-3">Les messages des invités apparaîtront ici.</p>
+            </div>
+        </section>
     </main>
 
     <!-- ============================================== -->
@@ -584,18 +625,41 @@
                         <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Nom complet</label>
                         <input id="rsvp-name" type="text" required class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200" placeholder="Votre nom">
                     </div>
-                    <div>
+                    <div id="rsvp-phone-field">
                         <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Téléphone</label>
                         <input id="rsvp-phone" type="tel" required value="+243 " class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200" placeholder="+243 ...">
                     </div>
                     <div>
-                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Présence</label>
-                        <select id="rsvp-status" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200">
-                            <option value="yes">Je serai présent(e)</option>
-                            <option value="no">Je ne pourrai pas être présent(e)</option>
-                        </select>
+                        <span class="block text-[11px] uppercase tracking-wider text-gray-500 mb-2">Présence</span>
+                        <div class="rsvp-choice-grid" role="radiogroup" aria-label="Choix de présence">
+                            <label class="rsvp-choice rsvp-choice--yes">
+                                <input type="radio" name="rsvp-status" value="yes" checked>
+                                <span class="rsvp-choice-indicator" aria-hidden="true"></span>
+                                <span>Je serai présent(e)</span>
+                            </label>
+                            <label class="rsvp-choice rsvp-choice--no">
+                                <input type="radio" name="rsvp-status" value="no">
+                                <span class="rsvp-choice-indicator" aria-hidden="true"></span>
+                                <span>Je ne pourrai pas venir</span>
+                            </label>
+                        </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-2">
+                    <div id="open-rsvp-side-field" class="hidden">
+                        <span class="block text-[11px] uppercase tracking-wider text-gray-500 mb-2">De quelle famille provient votre invitation ?</span>
+                        <div class="rsvp-choice-grid" role="radiogroup" aria-label="Famille à l'origine de l'invitation">
+                            <label class="rsvp-choice rsvp-choice--male">
+                                <input type="radio" name="open-rsvp-side" value="male">
+                                <span class="rsvp-choice-indicator" aria-hidden="true"></span>
+                                <span><strong id="open-rsvp-male-family">Côté de la famille de l'homme</strong><small>Invitation reçue de ce côté</small></span>
+                            </label>
+                            <label class="rsvp-choice rsvp-choice--female">
+                                <input type="radio" name="open-rsvp-side" value="female">
+                                <span class="rsvp-choice-indicator" aria-hidden="true"></span>
+                                <span><strong id="open-rsvp-female-family">Côté de la famille de la femme</strong><small>Invitation reçue de ce côté</small></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div id="rsvp-count-fields" class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Adultes</label>
                             <input id="rsvp-adults" type="number" min="1" max="10" value="1" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200">
@@ -605,11 +669,11 @@
                             <input id="rsvp-children" type="number" min="0" max="10" value="0" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200">
                         </div>
                     </div>
-                    <div>
+                    <div id="rsvp-message-field">
                         <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Message</label>
                         <textarea id="rsvp-message" rows="3" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200" placeholder="Votre message aux mariés..."></textarea>
                     </div>
-                    <div>
+                    <div id="rsvp-photo-field">
                         <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Photo sur votre carte (facultatif)</label>
                         <label for="rsvp-profile-photo" class="rsvp-profile-upload-btn">
                             Ajouter ma photo
@@ -878,14 +942,14 @@
     <script src="../assets/js/supabase-config.js?v=53"></script>
     <script src="../assets/js/django-api-config.js?v=53"></script>
     <script src="../assets/js/django-api.js?v=53"></script>
-    <script src="../assets/js/event-config.js?v=63"></script>
-    <script src="../assets/js/cloud-api.js?v=60"></script>
+    <script src="../assets/js/event-config.js?v=71"></script>
+    <script src="../assets/js/cloud-api.js?v=77"></script>
     <script src="../assets/js/dashboard-sync.js?v=55"></script>
-    <script src="../assets/js/guest-manager.js?v=53"></script>
+    <script src="../assets/js/guest-manager.js?v=64"></script>
     <script src="../assets/js/checkin-url.js?v=50"></script>
     <script src="../assets/js/access-pass-export.js?v=53"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-    <script src="../assets/js/invitation-pdf.js?v=5"></script>
+    <script src="../assets/js/invitation-pdf.js?v=10"></script>
     <script src="../assets/js/content-blocks.js?v=36"></script>
     <script src="../assets/js/calendar-export.js?v=35"></script>
     <script src="../assets/js/background-music.js?v=34"></script>
@@ -894,8 +958,8 @@
     <script src="../assets/js/i18n.js?v=34"></script>
     <script src="../assets/js/drink-generic-images.js?v=34"></script>
     <script src="../assets/js/drink-menu.js?v=34"></script>
-    <script src="../assets/js/app.js?v=59"></script>
-    <script src="../assets/js/guest-experience.js?v=62"></script>
+    <script src="../assets/js/app.js?v=63"></script>
+    <script src="../assets/js/guest-experience.js?v=87"></script>
     <script>
         // Fallback robuste si app.js ne se charge pas complètement
         (function () {

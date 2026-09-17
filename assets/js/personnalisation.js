@@ -106,6 +106,13 @@ function getConfigDefaults() {
         coupleRight: cfg?.coupleRight || "",
         welcomeImage: cfg?.branding?.welcomeImage || "",
         heroImage: cfg?.branding?.heroImage || "",
+        heroOverlayOpacity: cfg?.heroOverlayOpacity ?? 0.58,
+        heroTitleFont: cfg?.heroTitleFont || "Playfair Display",
+        heroSubtitleFont: cfg?.heroSubtitleFont || "Montserrat",
+        heroTitleSize: cfg?.heroTitleSize ?? 48,
+        heroTitleColor: cfg?.heroTitleColor || "#ffffff",
+        heroSubtitleSize: cfg?.heroSubtitleSize ?? 18,
+        heroSubtitleColor: cfg?.heroSubtitleColor || "#ffffff",
         welcomeMessage: cfg?.welcomeMessage || "",
         gateHint: cfg?.gateHint || "",
         inviteIntro: cfg?.inviteIntro || "C'est avec une grande joie que {couple} vous invitent à célébrer leur mariage.",
@@ -113,6 +120,9 @@ function getConfigDefaults() {
         reserveText: cfg?.reserveText || "Confirmer ma présence",
         rsvpDeadlineText: cfg?.rsvpDeadlineText || (cfg?.rsvpDeadline ? `Merci de confirmer avant le ${cfg.rsvpDeadline}` : ""),
         rsvpButtonColor: cfg?.rsvpButtonColor || cfg?.branding?.accentColor || "#ec4899",
+        confirmationContacts: cfg?.confirmationContacts || { male: "", female: "" },
+        confirmationFamilies: cfg?.confirmationFamilies || { male: "", female: "" },
+        openRsvpWhatsAppMessage: cfg?.openRsvpWhatsAppMessage || "",
         aboutTitle: cfg?.aboutTitle || "Notre Histoire",
         aboutStory1: cfg?.aboutStory1 || "",
         aboutStory2: cfg?.aboutStory2 || "",
@@ -122,6 +132,10 @@ function getConfigDefaults() {
         donationWhatsAppMessage: cfg?.links?.donationWhatsAppMessage || "",
         giftMessage: cfg?.giftMessage || blocks.giftMessage || "",
         dressCodeTitle: cfg?.dressCodeTitle || "Tenue élégante",
+        dressCodeMen: cfg?.dressCodeMen || "",
+        dressCodeWomen: cfg?.dressCodeWomen || "",
+        dressPatternMen: cfg?.dressPatternMen || "",
+        dressPatternWomen: cfg?.dressPatternWomen || "",
         dressImages: cfg?.dressImages || [],
         eventEndTime: cfg?.eventEndTime || "",
         supportEmail: cfg?.links?.supportEmail || "",
@@ -147,6 +161,13 @@ const DEFAULT_STATE = {
     mainText: "La cérémonie, suivie d'une réception, se tiendra le jeudi 30 avril 2026 à partir de 19h30.",
     welcomeImage: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
     heroImage: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=80",
+    heroOverlayOpacity: 0.58,
+    heroTitleFont: "Playfair Display",
+    heroSubtitleFont: "Montserrat",
+    heroTitleSize: 48,
+    heroTitleColor: "#ffffff",
+    heroSubtitleSize: 18,
+    heroSubtitleColor: "#ffffff",
     primaryColor: "#4caf50",
     accentColor: "#ec4899",
     bestPhotos: [
@@ -161,6 +182,9 @@ const DEFAULT_STATE = {
     reserveText: "Confirmer ma présence",
     rsvpDeadlineText: "Merci de confirmer avant le 25 avril 2026",
     rsvpButtonColor: "#ec4899",
+    confirmationContacts: { male: "", female: "" },
+    confirmationFamilies: { male: "", female: "" },
+    openRsvpWhatsAppMessage: "",
     aboutTitle: "Notre Histoire",
     aboutStory1: "",
     aboutStory2: "",
@@ -170,6 +194,10 @@ const DEFAULT_STATE = {
     donationWhatsAppMessage: "Bonjour {couple}, je souhaite vous faire un don pour votre mariage. Merci de me communiquer les modalités.",
     giftMessage: "Votre présence est le plus beau des cadeaux. Pour toute attention particulière, contactez les organisateurs.",
     dressCodeTitle: "Tenue élégante",
+    dressCodeMen: "",
+    dressCodeWomen: "",
+    dressPatternMen: "",
+    dressPatternWomen: "",
     dressImages: [],
     supportEmail: "contact@michelline.cd",
     rsvpLink: "",
@@ -330,6 +358,13 @@ function readFormState() {
         subtitle: document.getElementById("subtitle").value.trim(),
         mainText: document.getElementById("message").value.trim(),
         heroImage: document.getElementById("heroImage").value.trim(),
+        heroOverlayOpacity: Number(document.getElementById("heroOverlayOpacity").value) / 100,
+        heroTitleFont: document.getElementById("heroTitleFont").value,
+        heroSubtitleFont: document.getElementById("heroSubtitleFont").value,
+        heroTitleSize: Number(document.getElementById("heroTitleSize").value),
+        heroTitleColor: document.getElementById("heroTitleColor").value,
+        heroSubtitleSize: Number(document.getElementById("heroSubtitleSize").value),
+        heroSubtitleColor: document.getElementById("heroSubtitleColor").value,
         welcomeImage: document.getElementById("welcomeImage").value.trim(),
         primaryColor: document.getElementById("primaryColor").value,
         accentColor: document.getElementById("accentColor").value,
@@ -355,6 +390,15 @@ function readFormState() {
         reserveText: document.getElementById("reserveText").value.trim(),
         rsvpDeadlineText: document.getElementById("rsvpDeadlineText").value.trim(),
         rsvpButtonColor: document.getElementById("rsvpButtonColor").value,
+        confirmationContacts: {
+            male: document.getElementById("openRsvpMalePhone").value.trim(),
+            female: document.getElementById("openRsvpFemalePhone").value.trim()
+        },
+        confirmationFamilies: {
+            male: document.getElementById("openRsvpMaleFamily").value.trim(),
+            female: document.getElementById("openRsvpFemaleFamily").value.trim()
+        },
+        openRsvpWhatsAppMessage: document.getElementById("openRsvpWhatsAppMessage").value.trim(),
         aboutTitle: document.getElementById("aboutTitle").value.trim(),
         aboutStory1: document.getElementById("aboutStory1").value.trim(),
         aboutStory2: document.getElementById("aboutStory2").value.trim(),
@@ -364,6 +408,10 @@ function readFormState() {
         donationWhatsAppMessage: document.getElementById("donationWhatsAppMessage").value.trim(),
         giftMessage: document.getElementById("giftMessage").value.trim(),
         dressCodeTitle: document.getElementById("dressCodeTitle").value.trim(),
+        dressCodeMen: document.getElementById("dressCodeMen").value.trim(),
+        dressCodeWomen: document.getElementById("dressCodeWomen").value.trim(),
+        dressPatternMen: document.getElementById("dressPatternMen").value.trim(),
+        dressPatternWomen: document.getElementById("dressPatternWomen").value.trim(),
         dressImages: parseMediaList(document.getElementById("dressImages").value, 8),
         supportEmail: document.getElementById("supportEmail").value.trim(),
         rsvpLink: document.getElementById("rsvpLink").value.trim(),
@@ -390,6 +438,13 @@ function toDashboardPayload(formState) {
         mainText: formState.mainText,
         welcomeImage: formState.welcomeImage,
         heroImage: formState.heroImage,
+        heroOverlayOpacity: formState.heroOverlayOpacity,
+        heroTitleFont: formState.heroTitleFont,
+        heroSubtitleFont: formState.heroSubtitleFont,
+        heroTitleSize: formState.heroTitleSize,
+        heroTitleColor: formState.heroTitleColor,
+        heroSubtitleSize: formState.heroSubtitleSize,
+        heroSubtitleColor: formState.heroSubtitleColor,
         primaryColor: formState.primaryColor,
         accentColor: formState.accentColor,
         bestPhotos: photos,
@@ -401,6 +456,7 @@ function toDashboardPayload(formState) {
         galleryModalImages: [photos[0], photos[1], photos[2], photos[3]].filter(Boolean),
         shareImage: photos[0] || formState.heroImage,
         message: formState.mainText,
+        eventDate: formState.countdownDate || "",
         countdownDate: formState.countdownDate || "",
         eventEndTime: formState.eventEndTime || "",
         venueTitle: formState.venueTitle,
@@ -423,6 +479,9 @@ function toDashboardPayload(formState) {
         reserveText: formState.reserveText,
         rsvpDeadlineText: formState.rsvpDeadlineText,
         rsvpButtonColor: formState.rsvpButtonColor,
+        confirmationContacts: formState.confirmationContacts,
+        confirmationFamilies: formState.confirmationFamilies,
+        openRsvpWhatsAppMessage: formState.openRsvpWhatsAppMessage,
         aboutTitle: formState.aboutTitle,
         aboutStory1: formState.aboutStory1,
         aboutStory2: formState.aboutStory2,
@@ -432,6 +491,10 @@ function toDashboardPayload(formState) {
         donationWhatsAppMessage: formState.donationWhatsAppMessage,
         giftMessage: formState.giftMessage,
         dressCodeTitle: formState.dressCodeTitle,
+        dressCodeMen: formState.dressCodeMen,
+        dressCodeWomen: formState.dressCodeWomen,
+        dressPatternMen: formState.dressPatternMen,
+        dressPatternWomen: formState.dressPatternWomen,
         dressImages: formState.dressImages,
         supportEmail: formState.supportEmail,
         rsvpLink: formState.rsvpLink,
@@ -687,6 +750,11 @@ function hydrateForm(state) {
     document.getElementById("reserveText").value = state.reserveText || "";
     document.getElementById("rsvpDeadlineText").value = state.rsvpDeadlineText || "";
     document.getElementById("rsvpButtonColor").value = state.rsvpButtonColor || "#ec4899";
+    document.getElementById("openRsvpMalePhone").value = state.confirmationContacts?.male || "";
+    document.getElementById("openRsvpFemalePhone").value = state.confirmationContacts?.female || "";
+    document.getElementById("openRsvpMaleFamily").value = state.confirmationFamilies?.male || "";
+    document.getElementById("openRsvpFemaleFamily").value = state.confirmationFamilies?.female || "";
+    document.getElementById("openRsvpWhatsAppMessage").value = state.openRsvpWhatsAppMessage || "";
     document.getElementById("aboutTitle").value = state.aboutTitle || "";
     document.getElementById("aboutStory1").value = state.aboutStory1 || "";
     document.getElementById("aboutStory2").value = state.aboutStory2 || "";
@@ -696,6 +764,10 @@ function hydrateForm(state) {
     document.getElementById("donationWhatsAppMessage").value = state.donationWhatsAppMessage || "";
     document.getElementById("giftMessage").value = state.giftMessage || "";
     document.getElementById("dressCodeTitle").value = state.dressCodeTitle || "Tenue élégante";
+    document.getElementById("dressCodeMen").value = state.dressCodeMen || "";
+    document.getElementById("dressCodeWomen").value = state.dressCodeWomen || "";
+    document.getElementById("dressPatternMen").value = state.dressPatternMen || "";
+    document.getElementById("dressPatternWomen").value = state.dressPatternWomen || "";
     document.getElementById("dressImages").value = (state.dressImages || []).join(", ");
     document.getElementById("supportEmail").value = state.supportEmail || "";
     document.getElementById("rsvpLink").value = state.rsvpLink || "";
@@ -704,6 +776,16 @@ function hydrateForm(state) {
     document.getElementById("primaryColor").value = state.primaryColor || "#4caf50";
     document.getElementById("accentColor").value = state.accentColor || "#ec4899";
     document.getElementById("heroImage").value = state.heroImage || "";
+    document.getElementById("heroOverlayOpacity").value = Math.round((state.heroOverlayOpacity ?? 0.58) * 100);
+    document.getElementById("heroOverlayOpacity-value").textContent = `${document.getElementById("heroOverlayOpacity").value}%`;
+    document.getElementById("heroTitleFont").value = state.heroTitleFont || "Playfair Display";
+    document.getElementById("heroSubtitleFont").value = state.heroSubtitleFont || "Montserrat";
+    document.getElementById("heroTitleSize").value = state.heroTitleSize ?? 48;
+    document.getElementById("heroTitleSize-value").textContent = `${document.getElementById("heroTitleSize").value} px`;
+    document.getElementById("heroTitleColor").value = state.heroTitleColor || "#ffffff";
+    document.getElementById("heroSubtitleSize").value = state.heroSubtitleSize ?? 18;
+    document.getElementById("heroSubtitleSize-value").textContent = `${document.getElementById("heroSubtitleSize").value} px`;
+    document.getElementById("heroSubtitleColor").value = state.heroSubtitleColor || "#ffffff";
     document.getElementById("welcomeImage").value = state.welcomeImage || "";
     document.getElementById("venueTitle").value = state.venueTitle || "";
     document.getElementById("venueAddress").value = state.venueAddress || "";
@@ -1155,7 +1237,24 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("bestPhotos").addEventListener("input", () => renderPreview(parseMediaList(document.getElementById("bestPhotos").value, 12)));
     document.getElementById("dressImages").addEventListener("input", () => renderDressPreview(parseMediaList(document.getElementById("dressImages").value, 8)));
+    document.getElementById("dressPatternMen").addEventListener("input", () => renderSinglePreview("dressPatternMen", "preview-dressPatternMen"));
+    document.getElementById("dressPatternWomen").addEventListener("input", () => renderSinglePreview("dressPatternWomen", "preview-dressPatternWomen"));
     document.getElementById("heroImage").addEventListener("input", () => renderSinglePreview("heroImage", "preview-heroImage"));
+    document.getElementById("heroOverlayOpacity")?.addEventListener("input", (event) => {
+        const value = event.target.value;
+        document.getElementById("heroOverlayOpacity-value").textContent = `${value}%`;
+        schedulePreviewRefresh();
+    });
+    ["heroTitleSize", "heroSubtitleSize"].forEach((id) => {
+        document.getElementById(id)?.addEventListener("input", (event) => {
+            document.getElementById(`${id}-value`).textContent = `${event.target.value} px`;
+            schedulePreviewRefresh();
+        });
+    });
+    ["heroTitleColor", "heroSubtitleColor", "heroTitleFont", "heroSubtitleFont"].forEach((id) => {
+        document.getElementById(id)?.addEventListener("input", () => schedulePreviewRefresh());
+        document.getElementById(id)?.addEventListener("change", () => schedulePreviewRefresh());
+    });
     document.getElementById("welcomeImage").addEventListener("input", () => renderSinglePreview("welcomeImage", "preview-welcomeImage"));
     document.getElementById("mapImage").addEventListener("input", () => renderSinglePreview("mapImage", "preview-mapImage"));
     document.getElementById("aboutImage").addEventListener("input", () => renderSinglePreview("aboutImage", "preview-aboutImage"));
@@ -1166,6 +1265,8 @@ window.addEventListener("DOMContentLoaded", async () => {
     await wireUploader("upload-about", "aboutImage", "preview-aboutImage");
     await wireUploader("upload-best", "bestPhotos", null, true, 12);
     await wireUploader("upload-dress", "dressImages", null, true, 8);
+    await wireUploader("upload-dressPatternMen", "dressPatternMen", "preview-dressPatternMen");
+    await wireUploader("upload-dressPatternWomen", "dressPatternWomen", "preview-dressPatternWomen");
 
     initScrollSpy();
     wirePreviewAutoRefresh();

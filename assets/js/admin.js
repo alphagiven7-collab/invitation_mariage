@@ -23,6 +23,13 @@ function escapeHtml(str) {
         .replace(/"/g, "&quot;");
 }
 
+function guestTableLabel(guest) {
+    const number = String(guest?.tableNumber || "").trim();
+    const name = String(guest?.group || guest?.tableName || "").trim();
+    if (number && name) return `${number} · ${name}`;
+    return number || name || "—";
+}
+
 function downloadFile(content, filename, type = "text/csv") {
     const blob = new Blob([content], { type: `${type};charset=utf-8` });
     const url = URL.createObjectURL(blob);
@@ -37,6 +44,85 @@ let guestsCache = [];
 let selectedGuestIds = new Set();
 let pendingWelcomeFile = null;
 let pendingWelcomePreviewUrl = "";
+let pendingCsvCorrections = [];
+
+function importSummary(preview) {
+    return `${preview.total} ligne(s) de données (hors en-tête, retours à la ligne dans les cellules regroupés), ` +
+        `${preview.valid.length} invité(s) valide(s) à importer, ${preview.duplicates.length} doublon(s), ` +
+        `${preview.rejected.length} ligne(s) ignorée(s).`;
+}
+
+function importOutcome(result) {
+    return `${result.imported} importé(s), ${result.skipped} ignoré(s), ${result.failed || 0} échec(s).` +
+        (result.errors || []).map((entry) => ` Ligne ${entry.line || "?"} (${entry.fullName}) : ${entry.reason}`).join(" ") +
+        (result.warning ? ` ${result.warning}` : "");
+}
+
+function showImportPreview(preview) {
+    const result = document.getElementById("import-result");
+    result.textContent = importSummary(preview);
+    const details = document.createElement("ul");
+    for (const entry of [...preview.rejected, ...preview.duplicates]) {
+        const item = document.createElement("li");
+        item.textContent = `Ligne ${entry.line} : ${entry.fullName || ""} — ${entry.reason}`;
+        details.appendChild(item);
+    }
+    result.appendChild(details);
+}
+
+function reviewImport(preview) {
+    showImportPreview(preview);
+    const modal = document.getElementById("import-preview-modal");
+    document.getElementById("import-preview-details").textContent = importSummary(preview) + "\n\n" +
+        [...preview.rejected, ...preview.duplicates].map((entry) =>
+            `Ligne ${entry.line} : ${entry.fullName || ""} — ${entry.reason}`).join("\n");
+    const apply = document.getElementById("import-preview-apply");
+    const cancel = document.getElementById("import-preview-cancel");
+    apply.disabled = !preview.valid.length;
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+    cancel.focus();
+    return new Promise((resolve) => {
+        const finish = (value) => {
+            modal.classList.remove("open");
+            modal.setAttribute("aria-hidden", "true");
+            apply.onclick = cancel.onclick = null;
+            modal.onkeydown = null;
+            document.getElementById("import-csv-btn").focus();
+            resolve(value);
+        };
+        apply.onclick = () => finish(true);
+        cancel.onclick = () => finish(false);
+        modal.onkeydown = (event) => { if (event.key === "Escape") finish(false); };
+    });
+}
+
+function closeCsvCorrectionsModal() {
+    const modal = document.getElementById("csv-corrections-modal");
+    modal?.classList.remove("open");
+    modal?.setAttribute("aria-hidden", "true");
+}
+
+function showCsvCorrections(preview) {
+    pendingCsvCorrections = preview.matches;
+    document.getElementById("csv-corrections-summary").textContent =
+        `${preview.matches.length} correction(s) proposée(s) parmi ${preview.eligible} invité(s) non confirmés sans table. ${preview.unmatched.length} nom(s) restent sans correspondance.`;
+    const list = document.getElementById("csv-corrections-list");
+    list.replaceChildren();
+    preview.matches.forEach((match, index) => {
+        const label = document.createElement("label");
+        label.className = "csv-correction-item";
+        const confidence = Math.round(match.score * 100);
+        label.innerHTML = `<input type="checkbox" data-correction-index="${index}" ${confidence >= 82 ? "checked" : ""}>
+            <span><strong>${escapeHtml(match.currentName)}</strong> devient <strong>${escapeHtml(match.importedName)}</strong><br>
+            <small>Table ${escapeHtml(match.tableNumber)}${match.tableName ? ` · ${escapeHtml(match.tableName)}` : ""} · correspondance ${confidence}%</small></span>`;
+        list.appendChild(label);
+    });
+    if (!preview.matches.length) list.textContent = "Aucune correspondance suffisamment fiable n'a été trouvée. Aucun invité ne sera modifié.";
+    const modal = document.getElementById("csv-corrections-modal");
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+}
 
 function openEditModal(guest) {
     document.getElementById("edit-guest-id").value = guest.id;
@@ -65,6 +151,10 @@ function closeEditModal() {
 }
 
 async function renderStats() {
+    ["stat-total", "stat-yes", "stat-no", "stat-pending", "stat-adults", "stat-children"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = "…";
+    });
     if (GuestManager.loadGuests) await GuestManager.loadGuests(true);
     const stats = await GuestManager.getStats();
     document.getElementById("stat-total").textContent = stats.total;
@@ -86,6 +176,10 @@ async function getFilteredGuests() {
             || (g.phone || "").includes(search)
             || (g.tableNumber || "").toLowerCase().includes(search);
         return matchFilter && matchSearch;
+    }).sort((left, right) => {
+        if (left.status === "yes" && right.status !== "yes") return -1;
+        if (right.status === "yes" && left.status !== "yes") return 1;
+        return String(left.fullName || "").localeCompare(String(right.fullName || ""), "fr");
     });
 }
 
@@ -108,15 +202,15 @@ async function renderGuestsTable() {
         const link = GuestManager.buildInviteLink(guest);
         const waLink = GuestManager.buildWhatsAppLink(guest);
         tr.innerHTML = `
-            <td><input type="checkbox" class="guest-select" data-select-guest="${guest.id}" ${selectedGuestIds.has(guest.id) ? "checked" : ""} aria-label="Sélectionner ${escapeHtml(guest.fullName)}"></td>
-            <td>
+            <td data-label="Sélection"><input type="checkbox" class="guest-select" data-select-guest="${guest.id}" ${selectedGuestIds.has(guest.id) ? "checked" : ""} aria-label="Sélectionner ${escapeHtml(guest.fullName)}"></td>
+            <td data-label="Invité">
                 <strong>${escapeHtml(guest.fullName)}</strong>
                 ${guest.email ? `<br><span class="text-xs text-slate-400">${escapeHtml(guest.email)}</span>` : ""}
             </td>
-            <td>${escapeHtml(guest.phone || "—")}</td>
-            <td>${escapeHtml(guest.tableNumber || "—")}</td>
-            <td>${statusBadge(guest.status)}${guest.qrApproved ? ' <span class="admin-badge admin-badge-yes" title="QR validé">QR ✓</span>' : ''}</td>
-            <td>
+            <td data-label="Contact">${escapeHtml(guest.phone || "—")}</td>
+            <td data-label="Table">${escapeHtml(guestTableLabel(guest))}</td>
+            <td data-label="Statut">${statusBadge(guest.status)}${guest.qrApproved ? ' <span class="admin-badge admin-badge-yes" title="QR validé">QR ✓</span>' : ''}</td>
+            <td data-label="Actions">
                 <div class="admin-actions">
                     <button type="button" class="admin-btn admin-btn-ghost admin-btn-icon" data-envelope="${guest.id}" title="Enveloppe + QR PNG">📥</button>
                     <button type="button" class="admin-btn admin-btn-ghost admin-btn-icon" data-edit="${guest.id}" title="Modifier">✎</button>
@@ -207,6 +301,45 @@ async function renderGuestsTable() {
     });
 }
 
+async function renderAdminGuestbook() {
+    const list = document.getElementById("admin-guestbook-list");
+    const empty = document.getElementById("admin-guestbook-empty");
+    if (!list || !empty) return;
+    const messages = await CloudAPI.getGuestbookMessages(EventConfig.getEventId());
+    list.replaceChildren();
+    empty.classList.toggle("hidden", messages.length > 0);
+    messages.forEach((message) => {
+        const item = document.createElement("article");
+        item.className = "admin-guestbook-item";
+        const details = document.createElement("div");
+        const author = document.createElement("strong");
+        author.textContent = message.author_name || message.authorName || "Invité";
+        const date = document.createElement("small");
+        date.textContent = message.created_at ? new Date(message.created_at).toLocaleString("fr-FR") : "";
+        const content = document.createElement("p");
+        content.textContent = message.message || "";
+        details.append(author, date, content);
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "admin-btn admin-btn-danger";
+        remove.textContent = "Supprimer";
+        remove.addEventListener("click", async () => {
+            if (!confirm("Supprimer ce message du livre d'or ?")) return;
+            remove.disabled = true;
+            const deleted = await CloudAPI.deleteGuestbookMessage(EventConfig.getEventId(), message.id);
+            if (!deleted) {
+                remove.disabled = false;
+                showToast("Suppression impossible. Vérifiez votre connexion organisateur.");
+                return;
+            }
+            await renderAdminGuestbook();
+            showToast("Message supprimé.");
+        });
+        item.append(details, remove);
+        list.appendChild(item);
+    });
+}
+
 async function renderRelances() {
     const pending = await GuestManager.getPendingGuests();
     const root = document.getElementById("relances-list");
@@ -266,18 +399,33 @@ async function renderRSVPList() {
     rsvps.forEach((r) => {
         const tr = document.createElement("tr");
         const st = r.status === "yes" ? statusBadge("yes") : r.status === "no" ? statusBadge("no") : statusBadge("pending");
-        tr.innerHTML = `<td><strong>${escapeHtml(r.full_name || r.fullName)}</strong></td><td>${escapeHtml(r.phone || "—")}</td><td>${st}</td><td>${r.adults || 0}</td><td>${r.children || 0}</td><td>${r.created_at ? new Date(r.created_at).toLocaleString("fr-FR") : "—"}</td>`;
+        const message = String(r.message || "").trim();
+        tr.innerHTML = `<td><strong>${escapeHtml(r.full_name || r.fullName)}</strong></td><td>${escapeHtml(r.phone || "—")}</td><td>${st}</td><td>${r.adults || 0}</td><td>${r.children || 0}</td><td data-label="Message" title="${escapeHtml(message)}">${escapeHtml(message || "—")}</td><td>${r.created_at ? new Date(r.created_at).toLocaleString("fr-FR") : "—"}</td>`;
         tbody.appendChild(tr);
     });
 }
 
 async function refreshAll() {
-    await renderStats();
-    await renderGuestsTable();
-    await renderRelances();
-    await renderRSVPList();
-    if (window.AdminPresence) await AdminPresence.renderTable();
-    await renderAnalytics();
+    try {
+        const results = await Promise.allSettled([
+            renderStats(),
+            renderGuestsTable(),
+            renderRelances(),
+            renderRSVPList(),
+            renderAdminGuestbook(),
+            window.AdminPresence ? AdminPresence.renderTable() : Promise.resolve(),
+            renderAnalytics()
+        ]);
+        const failure = results.find((result) => result.status === "rejected");
+        if (failure) throw failure.reason;
+    } catch (error) {
+        const status = document.getElementById("cloud-status");
+        if (status) {
+            status.textContent = `⚠️ Synchronisation indisponible · ${EventConfig.getEventId()}`;
+            status.className = "admin-cloud-pill offline";
+        }
+        showToast(error.message || "Synchronisation cloud indisponible.");
+    }
 }
 
 function setupTabs() {
@@ -297,7 +445,7 @@ function setupTabs() {
 function updateCloudStatus() {
     const el = document.getElementById("cloud-status");
     if (CloudAPI.isEnabled()) {
-        el.textContent = "☁️ Supabase connecté";
+        el.textContent = `☁️ Supabase · ${EventConfig.getEventId()}`;
         el.className = "admin-cloud-pill online";
     } else {
         el.textContent = "💾 Mode local — configurez Supabase";
@@ -336,6 +484,9 @@ function openCreateEventModal() {
     modal.classList.add("open");
     modal.setAttribute("aria-hidden", "false");
     const titleInput = document.getElementById("new-event-title");
+    const ownerInput = document.getElementById("new-event-owner-email");
+    const session = window.AuthGuard?.getSession?.();
+    if (ownerInput && !ownerInput.value && session?.email) ownerInput.value = session.email;
     if (titleInput) setTimeout(() => titleInput.focus(), 80);
 }
 
@@ -348,13 +499,14 @@ function closeCreateEventModal() {
 
 function openEventCreatedModal(eventObj) {
     try {
-        sessionStorage.setItem("wedding_recently_created_event", JSON.stringify(event));
+        sessionStorage.setItem("wedding_recently_created_event", JSON.stringify(eventObj));
     } catch {}
     const modal = document.getElementById("event-created-modal");
     if (!modal) return;
     document.getElementById("event-created-name").textContent = eventObj.title;
-    const invUrl = `${window.location.origin}${window.location.pathname.replace(/[^/]+$/, "invitation.html")}?event=${eventObj.slug}`;
-    document.getElementById("event-created-link-invitation").textContent = invUrl;
+    const invUrl = new URL("invitation.html", window.location.href);
+    invUrl.searchParams.set("event", eventObj.slug);
+    document.getElementById("event-created-link-invitation").textContent = invUrl.toString();
     document.getElementById("event-created-owner-email").textContent = eventObj.ownerEmail || "—";
 
     document.getElementById("event-created-action-perso").href = `./personnalisation.html?event=${eventObj.slug}`;
@@ -377,6 +529,12 @@ function closeEventCreatedModal() {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
+    const requestedEvent = new URLSearchParams(window.location.search).get("event");
+    const session = window.AuthGuard?.getSession?.();
+    if (!requestedEvent && session?.role === "event" && session.eventId) {
+        window.location.replace(`./admin.html?event=${encodeURIComponent(session.eventId)}`);
+        return;
+    }
     await EventConfig.init();
     const eventId = EventConfig.getEventId();
     if (!AuthGuard.requireAdmin(eventId)) return;
@@ -406,7 +564,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     await refreshAll();
 
     document.getElementById("refresh-btn").addEventListener("click", async () => {
-        await GuestManager.loadGuests(true);
         await refreshAll();
         showToast("Données actualisées");
     });
@@ -462,41 +619,58 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("edit-guest-form").addEventListener("submit", async (e) => {
         e.preventDefault();
+        const saveButton = document.getElementById("edit-guest-save-btn");
+        const initialLabel = saveButton?.textContent || "Enregistrer";
+        if (saveButton) {
+            saveButton.disabled = true;
+            saveButton.textContent = "Enregistrement…";
+        }
         const id = document.getElementById("edit-guest-id").value;
-        const result = await GuestManager.updateGuest(id, {
-            fullName: document.getElementById("edit-guest-name").value.trim(),
-            phone: document.getElementById("edit-guest-phone").value.trim(),
-            email: document.getElementById("edit-guest-email").value.trim(),
-            status: document.getElementById("edit-guest-status").value,
-            adults: Number(document.getElementById("edit-guest-adults").value) || 0,
-            children: Number(document.getElementById("edit-guest-children").value) || 0,
-            qrApproved: document.getElementById("edit-guest-qr-approved").checked,
-            accessCode: document.getElementById("edit-guest-access-code").value.trim(),
-            tableNumber: document.getElementById("edit-guest-table").value.trim(),
-            profilePhotoUrl: document.getElementById("edit-guest-profile-photo").value.trim()
-        });
-        const updated = result?.guest || result;
-        if (!updated) {
-            showToast("Erreur : un autre invité porte déjà ce nom");
-            return;
+        try {
+            const result = await GuestManager.updateGuest(id, {
+                fullName: document.getElementById("edit-guest-name").value.trim(),
+                phone: document.getElementById("edit-guest-phone").value.trim(),
+                email: document.getElementById("edit-guest-email").value.trim(),
+                status: document.getElementById("edit-guest-status").value,
+                adults: Number(document.getElementById("edit-guest-adults").value) || 0,
+                children: Number(document.getElementById("edit-guest-children").value) || 0,
+                qrApproved: document.getElementById("edit-guest-qr-approved").checked,
+                accessCode: document.getElementById("edit-guest-access-code").value.trim(),
+                tableNumber: document.getElementById("edit-guest-table").value.trim(),
+                profilePhotoUrl: document.getElementById("edit-guest-profile-photo").value.trim()
+            });
+            const updated = result?.guest || null;
+            if (!updated) {
+                showToast(result?.error || "Modification non enregistrée. Vérifiez votre connexion Supabase.");
+                return;
+            }
+            guestsCache = guestsCache.map((guest) => guest.id === updated.id ? updated : guest);
+            await renderGuestsTable();
+            closeEditModal();
+            showToast(`Modification enregistrée : ${updated.fullName}`);
+            await refreshAll();
+        } catch (error) {
+            showToast(error.message || "Modification impossible.");
+        } finally {
+            if (saveButton) {
+                saveButton.disabled = false;
+                saveButton.textContent = initialLabel;
+            }
         }
-        closeEditModal();
-        await refreshAll();
-        if (result && result.cloudSynced === false && CloudAPI.isEnabled()) {
-            showToast("Modifications enregistrées localement (sync cloud en attente)");
-            return;
-        }
-        showToast("Invité mis à jour");
     });
 
     document.getElementById("edit-cancel-btn").addEventListener("click", closeEditModal);
 
-    document.getElementById("edit-envelope-png-btn")?.addEventListener("click", async () => {
+    document.getElementById("edit-invitation-pdf-btn")?.addEventListener("click", () => {
         const id = document.getElementById("edit-guest-id").value;
         const guest = guestsCache.find((g) => g.id === id);
-        if (!guest || !window.EnvelopeExport) return;
-        const ok = await EnvelopeExport.downloadForGuest(guest);
-        showToast(ok ? "Enveloppe + QR téléchargée" : "Export impossible");
+        if (!guest?.token) {
+            showToast("Lien personnel indisponible pour cet invité.");
+            return;
+        }
+        const link = new URL(GuestManager.buildInviteLink(guest));
+        link.searchParams.set("print", "1");
+        window.open(link.toString(), "_blank", "noopener");
     });
     document.getElementById("edit-modal-close-btn")?.addEventListener("click", closeEditModal);
     document.getElementById("edit-guest-modal").addEventListener("click", (e) => {
@@ -506,20 +680,161 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("import-csv-btn").addEventListener("click", () => {
         const file = document.getElementById("csv-file-input").files[0];
         if (!file) return showToast("Choisissez un fichier CSV");
+        const importButton = document.getElementById("import-csv-btn");
+        const progress = document.getElementById("csv-import-progress");
+        const progressBar = document.getElementById("csv-import-progress-bar");
+        const progressPercent = document.getElementById("csv-import-progress-percent");
+        const progressLabel = document.getElementById("csv-import-progress-label");
+        const updateProgress = ({ completed, total, percent }) => {
+            progressBar.style.width = `${percent}%`;
+            progressPercent.textContent = `${percent} %`;
+            progressLabel.textContent = total ? `${completed} invité(s) traité(s) sur ${total}` : "Aucun nouvel invité à importer.";
+        };
+        progress?.classList.remove("hidden");
+        updateProgress({ completed: 0, total: 0, percent: 0 });
+        importButton.disabled = true;
+        importButton.textContent = "Importation…";
         const reader = new FileReader();
         reader.onload = async () => {
             try {
-                const rows = GuestManager.parseCSV(reader.result);
-                const result = await GuestManager.importCSVRows(rows);
-                document.getElementById("import-result").textContent =
-                    `${result.imported} importé(s), ${result.skipped} ignoré(s).`;
-                await refreshAll();
-                showToast("Import terminé");
+                const rows = GuestManager.parseCSV(GuestManager.decodeCSV(reader.result));
+                const preview = await GuestManager.previewImport(rows);
+                if (!await reviewImport(preview)) return;
+                const result = await GuestManager.importCSVRows(rows, { onProgress: updateProgress });
+                document.getElementById("import-result").textContent = importOutcome(result);
+                try { await refreshAll(); }
+                catch (error) { showToast(`Import traité ; actualisation impossible : ${error.message}`); return; }
+                showToast(result.failed ? "Import partiel : vérifiez les échecs de synchronisation." : "Import terminé");
             } catch (err) {
+                document.getElementById("import-result").textContent = err.message;
                 showToast(err.message);
+            } finally {
+                progress?.classList.add("hidden");
+                importButton.disabled = false;
+                importButton.textContent = "Importer";
             }
         };
-        reader.readAsText(file);
+        reader.onerror = () => {
+            progress?.classList.add("hidden");
+            importButton.disabled = false;
+            importButton.textContent = "Importer";
+            document.getElementById("import-result").textContent = "Lecture du fichier CSV impossible.";
+            showToast("Lecture du fichier CSV impossible.");
+        };
+        reader.readAsArrayBuffer(file);
+    });
+
+    document.getElementById("preview-csv-corrections-btn")?.addEventListener("click", () => {
+        const file = document.getElementById("csv-file-input").files[0];
+        if (!file) return showToast("Choisissez le CSV corrigé.");
+        const reader = new FileReader();
+        reader.onload = async () => {
+            try {
+                const rows = GuestManager.parseCSV(GuestManager.decodeCSV(reader.result));
+                const guests = await GuestManager.loadGuests(true);
+                const retained = guests.filter((guest) => guest.status === "yes" && String(guest.phone || "").replace(/\D/g, "").length >= 9);
+                const preview = await GuestManager.previewImport(rows, retained);
+                if (!await reviewImport(preview)) return;
+                const replaceable = guests.filter((guest) =>
+                    !(guest.status === "yes" && String(guest.phone || "").replace(/\D/g, "").length >= 9)
+                ).length;
+                if (!confirm(
+                    `${replaceable} invité(s) seront supprimés puis remplacés par ${rows.length} invité(s) du CSV. ` +
+                    "Seuls les invités confirmés avec un numéro de téléphone valide seront conservés. Continuer ?"
+                )) return;
+                const button = document.getElementById("preview-csv-corrections-btn");
+                button.disabled = true;
+                button.textContent = "Remplacement en cours…";
+                const result = await GuestManager.replaceGuestsExceptConfirmedWithPhone(rows);
+                document.getElementById("import-result").textContent =
+                    `${result.removed} ancien(s) invité(s) retiré(s). ${importOutcome(result)}`;
+                await refreshAll();
+                showToast(result.failed ? "Remplacement partiel : consultez les erreurs d'importation." : "Liste remplacée; confirmations avec téléphone conservées.");
+                button.disabled = false;
+                button.textContent = "Remplacer toute la liste sauf les confirmations";
+            } catch (error) {
+                const button = document.getElementById("preview-csv-corrections-btn");
+                button.disabled = false;
+                button.textContent = "Remplacer toute la liste sauf les confirmations";
+                showToast(error.message || "Remplacement impossible.");
+            }
+        };
+        reader.onerror = () => showToast("Lecture du fichier CSV impossible.");
+        reader.readAsArrayBuffer(file);
+    });
+
+    const duplicatesModal = document.getElementById("duplicates-modal");
+    const closeDuplicates = () => {
+        duplicatesModal.classList.remove("open");
+        duplicatesModal.setAttribute("aria-hidden", "true");
+        document.getElementById("detect-duplicates-btn").focus();
+    };
+    document.getElementById("duplicates-cancel").addEventListener("click", closeDuplicates);
+    duplicatesModal.addEventListener("keydown", (event) => { if (event.key === "Escape") closeDuplicates(); });
+    document.getElementById("detect-duplicates-btn").addEventListener("click", async () => {
+        try {
+            const groups = await GuestManager.findDuplicateGuests();
+            const list = document.getElementById("duplicates-list");
+            list.replaceChildren();
+            document.getElementById("duplicates-summary").textContent = groups.length ?
+                `${groups.length} groupe(s) à examiner. Noms et contacts identiques ; vérifiez les tables et confirmations. Cochez uniquement les fiches à supprimer et conservez au moins une fiche par groupe.` :
+                "Aucun doublon exact détecté. Les homonymes avec des contacts différents sont conservés.";
+            groups.forEach((group) => {
+                const section = document.createElement("fieldset");
+                const legend = document.createElement("legend");
+                legend.textContent = group[0].fullName;
+                section.appendChild(legend);
+                group.forEach((guest, index) => {
+                    const label = document.createElement("label");
+                    label.className = "csv-correction-item";
+                    const input = document.createElement("input");
+                    input.type = "checkbox";
+                    input.dataset.duplicateId = guest.id;
+                    const description = document.createElement("span");
+                    description.textContent = `${guest.fullName} · ${guest.phone || "Sans téléphone"} · ${guest.email || "Sans email"} · Table ${guestTableLabel(guest)} · ${guest.status} · ${guest.createdAt || ""}${index === 0 ? " · Conservation suggérée" : ""}`;
+                    label.append(input, description);
+                    section.appendChild(label);
+                });
+                list.appendChild(section);
+            });
+            duplicatesModal.classList.add("open");
+            duplicatesModal.setAttribute("aria-hidden", "false");
+            document.getElementById("duplicates-cancel").focus();
+        } catch (error) { showToast(error.message); }
+    });
+    document.getElementById("duplicates-delete").addEventListener("click", async (event) => {
+        const ids = [...duplicatesModal.querySelectorAll("[data-duplicate-id]:checked")].map((input) => input.dataset.duplicateId);
+        if (!ids.length) return showToast("Sélectionnez les fiches à supprimer.");
+        if (!confirm(`Supprimer définitivement ${ids.length} fiche(s) sélectionnée(s) et leurs réponses associées ?`)) return;
+        const button = event.currentTarget;
+        button.disabled = true;
+        try {
+            const result = await GuestManager.removeDuplicateGuests(ids, { confirmed: true });
+            document.getElementById("duplicates-summary").textContent = `${result.removed} fiche(s) supprimée(s).` +
+                (result.cloudSynced ? "" : " Certaines suppressions ont échoué. Vérifiez vos droits et la migration SUPABASE-RSVP-INTEGRITY.sql, puis relancez la détection.");
+            document.getElementById("duplicates-list").replaceChildren();
+            await refreshAll();
+        } catch (error) { document.getElementById("duplicates-summary").textContent = error.message; }
+        finally { button.disabled = false; }
+    });
+    document.getElementById("csv-corrections-apply-btn")?.addEventListener("click", async () => {
+        const selected = [...document.querySelectorAll("[data-correction-index]:checked")]
+            .map((input) => pendingCsvCorrections[Number(input.dataset.correctionIndex)]);
+        if (!selected.length) return showToast("Sélectionnez au moins une correction.");
+        const button = document.getElementById("csv-corrections-apply-btn");
+        button.disabled = true;
+        button.textContent = "Application…";
+        const result = await GuestManager.applyCsvCorrections(selected);
+        button.disabled = false;
+        button.textContent = "Appliquer les corrections sélectionnées";
+        closeCsvCorrectionsModal();
+        await refreshAll();
+        showToast(`${result.updated} invité(s) corrigé(s)${result.cloudSynced ? "" : " localement; synchronisation cloud à réessayer"}`);
+    });
+    document.getElementById("csv-corrections-close-btn")?.addEventListener("click", closeCsvCorrectionsModal);
+    document.getElementById("csv-corrections-cancel-btn")?.addEventListener("click", closeCsvCorrectionsModal);
+    document.getElementById("csv-corrections-modal")?.addEventListener("click", (event) => {
+        if (event.target.id === "csv-corrections-modal") closeCsvCorrectionsModal();
     });
 
     document.getElementById("export-links-btn").addEventListener("click", async () => {
@@ -543,14 +858,14 @@ window.addEventListener("DOMContentLoaded", async () => {
         const ids = [...selectedGuestIds];
         if (!ids.length) return;
         if (!confirm(`Supprimer ${ids.length} invité(s) ? Cette action est irréversible.`)) return;
-        let removed = 0;
-        for (const id of ids) {
-            const result = await GuestManager.removeGuest(id);
-            if (result.removed) removed++;
-        }
+        const button = document.getElementById("delete-selected-guests-btn");
+        button.disabled = true;
+        button.textContent = "Suppression en cours…";
+        const result = await GuestManager.removeGuests(ids);
         selectedGuestIds.clear();
         await refreshAll();
-        showToast(`${removed} invité(s) supprimé(s)`);
+        button.textContent = "Supprimer la sélection";
+        showToast(`${result.removed} invité(s) supprimé(s)${result.cloudSynced ? "" : " localement; synchronisation cloud à réessayer"}`);
     });
 
     // Modal Créer un événement
@@ -611,12 +926,14 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("create-event-form")?.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const form = e.currentTarget;
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            showToast("Complétez les champs obligatoires avant de créer l'invitation.");
-            return;
+        const submitButton = document.getElementById("create-event-submit-btn");
+        const errorBox = document.getElementById("create-event-error");
+        if (submitButton?.disabled) return;
+        if (errorBox) {
+            errorBox.hidden = true;
+            errorBox.textContent = "";
         }
+        const form = e.currentTarget;
         if (!AuthGuard.isPlatformAdmin()) {
             showToast("Seul l'administrateur plateforme peut créer un événement.");
             return;
@@ -634,6 +951,13 @@ window.addEventListener("DOMContentLoaded", async () => {
         const coupleLeft = document.getElementById("new-event-couple-left")?.value.trim() || "";
         const coupleRight = document.getElementById("new-event-couple-right")?.value.trim() || "";
         const type = document.getElementById("new-event-type")?.value || "wedding";
+        const isOpenRsvp = type === "open-rsvp";
+        const maleContact = document.getElementById("new-event-contact-male")?.value.trim() || "";
+        const femaleContact = document.getElementById("new-event-contact-female")?.value.trim() || "";
+        if (isOpenRsvp && (!maleContact || !femaleContact)) {
+            showToast("Ajoutez les contacts WhatsApp Homme et Femme.");
+            return;
+        }
         const dateVal = document.getElementById("new-event-date")?.value;
         const venue = document.getElementById("new-event-venue")?.value.trim() || "Kinshasa";
         const ownerEmail = newOwnerEmail?.value.trim().toLowerCase() || "";
@@ -642,12 +966,13 @@ window.addEventListener("DOMContentLoaded", async () => {
             return;
         }
         const welcomeImage = newWelcomeImage?.value.trim() || "";
-        if (!welcomeImage && !pendingWelcomeFile) {
-            showToast("Ajoutez une photo d'accueil pour cette invitation.");
-            return;
-        }
 
         let created = null;
+        let published = false;
+        if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = "Création en cours…";
+        }
         try {
             created = EventConfig.createEvent({
                 title,
@@ -658,12 +983,22 @@ window.addEventListener("DOMContentLoaded", async () => {
                 eventDate: dateVal ? new Date(dateVal).toISOString() : new Date(Date.now() + 30 * 86400000).toISOString(),
                 venue,
                 ownerEmail,
-                welcomeImage
+                welcomeImage,
+                rsvpMode: isOpenRsvp ? "open" : "personal",
+                confirmationContacts: { male: maleContact, female: femaleContact }
             });
 
             const publication = await EventConfig.publishEvent(created);
             if (window.CloudAPI && CloudAPI.isEnabled() && !publication.cloud) {
                 throw new Error("Publication Supabase impossible. L'invitation n'est pas prête à être partagée.");
+            }
+            published = !!publication.cloud;
+
+            if (window.CloudAPI && CloudAPI.isEnabled() && typeof CloudAPI.saveEventSettings === "function") {
+                const savedSettings = await CloudAPI.saveEventSettings(created.id, created);
+                if (!savedSettings.cloud) {
+                    throw new Error("L'invitation a été créée, mais sa configuration n'a pas été enregistrée dans Supabase.");
+                }
             }
 
             if (pendingWelcomeFile) {
@@ -690,13 +1025,28 @@ window.addEventListener("DOMContentLoaded", async () => {
             openEventCreatedModal(created);
             showToast(`Événement ${title} créé avec succès !`);
         } catch (err) {
-            if (created) {
+            if (created && published) {
                 closeCreateEventModal();
                 openEventCreatedModal(created);
                 showToast("Invitation créée. La photo n'a pas été enregistrée : ouvrez Personnaliser pour réessayer.");
                 return;
             }
-            showToast(err.message || "Erreur création événement");
+            const message = err.message || "Erreur création événement";
+            if (errorBox) {
+                errorBox.textContent = message;
+                errorBox.hidden = false;
+            }
+            showToast(message);
+        } finally {
+            if (submitButton) {
+                submitButton.disabled = false;
+                submitButton.textContent = "Créer l'invitation →";
+            }
         }
+    });
+
+    document.getElementById("new-event-type")?.addEventListener("change", (event) => {
+        const settings = document.getElementById("new-event-open-rsvp-settings");
+        settings?.classList.toggle("hidden", event.target.value !== "open-rsvp");
     });
 });

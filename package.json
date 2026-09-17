@@ -4,10 +4,13 @@
   "scripts": {
     "test": "node --test tests/*.test.js",
     "build:css": "tailwindcss -i ./assets/css/tailwind.src.css -o ./assets/css/tailwind.min.css --minify",
-    "watch:css": "tailwindcss -i ./assets/css/tailwind.src.css -o ./assets/css/tailwind.min.css --watch"
+    "watch:css": "tailwindcss -i ./assets/css/tailwind.src.css -o ./assets/css/tailwind.min.css --watch",
+    "lint": "eslint assets/js api tests sw.js",
+    "build": "npm run build:css"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.18",
+    "eslint": "^10.10.0",
     "tailwindcss": "^4.1.18"
   }
 }

@@ -1,9 +1,10 @@
 /**
- * Invitation A4 personnalisée pour les invités disposant d'un lien sécurisé.
+ * Impression de l'invitation affichée, avec contenu personnel lorsque disponible.
  */
 const InvitationPdf = (() => {
     const WIDTH = 1240;
     const HEIGHT = 1754;
+    let automaticPrintScheduled = false;
 
     function showToast(message) {
         if (typeof window.showToast === "function") window.showToast(message);
@@ -55,6 +56,23 @@ const InvitationPdf = (() => {
         return guest && guest.token === token ? guest : null;
     }
 
+    function hasPersonalToken() {
+        return !!new URLSearchParams(window.location.search).get("t");
+    }
+
+    async function waitForPersonalGuest() {
+        const currentGuest = getPersonalGuest();
+        if (currentGuest || !hasPersonalToken()) return currentGuest;
+
+        return new Promise((resolve) => {
+            const timeout = window.setTimeout(() => resolve(getPersonalGuest()), 4000);
+            window.addEventListener("guestprofile:ready", () => {
+                window.clearTimeout(timeout);
+                resolve(getPersonalGuest());
+            }, { once: true });
+        });
+    }
+
     function formatDate() {
         const date = window.EventCountdown && EventCountdown.getTarget ? new Date(EventCountdown.getTarget()) : null;
         if (!date || Number.isNaN(date.getTime())) return "";
@@ -79,7 +97,7 @@ const InvitationPdf = (() => {
 
     function updateButton() {
         const button = document.getElementById("download-invitation-pdf-btn");
-        if (button) button.classList.toggle("hidden", !getPersonalGuest());
+        if (button) button.classList.remove("hidden");
     }
 
     async function waitForPrintImages() {
@@ -179,20 +197,15 @@ const InvitationPdf = (() => {
         return canvas;
     }
 
-    async function download() {
-        const guest = getPersonalGuest();
-        if (!guest) {
-            showToast("Cette invitation PDF est disponible depuis votre lien personnel.");
-            return;
-        }
-        const button = document.getElementById("download-invitation-pdf-btn");
-        button?.setAttribute("disabled", "disabled");
-        try {
-            await waitForPrintImages();
-            window.print();
-        } finally {
-            button?.removeAttribute("disabled");
-        }
+    function download() {
+        window.focus();
+        window.print();
+    }
+
+    function printAutomatically() {
+        if (automaticPrintScheduled || new URLSearchParams(window.location.search).get("print") !== "1") return;
+        automaticPrintScheduled = true;
+        setTimeout(() => download(), 250);
     }
 
     function init() {
@@ -201,6 +214,13 @@ const InvitationPdf = (() => {
         button.dataset.bound = "1";
         button.addEventListener("click", download);
         window.addEventListener("guestprofile:ready", updateButton);
+        window.addEventListener("personalinvitation:ready", () => {
+            printAutomatically();
+        }, { once: true });
+        window.addEventListener("eventconfig:ready", () => {
+            updateButton();
+            printAutomatically();
+        }, { once: true });
         updateButton();
     }
 

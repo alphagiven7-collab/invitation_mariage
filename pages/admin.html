@@ -6,7 +6,7 @@
     <title>Administration invités</title>
     <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=20">
     <link rel="stylesheet" href="../assets/css/app.css">
-    <link rel="stylesheet" href="../assets/css/admin.css?v=2">
+    <link rel="stylesheet" href="../assets/css/admin.css?v=7">
 </head>
 <body class="admin-shell text-slate-800">
     <main class="dash-wrap">
@@ -58,26 +58,33 @@
                 </div>
 
                 <div id="tab-guests" class="tab-panel">
-                    <section class="admin-card">
-                        <h2 class="admin-card-title">Importer des invités</h2>
-                        <p class="admin-card-desc">Format CSV minimal : <code>nom,table</code> — les colonnes téléphone et email sont facultatives.</p>
+                    <div class="guest-tools">
+                        <details class="guest-tool">
+                            <summary>Importer</summary>
+                        <p class="admin-card-desc">Colonnes : <code>nom,contact,table</code> (contact et table facultatifs). Virgule, point-virgule ou tabulation ; UTF-8 et fichiers Excel Windows acceptés.</p>
                         <div class="flex flex-wrap gap-2">
                             <input id="csv-file-input" type="file" accept=".csv" class="admin-input" style="max-width:260px">
                             <button id="import-csv-btn" type="button" class="admin-btn admin-btn-primary">Importer</button>
+                            <button id="preview-csv-corrections-btn" type="button" class="admin-btn admin-btn-ghost">Remplacer toute la liste sauf les confirmations</button>
                             <a href="../data/guests-exemple.csv" download class="admin-btn admin-btn-ghost">Télécharger exemple</a>
                         </div>
-                        <p id="import-result" class="admin-card-desc mt-2 mb-0"></p>
-                    </section>
+                        <div id="csv-import-progress" class="csv-import-progress hidden" role="status" aria-live="polite">
+                            <div class="csv-import-progress-head"><span>Importation en cours</span><strong id="csv-import-progress-percent">0 %</strong></div>
+                            <div class="csv-import-progress-track"><span id="csv-import-progress-bar"></span></div>
+                            <p id="csv-import-progress-label">Préparation du fichier…</p>
+                        </div>
+                        <div id="import-result" class="admin-card-desc mt-2 mb-0" role="status" aria-live="polite"></div>
+                        </details>
 
-                    <section class="admin-card">
-                        <h2 class="admin-card-title">Message WhatsApp</h2>
+                        <details class="guest-tool">
+                            <summary>Message WhatsApp</summary>
                         <p class="admin-card-desc">Variables : <strong>{nom}</strong> et <strong>{lien}</strong></p>
                         <textarea id="wa-template" class="admin-textarea" rows="2" placeholder="Bonjour {nom}, voici votre invitation : {lien}"></textarea>
                         <button id="save-wa-template" type="button" class="admin-btn admin-btn-ghost mt-2">Enregistrer le message</button>
-                    </section>
+                        </details>
 
-                    <section class="admin-card">
-                        <h2 class="admin-card-title">Ajouter un invité</h2>
+                        <details class="guest-tool">
+                            <summary>Ajouter un invité</summary>
                         <form id="add-guest-form" class="admin-form-grid mt-2">
                             <div class="admin-field"><label for="guest-name">Nom complet *</label><input id="guest-name" class="admin-input" placeholder="Marie N." required></div>
                             <div class="admin-field"><label for="guest-phone">Téléphone</label><input id="guest-phone" type="tel" class="admin-input" value="+243 " placeholder="+243…"></div>
@@ -86,7 +93,8 @@
                             <div class="admin-field"><label for="guest-profile-photo">Photo de la carte</label><input id="guest-profile-photo" type="file" accept="image/*" class="admin-input"></div>
                             <div class="admin-field" style="grid-column:1/-1"><button type="submit" class="admin-btn admin-btn-success">+ Ajouter l'invité</button></div>
                         </form>
-                    </section>
+                        </details>
+                    </div>
 
                     <section class="admin-card">
                         <h2 class="admin-card-title">Liste des invités</h2>
@@ -98,10 +106,11 @@
                                 <option value="yes">Confirmés</option>
                                 <option value="no">Refus</option>
                             </select>
+                            <button id="detect-duplicates-btn" type="button" class="admin-btn admin-btn-ghost">Détecter les doublons</button>
                             <button id="delete-selected-guests-btn" type="button" class="admin-btn admin-btn-danger" disabled>Supprimer la sélection</button>
                         </div>
                         <div class="admin-table-wrap">
-                            <table class="admin-table">
+                            <table class="admin-table admin-table--guests">
                                 <thead><tr><th><input id="select-all-guests" type="checkbox" aria-label="Sélectionner tous les invités"></th><th>Invité</th><th>Contact</th><th>Table</th><th>Statut</th><th>Actions</th></tr></thead>
                                 <tbody id="guests-table-body"></tbody>
                             </table>
@@ -110,6 +119,13 @@
                             <div class="admin-empty-icon">👥</div>
                             <p>Aucun invité pour l'instant. Importez un CSV ou ajoutez manuellement.</p>
                         </div>
+                    </section>
+
+                    <section class="admin-card">
+                        <h2 class="admin-card-title">Messages du livre d'or</h2>
+                        <p class="admin-card-desc">Les messages publiés en bas de l'invitation. Vous pouvez retirer un message à tout moment.</p>
+                        <div id="admin-guestbook-list" class="admin-guestbook-list"></div>
+                        <p id="admin-guestbook-empty" class="admin-empty hidden">Aucun message dans le livre d'or.</p>
                     </section>
                 </div>
 
@@ -127,7 +143,7 @@
                         <p class="admin-card-desc">Synchronisé avec Supabase en temps réel.</p>
                         <div class="admin-table-wrap mt-2">
                             <table class="admin-table">
-                                <thead><tr><th>Nom</th><th>Tél.</th><th>Statut</th><th>Adultes</th><th>Enfants</th><th>Date</th></tr></thead>
+                                <thead><tr><th>Nom</th><th>Tél.</th><th>Statut</th><th>Adultes</th><th>Enfants</th><th>Message</th><th>Date</th></tr></thead>
                                 <tbody id="rsvps-table-body"></tbody>
                             </table>
                         </div>
@@ -262,9 +278,51 @@
                 </details>
             </form>
             <div class="admin-modal-footer">
-                <button type="button" id="edit-envelope-png-btn" class="admin-btn admin-btn-ghost">📥 Enveloppe + QR (PNG)</button>
+                <button type="button" id="edit-invitation-pdf-btn" class="admin-btn admin-btn-primary">Télécharger invitation PDF</button>
                 <button type="button" id="edit-cancel-btn" class="admin-btn admin-btn-ghost">Annuler</button>
-                <button type="submit" form="edit-guest-form" class="admin-btn admin-btn-success admin-btn-save">✓ Enregistrer</button>
+                <button id="edit-guest-save-btn" type="submit" form="edit-guest-form" class="admin-btn admin-btn-success admin-btn-save">✓ Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="import-preview-modal" class="admin-modal-backdrop" aria-hidden="true">
+        <div class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="import-preview-title">
+            <div class="admin-modal-header"><h3 id="import-preview-title">Vérifier le fichier CSV</h3></div>
+            <div id="import-preview-details" class="admin-modal-body" style="white-space:pre-wrap;max-height:60vh;overflow:auto"></div>
+            <div class="admin-modal-footer">
+                <button id="import-preview-cancel" type="button" class="admin-btn admin-btn-ghost">Annuler</button>
+                <button id="import-preview-apply" type="button" class="admin-btn admin-btn-primary">Valider les invités valides</button>
+            </div>
+        </div>
+    </div>
+    <div id="duplicates-modal" class="admin-modal-backdrop" aria-hidden="true">
+        <div class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="duplicates-title">
+            <div class="admin-modal-header"><h3 id="duplicates-title">Examiner les doublons</h3></div>
+            <div class="admin-modal-body" style="max-height:60vh;overflow:auto">
+                <p id="duplicates-summary" role="status"></p>
+                <div id="duplicates-list"></div>
+            </div>
+            <div class="admin-modal-footer">
+                <button id="duplicates-cancel" type="button" class="admin-btn admin-btn-ghost">Fermer</button>
+                <button id="duplicates-delete" type="button" class="admin-btn admin-btn-danger">Supprimer les fiches cochées</button>
+            </div>
+        </div>
+    </div>
+    <div id="csv-corrections-modal" class="admin-modal-backdrop" aria-hidden="true">
+        <div class="admin-modal" role="dialog" aria-labelledby="csv-corrections-title">
+            <div class="admin-modal-header">
+                <div class="admin-modal-header-row">
+                    <div>
+                        <h3 id="csv-corrections-title">Corrections proposées</h3>
+                        <p id="csv-corrections-summary">Chargement…</p>
+                    </div>
+                    <button type="button" id="csv-corrections-close-btn" class="admin-modal-close" aria-label="Fermer">×</button>
+                </div>
+            </div>
+            <div id="csv-corrections-list" class="admin-modal-body csv-corrections-list"></div>
+            <div class="admin-modal-footer">
+                <button type="button" id="csv-corrections-cancel-btn" class="admin-btn admin-btn-ghost">Annuler</button>
+                <button type="button" id="csv-corrections-apply-btn" class="admin-btn admin-btn-success">Appliquer les corrections sélectionnées</button>
             </div>
         </div>
     </div>
@@ -291,6 +349,7 @@
                             <option value="birthday">🎂 Anniversaire</option>
                             <option value="conference">🎤 Conférence / Séminaire</option>
                             <option value="party">🎉 Soirée / Autre</option>
+                            <option value="open-rsvp">📨 Invitation ouverte (sans liste)</option>
                         </select>
                     </div>
                     <div class="admin-field">
@@ -304,6 +363,21 @@
                     <div class="admin-field">
                         <label for="new-event-couple-right">Prénom 2 (ou conjoint)</label>
                         <input id="new-event-couple-right" class="admin-input" placeholder="Ex: Marc">
+                    </div>
+                </div>
+
+                <div id="new-event-open-rsvp-settings" class="hidden">
+                    <p class="admin-modal-section-label">2 bis. Confirmation ouverte</p>
+                    <p class="perso-gps-hint mb-2">Les invités confirmeront sans lien personnel, puis choisiront le contact WhatsApp Homme ou Femme.</p>
+                    <div class="admin-form-grid admin-form-grid-compact">
+                        <div class="admin-field">
+                            <label for="new-event-contact-male">WhatsApp confirmation Homme *</label>
+                            <input id="new-event-contact-male" type="tel" class="admin-input" placeholder="243XXXXXXXXX">
+                        </div>
+                        <div class="admin-field">
+                            <label for="new-event-contact-female">WhatsApp confirmation Femme *</label>
+                            <input id="new-event-contact-female" type="tel" class="admin-input" placeholder="243XXXXXXXXX">
+                        </div>
                     </div>
                 </div>
 
@@ -324,7 +398,7 @@
                     </div>
                     <div class="admin-field">
                         <label for="new-event-owner-email">E-mail du compte client *</label>
-                        <input id="new-event-owner-email" class="admin-input" type="email" autocomplete="email" placeholder="client@exemple.com" required>
+                        <input id="new-event-owner-email" class="admin-input" type="email" autocomplete="email" placeholder="client@exemple.com">
                         <p class="perso-gps-hint mt-1">Le client doit d'abord avoir créé ce compte dans Supabase Auth.</p>
                     </div>
                 </div>
@@ -332,7 +406,7 @@
                 <p class="admin-modal-section-label">3. Photo d'accueil</p>
                 <div class="admin-form-grid admin-form-grid-compact">
                     <div class="admin-field admin-field-full">
-                        <label for="new-event-welcome-image">Photo affichée à l'ouverture de cette invitation *</label>
+                        <label for="new-event-welcome-image">Photo affichée à l'ouverture de cette invitation (facultatif)</label>
                         <input id="new-event-welcome-image" class="admin-input" type="url" placeholder="https://.../photo.jpg">
                         <p class="perso-gps-hint mt-1">Cette photo appartient uniquement à ce lien d'événement et s'affiche derrière l'enveloppe d'accueil.</p>
                     </div>
@@ -345,6 +419,7 @@
                     </div>
                 </div>
                 <div class="admin-modal-footer admin-modal-form-footer">
+                    <p id="create-event-error" class="admin-form-error" role="alert" hidden></p>
                     <button type="button" id="create-event-cancel-btn" class="admin-btn admin-btn-ghost">Annuler</button>
                     <button type="submit" id="create-event-submit-btn" class="admin-btn admin-btn-success">Créer l'invitation →</button>
                 </div>
@@ -384,16 +459,16 @@
     <script src="../assets/js/supabase-config.js?v=53"></script>
     <script src="../assets/js/django-api-config.js?v=53"></script>
     <script src="../assets/js/django-api.js?v=53"></script>
-    <script src="../assets/js/event-config.js?v=62"></script>
-    <script src="../assets/js/cloud-api.js?v=62"></script>
+    <script src="../assets/js/event-config.js?v=64"></script>
+    <script src="../assets/js/cloud-api.js?v=78"></script>
     <script src="../assets/js/media-upload.js?v=55"></script>
-    <script src="../assets/js/auth.js?v=55"></script>
-    <script src="../assets/js/guest-manager.js?v=54"></script>
+    <script src="../assets/js/auth.js?v=57"></script>
+    <script src="../assets/js/guest-manager.js?v=67"></script>
     <script src="../assets/js/checkin-url.js?v=49"></script>
     <script src="../assets/js/checkin-api.js?v=49"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="../assets/js/envelope-export.js?v=49"></script>
-    <script src="../assets/js/admin-presence.js?v=49"></script>
-    <script src="../assets/js/admin.js?v=56"></script>
+    <script src="../assets/js/admin-presence.js?v=50"></script>
+    <script src="../assets/js/admin.js?v=82"></script>
 </body>
 </html>
