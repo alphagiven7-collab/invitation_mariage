@@ -68,9 +68,19 @@ const GuestManager = (() => {
         return text.replace(/\D/g, "").replace(/^00/, "");
     }
 
+    function cleanPhone(value) {
+        const text = String(value || "").trim();
+        // The former form default (+243) is a country prefix, not a phone number.
+        return normalizePhone(text) === "243" ? "" : text;
+    }
+
     function identityKey(guest) {
         const name = String(guest.fullName || "").normalize("NFC").trim().toLowerCase().replace(/\s+/g, " ");
         return JSON.stringify([name, normalizePhone(guest.phone), String(guest.email || "").trim().toLowerCase()]);
+    }
+
+    function nameKey(guest) {
+        return String(guest.fullName || "").normalize("NFC").trim().toLowerCase().replace(/\s+/g, " ");
     }
 
     function createGuest(row) {
@@ -80,7 +90,7 @@ const GuestManager = (() => {
             id: crypto.randomUUID(),
             slug: buildGuestSlug(fullName, token),
             fullName,
-            phone: String(row.phone || "").trim(),
+            phone: cleanPhone(row.phone),
             email: String(row.email || "").trim(),
             group: String(row.tableName || row.group || "").trim(),
             token,
@@ -160,7 +170,7 @@ const GuestManager = (() => {
         const draft = createGuest({ fullName: trimmedName, phone, email, group, tableNumber, profilePhotoUrl });
         const slug = draft.slug;
         const guests = [...(await loadGuests())];
-        const existing = guests.find((g) => identityKey(g) === identityKey(draft));
+        const existing = guests.find((g) => nameKey(g) === nameKey(draft));
         if (existing) {
             return { guest: existing, duplicate: true, cloudSynced: true };
         }
@@ -229,11 +239,10 @@ const GuestManager = (() => {
         if (patch.fullName && patch.fullName.trim() !== guests[idx].fullName) {
             next.fullName = patch.fullName.trim();
         }
-        if (patch.phone !== undefined) next.phone = (patch.phone || "").trim();
+        if (patch.phone !== undefined) next.phone = cleanPhone(patch.phone);
         if (patch.email !== undefined) next.email = (patch.email || "").trim();
-        if (["fullName", "phone", "email"].some((key) => patch[key] !== undefined) &&
-            identityKey(next) !== identityKey(guests[idx]) &&
-            guests.some((guest) => guest.id !== id && identityKey(guest) === identityKey(next))) return null;
+        if (patch.fullName !== undefined && nameKey(next) !== nameKey(guests[idx]) &&
+            guests.some((guest) => guest.id !== id && nameKey(guest) === nameKey(next))) return null;
         if (patch.group !== undefined) next.group = (patch.group || "").trim();
         if (patch.qrApproved !== undefined) next.qrApproved = !!patch.qrApproved;
         if (patch.accessCode !== undefined) next.accessCode = String(patch.accessCode || "").trim().toUpperCase();
@@ -429,15 +438,15 @@ const GuestManager = (() => {
 
     async function previewImport(rows, existing = null) {
         const guests = existing || await loadGuests(true);
-        const known = new Set(guests.map(identityKey));
+        const known = new Set(guests.map(nameKey));
         const valid = [], duplicates = [], rejected = [...(rows.report?.rejected || [])];
         rows.forEach((row, index) => {
             const line = row.csvLine || index + 2;
             if (String(row.fullName || "").trim().length < 2) {
                 rejected.push({ line, reason: "Nom absent ou trop court" });
-            } else if (known.has(identityKey(row))) {
-                duplicates.push({ line, fullName: row.fullName, reason: "Nom et contacts identiques (liste ou fichier)" });
-            } else { known.add(identityKey(row)); valid.push(row); }
+            } else if (known.has(nameKey(row))) {
+                duplicates.push({ line, fullName: row.fullName, reason: "Nom déjà présent dans la liste ou le fichier" });
+            } else { known.add(nameKey(row)); valid.push(row); }
         });
         return { total: rows.report?.total ?? rows.length, valid, duplicates, rejected };
     }
@@ -677,7 +686,7 @@ const GuestManager = (() => {
         const groups = new Map();
         for (const guest of await loadGuests(true)) {
             if (!String(guest.fullName || "").trim()) continue;
-            const key = identityKey(guest);
+            const key = nameKey(guest);
             if (!groups.has(key)) groups.set(key, []);
             groups.get(key).push(guest);
         }

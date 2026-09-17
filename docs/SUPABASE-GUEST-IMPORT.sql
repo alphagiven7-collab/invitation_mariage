@@ -1,16 +1,14 @@
 ﻿-- À exécuter après SUPABASE-SETUP.sql et SUPABASE-RLS-CORE.sql.
 -- Ne supprime et ne fusionne aucune donnée existante.
--- Empêche les nouvelles insertions concurrentes de doublons exacts dans un événement.
+-- Empêche les nouvelles insertions concurrentes du même nom dans un événement.
 BEGIN;
 
 CREATE OR REPLACE FUNCTION public.guest_import_identity(p_name TEXT, p_phone TEXT, p_email TEXT)
 RETURNS TEXT LANGUAGE sql IMMUTABLE SET search_path = public AS $$
     SELECT jsonb_build_array(
         regexp_replace(lower(trim(normalize(coalesce(p_name, ''), NFC))), '\s+', ' ', 'g'),
-        CASE WHEN trim(coalesce(p_phone, '')) ~ '^[+0-9[:space:]().-]*$'
-            THEN regexp_replace(regexp_replace(trim(coalesce(p_phone, '')), '[^0-9]', '', 'g'), '^00', '')
-            ELSE trim(coalesce(p_phone, '')) END,
-        lower(trim(coalesce(p_email, '')))
+        '',
+        ''
     )::text;
 $$;
 
@@ -26,7 +24,7 @@ BEGIN
         WHERE g.event_id = NEW.event_id
           AND public.guest_import_identity(g.full_name, g.phone, g.email) = identity_value
     ) THEN
-        RAISE EXCEPTION 'Doublon : un invité avec ce nom et ces contacts existe déjà dans cet événement.'
+        RAISE EXCEPTION 'Doublon : un invité avec ce nom existe déjà dans cet événement.'
             USING ERRCODE = '23505';
     END IF;
     RETURN NEW;

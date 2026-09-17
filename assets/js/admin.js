@@ -127,7 +127,7 @@ function showCsvCorrections(preview) {
 function openEditModal(guest) {
     document.getElementById("edit-guest-id").value = guest.id;
     document.getElementById("edit-guest-name").value = guest.fullName || "";
-    document.getElementById("edit-guest-phone").value = guest.phone || "+243 ";
+    document.getElementById("edit-guest-phone").value = guest.phone || "";
     document.getElementById("edit-guest-email").value = guest.email || "";
     document.getElementById("edit-guest-table").value = guest.tableNumber || "";
     document.getElementById("edit-guest-status").value = guest.status || "pending";
@@ -777,8 +777,8 @@ window.addEventListener("DOMContentLoaded", async () => {
             const list = document.getElementById("duplicates-list");
             list.replaceChildren();
             document.getElementById("duplicates-summary").textContent = groups.length ?
-                `${groups.length} groupe(s) à examiner. Noms et contacts identiques ; vérifiez les tables et confirmations. Cochez uniquement les fiches à supprimer et conservez au moins une fiche par groupe.` :
-                "Aucun doublon exact détecté. Les homonymes avec des contacts différents sont conservés.";
+                `${groups.length} groupe(s) à examiner. Un nom ne peut apparaître qu'une fois. Les fiches sans téléphone sont sélectionnées quand une fiche du même nom possède un numéro ; vérifiez les autres fiches avant suppression.` :
+                "Aucun nom en double détecté.";
             groups.forEach((group) => {
                 const section = document.createElement("fieldset");
                 const legend = document.createElement("legend");
@@ -790,6 +790,7 @@ window.addEventListener("DOMContentLoaded", async () => {
                     const input = document.createElement("input");
                     input.type = "checkbox";
                     input.dataset.duplicateId = guest.id;
+                    input.checked = !String(guest.phone || "").trim() && group.some((item) => String(item.phone || "").trim());
                     const description = document.createElement("span");
                     description.textContent = `${guest.fullName} · ${guest.phone || "Sans téléphone"} · ${guest.email || "Sans email"} · Table ${guestTableLabel(guest)} · ${guest.status} · ${guest.createdAt || ""}${index === 0 ? " · Conservation suggérée" : ""}`;
                     label.append(input, description);

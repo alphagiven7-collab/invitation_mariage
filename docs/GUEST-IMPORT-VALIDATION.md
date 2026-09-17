@@ -22,8 +22,8 @@
 - Virgule, point-virgule, tabulation ; champs cités, guillemets échappés, retours dans les cellules ; UTF-8, UTF-16 avec BOM et Windows-1252.
 - Aperçu avant écriture : total hors en-tête, invités importables, doublons, rejets avec numéro de ligne et raison. Un retour final n'ajoute pas une ligne fictive ; les retours dans une cellule citée restent dans un seul enregistrement.
 - Comparaison prudente : nom normalisé en Unicode NFC, casse et espaces ; téléphone sans ponctuation avec équivalence `+`/`00` ; email normalisé. Les accents ne sont pas supprimés des noms comparés et aucun pays n'est deviné. Un contact différent conserve un homonyme. Les contacts manquants ne sont pas des jokers.
-- Nouveau contrôle au moment de l'import, blocage des imports simultanés dans la page, slugs distincts pour les homonymes et insertions cloud explicites sans écraser les RSVP.
-- Détection visible, examen des fiches et sélection non précochée. Confirmation exigée, nouvelle détection avant suppression, obligation de conserver au moins une fiche par groupe. Aucune donnée réelle n'a été supprimée pendant les travaux.
+- Nouveau contrôle au moment de l'import, blocage des imports simultanés dans la page, unicité d'un nom normalisé par événement et insertions cloud explicites sans écraser les RSVP.
+- Détection visible, examen des fiches et sélection des doublons sans numéro lorsqu'une fiche du même nom en possède un. Confirmation exigée, nouvelle détection avant suppression, obligation de conserver au moins une fiche par groupe. Aucune donnée réelle n'a été supprimée pendant les travaux.
 - Comptes réels d'écriture, erreurs détaillées et échecs partiels affichés. Une panne de rafraîchissement ne masque pas le résultat d'import.
 
 ## Validation et déploiement
@@ -38,5 +38,5 @@
 1. Appliquer `docs/SUPABASE-GUEST-IMPORT.sql` après les migrations de base. Cette migration ne nettoie pas les doublons existants : elle bloque les futures insertions concurrentes identiques. Tester deux sessions simultanées et le périmètre par événement.
 2. Vérifier la présence de `docs/SUPABASE-GUEST-EXTRAS.sql` pour les colonnes table et extras, et de la RPC de `docs/SUPABASE-RSVP-INTEGRITY.sql` pour les suppressions autorisées. Les migrations n'ont pas été exécutées sur Supabase ici.
 3. Tester visuellement sur mobile et ordinateur l'aperçu, l'annulation, la sélection et la confirmation avec des données de test, ainsi qu'une session expirée et un CSV de plus de 1 000 invités.
-4. Examiner les homonymes ayant exactement le même nom et les mêmes contacts avant toute suppression. Les numéros locaux et internationaux ne sont pas rapprochés automatiquement sans pays explicite.
+4. Examiner les doublons ayant le même nom avant toute suppression, notamment lorsqu'ils possèdent tous un numéro. Les numéros locaux et internationaux ne sont pas rapprochés automatiquement sans pays explicite.
 5. Si le backend Django alternatif est activé, vérifier ses règles d'insertion côté serveur ; son implémentation n'est pas dans ce dépôt.

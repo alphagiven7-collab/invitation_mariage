@@ -57,19 +57,29 @@ test('CSV supports UTF-8, Windows-1252 and UTF-16 BOMs', () => {
   assert.match(manager.decodeCSV(Buffer.concat([Buffer.from([255, 254]), Buffer.from('nom\nÉlodie', 'utf16le')])), /Élodie/);
 });
 
-test('Normalizes international prefixes without guessing country; preserves names, homonyms and shared phones', async () => {
+test('Normalizes international prefixes without guessing country and rejects a repeated name', async () => {
   const manager = setup();
   assert.equal(manager.normalizePhone('+243 (999) 123-456'), manager.normalizePhone('00243 999 123 456'));
   assert.notEqual(manager.normalizePhone('0999 123 456'), manager.normalizePhone('+243999123456'));
   const rows = manager.parseCSV('nom;contact;table\nÉlodie Noël;+243 999 123 456;1\nÉlodie Noël;00243999123456;1\nÉlodie Noël;00243999888888;2\nPaul Noël;00243999123456;1\nElodie Noël;00243999123456;1');
   const preview = await manager.previewImport(rows);
-  assert.equal(preview.valid.length, 4);
-  assert.equal(preview.duplicates.length, 1);
+  assert.equal(preview.valid.length, 3);
+  assert.equal(preview.duplicates.length, 2);
   const result = await manager.importCSVRows(rows);
-  assert.equal(result.imported, 4);
+  assert.equal(result.imported, 3);
   const guests = await manager.loadGuests();
-  assert.equal(new Set(guests.map((g) => g.slug)).size, 4);
+  assert.equal(new Set(guests.map((g) => g.slug)).size, 3);
   assert.equal((await manager.importCSVRows(rows)).imported, 0);
+});
+
+test('Manual addition and renaming reject an existing normalized name, regardless of contact', async () => {
+  const manager = setup();
+  const first = await manager.addGuest({ fullName: 'Marie Noël', phone: '+243 999' });
+  const repeated = await manager.addGuest({ fullName: '  marie   Noël ', phone: '+243 888' });
+  const other = await manager.addGuest({ fullName: 'Paul Noël', phone: '+243 777' });
+  assert.equal(repeated.duplicate, true);
+  assert.equal(repeated.guest.id, first.guest.id);
+  assert.equal(await manager.updateGuest(other.guest.id, { fullName: 'Marie Noël' }), null);
 });
 
 test('Rechecks duplicates after preview and after renaming a guest', async () => {
@@ -79,6 +89,15 @@ test('Rechecks duplicates after preview and after renaming a guest', async () =>
   const guest = (await manager.addGuest({ fullName: 'Ancien nom', phone: '123' })).guest;
   await manager.updateGuest(guest.id, { fullName: 'Marie Noël' });
   assert.equal((await manager.importCSVRows(rows)).imported, 0);
+});
+
+test('Guests can be added without a phone number and the old country-prefix default is not stored', async () => {
+  const manager = setup();
+  const withoutPhone = await manager.addGuest({ fullName: 'Marie Sans Téléphone' });
+  const prefixOnly = await manager.addGuest({ fullName: 'Paul Préfixe', phone: '+243 ' });
+  assert.equal(withoutPhone.guest.phone, '');
+  assert.equal(prefixOnly.guest.phone, '');
+  assert.equal((await manager.loadGuests()).length, 2);
 });
 
 test('Duplicate deletion requires explicit selection, confirmation and a retained guest', async () => {
@@ -91,11 +110,21 @@ test('Duplicate deletion requires explicit selection, confirmation and a retaine
   const manager = setup(null, initial);
   assert.equal((await manager.findDuplicateGuests()).length, 1);
   await assert.rejects(manager.removeDuplicateGuests(['2']), /Confirmation/);
-  await assert.rejects(manager.removeDuplicateGuests(['1', '2'], { confirmed: true }), /Conservez/);
-  await assert.rejects(manager.removeDuplicateGuests(['3'], { confirmed: true }), /liste a changé/);
+  await assert.rejects(manager.removeDuplicateGuests(['1', '2', '3'], { confirmed: true }), /Conservez/);
+  await assert.rejects(manager.removeDuplicateGuests(['4'], { confirmed: true }), /liste a changé/);
   assert.equal((await manager.removeDuplicateGuests(['2'], { confirmed: true })).removed, 1);
   assert.equal((await manager.loadGuests()).length, 3);
   assert.equal((await manager.loadGuests()).find((guest) => guest.id === '1').status, 'yes');
+});
+
+test('Duplicate review keeps the entry with a phone before the entry without one', async () => {
+  const manager = setup(null, [
+    { id: 'no-phone', fullName: 'Marie Noël', phone: '', status: 'pending', createdAt: '2026-01-01' },
+    { id: 'phone', fullName: 'Marie Noël', phone: '+243 999', status: 'pending', createdAt: '2026-01-02' }
+  ]);
+  const [group] = await manager.findDuplicateGuests();
+  assert.equal(group[0].id, 'phone');
+  assert.equal(group[1].id, 'no-phone');
 });
 
 test('Cloud import reports per-row failures and never claims failed inserts succeeded', async () => {
