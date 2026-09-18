@@ -48,21 +48,33 @@ let pendingCsvCorrections = [];
 
 function importSummary(preview) {
     return `${preview.total} ligne(s) de données (hors en-tête, retours à la ligne dans les cellules regroupés), ` +
-        `${preview.valid.length} invité(s) valide(s) à importer, ${preview.duplicates.length} doublon(s), ` +
+        `${preview.valid.length} invité(s) valide(s) à importer, ${(preview.coupleUpdates || []).length} renommage(s) en couple, ${preview.duplicates.length} doublon(s), ` +
         `${preview.rejected.length} ligne(s) ignorée(s).`;
 }
 
 function importOutcome(result) {
-    return `${result.imported} importé(s), ${result.skipped} ignoré(s), ${result.failed || 0} échec(s).` +
+    return `${result.imported} importé(s), ${result.renamedCouples || 0} renommé(s) en couple, ${result.skipped} ignoré(s), ${result.failed || 0} échec(s).` +
         (result.errors || []).map((entry) => ` Ligne ${entry.line || "?"} (${entry.fullName}) : ${entry.reason}`).join(" ") +
         (result.warning ? ` ${result.warning}` : "");
+}
+
+function importPreviewDetails(preview) {
+    return [
+        ...(preview.coupleUpdates || []).map((update) => ({
+            line: update.line,
+            fullName: update.currentName,
+            reason: `sera renommé en ${update.fullName}`
+        })),
+        ...preview.rejected,
+        ...preview.duplicates
+    ];
 }
 
 function showImportPreview(preview) {
     const result = document.getElementById("import-result");
     result.textContent = importSummary(preview);
     const details = document.createElement("ul");
-    for (const entry of [...preview.rejected, ...preview.duplicates]) {
+    for (const entry of importPreviewDetails(preview)) {
         const item = document.createElement("li");
         item.textContent = `Ligne ${entry.line} : ${entry.fullName || ""} — ${entry.reason}`;
         details.appendChild(item);
@@ -74,11 +86,11 @@ function reviewImport(preview) {
     showImportPreview(preview);
     const modal = document.getElementById("import-preview-modal");
     document.getElementById("import-preview-details").textContent = importSummary(preview) + "\n\n" +
-        [...preview.rejected, ...preview.duplicates].map((entry) =>
+        importPreviewDetails(preview).map((entry) =>
             `Ligne ${entry.line} : ${entry.fullName || ""} — ${entry.reason}`).join("\n");
     const apply = document.getElementById("import-preview-apply");
     const cancel = document.getElementById("import-preview-cancel");
-    apply.disabled = !preview.valid.length;
+    apply.disabled = !preview.valid.length && !(preview.coupleUpdates || []).length;
     modal.classList.add("open");
     modal.setAttribute("aria-hidden", "false");
     cancel.focus();

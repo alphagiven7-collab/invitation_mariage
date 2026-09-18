@@ -89,6 +89,11 @@ const GuestManager = (() => {
         return /^couple\s+/i.test(String(fullName || "").trim());
     }
 
+    function buildCoupleName(fullName) {
+        const bareName = String(fullName || "").trim().replace(/^couple\s+/i, "").trim();
+        return bareName ? `Couple ${bareName}` : "";
+    }
+
     function createGuest(row) {
         const fullName = String(row.fullName || "").trim();
         const token = generateToken();
@@ -288,7 +293,7 @@ const GuestManager = (() => {
             return { guest, alreadyCouple: true, duplicate: false };
         }
 
-        const fullName = `Couple ${String(guest.fullName || "").trim()}`;
+        const fullName = buildCoupleName(guest.fullName);
         if (guests.some((item) => item.id !== id && nameKey(item) === nameKey({ fullName }))) {
             return { guest: null, alreadyCouple: false, duplicate: true };
         }
@@ -461,16 +466,45 @@ const GuestManager = (() => {
     async function previewImport(rows, existing = null) {
         const guests = existing || await loadGuests(true);
         const known = new Set(guests.map(nameKey));
-        const valid = [], duplicates = [], rejected = [...(rows.report?.rejected || [])];
+        const existingByName = new Map();
+        guests.forEach((guest) => {
+            const key = nameKey(guest);
+            if (!existingByName.has(key)) existingByName.set(key, []);
+            existingByName.get(key).push(guest);
+        });
+        const valid = [], coupleUpdates = [], duplicates = [], rejected = [...(rows.report?.rejected || [])];
+        const requestedCoupleUpdates = new Set();
         rows.forEach((row, index) => {
             const line = row.csvLine || index + 2;
-            if (String(row.fullName || "").trim().length < 2) {
+            const fullName = String(row.fullName || "").trim();
+            const key = nameKey(row);
+            const matchingGuests = existingByName.get(key) || [];
+            if (fullName.length < 2) {
                 rejected.push({ line, reason: "Nom absent ou trop court" });
-            } else if (known.has(nameKey(row))) {
+            } else if (/^couple$/i.test(fullName)) {
+                rejected.push({ line, fullName, reason: "Ajoutez le nom après le préfixe « Couple »." });
+            } else if (isCoupleName(fullName) && matchingGuests.length > 1) {
+                rejected.push({ line, fullName, reason: "Plusieurs invités correspondent à ce nom : résolvez les doublons avant le renommage." });
+            } else if (isCoupleName(fullName) && matchingGuests.length === 1 && !isCoupleName(matchingGuests[0].fullName)) {
+                const guest = matchingGuests[0];
+                if (requestedCoupleUpdates.has(guest.id)) {
+                    duplicates.push({ line, fullName, reason: "Renommage en couple déjà demandé dans ce fichier" });
+                } else {
+                    requestedCoupleUpdates.add(guest.id);
+                    coupleUpdates.push({
+                        line,
+                        guestId: guest.id,
+                        currentName: guest.fullName,
+                        // Le CSV ne demande que le libellé : conserver l'orthographe
+                        // existante, y compris les accents et la casse.
+                        fullName: buildCoupleName(guest.fullName)
+                    });
+                }
+            } else if (known.has(key)) {
                 duplicates.push({ line, fullName: row.fullName, reason: "Nom déjà présent dans la liste ou le fichier" });
-            } else { known.add(nameKey(row)); valid.push(row); }
+            } else { known.add(key); valid.push(row); }
         });
-        return { total: rows.report?.total ?? rows.length, valid, duplicates, rejected };
+        return { total: rows.report?.total ?? rows.length, valid, coupleUpdates, duplicates, rejected };
     }
 
     async function previewCsvCorrections(rows) {
@@ -571,58 +605,81 @@ const GuestManager = (() => {
     async function performCSVImport(rows, { onProgress } = {}) {
         const existing = await loadGuests(true);
         const preview = await previewImport(rows, existing);
+        const existingById = new Map(existing.map((guest) => [guest.id, guest]));
+        const coupleRenames = preview.coupleUpdates.map((update) => {
+            const guest = existingById.get(update.guestId);
+            return guest ? {
+                guest: { ...guest, fullName: update.fullName },
+                line: update.line,
+                currentName: update.currentName
+            } : null;
+        }).filter(Boolean);
         const knownSlugs = new Set(existing.map((guest) => guest.slug));
         const additions = preview.valid.map((row) => {
             const guest = createGuest(row);
             if (knownSlugs.has(guest.slug)) guest.slug += `-${guest.token}`;
             knownSlugs.add(guest.slug);
-            guest.csvLine = row.csvLine;
-            return guest;
+            return { guest, line: row.csvLine };
         });
         const skipped = preview.duplicates.length + preview.rejected.length;
-        if (!additions.length) {
+        const operations = [
+            ...coupleRenames.map(({ guest, line }) => ({ type: "couple", guest, line })),
+            ...additions.map(({ guest, line }) => ({ type: "create", guest, line }))
+        ];
+        if (!operations.length) {
             onProgress?.({ completed: 0, total: 0, percent: 100 });
-            return { imported: 0, skipped };
+            return { imported: 0, renamedCouples: 0, skipped, failed: 0, errors: [] };
         }
 
         if (window.CloudAPI && CloudAPI.isEnabled()) {
             let imported = 0;
+            let renamedCouples = 0;
             let failed = 0;
             const errors = [];
             let completed = 0;
-            for (let start = 0; start < additions.length; start += 3) {
-                const batch = additions.slice(start, start + 3);
-                const results = await Promise.all(batch.map((guest) =>
-                    CloudAPI.upsertGuest(getEventId(), guest, { saveLocal: false, createOnly: true }).catch((error) => ({ error: error.message }))
+            for (let start = 0; start < operations.length; start += 3) {
+                const batch = operations.slice(start, start + 3);
+                const results = await Promise.all(batch.map(({ type, guest }) =>
+                    CloudAPI.upsertGuest(getEventId(), guest, type === "couple"
+                        ? { saveLocal: false, requireExisting: true }
+                        : { saveLocal: false, createOnly: true }
+                    ).catch((error) => ({ error: error.message }))
                 ));
                 results.forEach((result, index) => {
-                    if (result?.guest && result.cloudSynced) imported++;
+                    const operation = batch[index];
+                    if (result?.guest && result.cloudSynced) {
+                        if (operation.type === "couple") renamedCouples++;
+                        else imported++;
+                    }
                     else {
                         failed++;
-                        errors.push({ line: batch[index].csvLine, fullName: batch[index].fullName,
-                            reason: result?.error || "Enregistrement Supabase refusé : vérifiez votre connexion et vos droits." });
+                        errors.push({ line: operation.line, fullName: operation.guest.fullName,
+                            reason: result?.error || (operation.type === "couple"
+                                ? "Renommage en couple refusé : vérifiez votre connexion et vos droits."
+                                : "Enregistrement Supabase refusé : vérifiez votre connexion et vos droits.") });
                     }
                 });
                 completed += batch.length;
                 onProgress?.({
                     completed,
-                    total: additions.length,
-                    percent: Math.round((completed / additions.length) * 100)
+                    total: operations.length,
+                    percent: Math.round((completed / operations.length) * 100)
                 });
             }
             cache = null;
             let warning = "";
             try { await loadGuests(true); }
             catch (error) { warning = `Import traité, mais actualisation impossible : ${error.message}`; }
-            return { imported, skipped, failed, errors, warning };
+            return { imported, renamedCouples, skipped, failed, errors, warning };
         }
 
-        const merged = [...existing, ...additions];
+        const coupleRenamesById = new Map(coupleRenames.map(({ guest }) => [guest.id, guest]));
+        const merged = [...existing.map((guest) => coupleRenamesById.get(guest.id) || guest), ...additions.map(({ guest }) => guest)];
         await persistGuests(merged);
         cache = merged;
         cacheEventId = getEventId();
-        onProgress?.({ completed: additions.length, total: additions.length, percent: 100 });
-        return { imported: additions.length, skipped, failed: 0 };
+        onProgress?.({ completed: operations.length, total: operations.length, percent: 100 });
+        return { imported: additions.length, renamedCouples: coupleRenames.length, skipped, failed: 0, errors: [] };
     }
 
     async function getStats() {

@@ -139,6 +139,88 @@ test('Name lookup keeps an old bare name compatible after it is marked as a coup
   assert.equal((await manager.findByName('Marie Noël')).id, guest.id);
 });
 
+test('CSV Couple row renames an existing guest without replacing their invitation data', async () => {
+  const initial = [{
+    id: 'marie', slug: 'marie-noel', token: 'same-token', fullName: 'Marie Noël',
+    phone: '+243 999', email: 'marie@example.test', group: 'Famille', tableNumber: '8',
+    status: 'yes', adults: 2, children: 1, qrApproved: true
+  }];
+  const manager = setup(null, initial);
+  const rows = manager.parseCSV('nom,contact,table\nCOUPLE   marie   Noël,+243 000,99\nCouple Marie Noël,,\nCouple Paul Noël,,2');
+  const preview = await manager.previewImport(rows);
+  assert.equal(preview.valid.length, 1);
+  assert.equal(preview.coupleUpdates.length, 1);
+  assert.deepEqual(JSON.parse(JSON.stringify(preview.coupleUpdates[0])), {
+    line: 2, guestId: 'marie', currentName: 'Marie Noël', fullName: 'Couple Marie Noël'
+  });
+  assert.equal(preview.duplicates.length, 1);
+
+  const result = await manager.importCSVRows(rows);
+  assert.deepEqual({ imported: result.imported, renamedCouples: result.renamedCouples, skipped: result.skipped, failed: result.failed },
+    { imported: 1, renamedCouples: 1, skipped: 1, failed: 0 });
+  const guests = await manager.loadGuests();
+  const renamed = guests.find((guest) => guest.id === 'marie');
+  assert.equal(renamed.fullName, 'Couple Marie Noël');
+  assert.equal(renamed.token, 'same-token');
+  assert.equal(renamed.slug, 'marie-noel');
+  assert.equal(renamed.phone, '+243 999');
+  assert.equal(renamed.tableNumber, '8');
+  assert.equal(renamed.status, 'yes');
+  assert.equal(guests.some((guest) => guest.fullName === 'Couple Paul Noël'), true);
+});
+
+test('Cloud CSV Couple rename PATCHes the existing guest and reports a rename separately', async () => {
+  const cloudGuests = [{ id: 'marie', slug: 'marie-noel', token: 'token', fullName: 'Marie Noël', status: 'pending' }];
+  const calls = [];
+  const cloud = {
+    isEnabled: () => true,
+    getGuests: async () => cloudGuests,
+    upsertGuest: async (eventId, guest, options) => {
+      calls.push({ eventId, guest, options });
+      cloudGuests[0] = { ...guest };
+      return { guest, cloudSynced: true };
+    }
+  };
+  const manager = setup(cloud);
+  const result = await manager.importCSVRows(manager.parseCSV('nom\nCouple Marie Noël'));
+  assert.equal(result.imported, 0);
+  assert.equal(result.renamedCouples, 1);
+  assert.equal(result.failed, 0);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].guest.fullName, 'Couple Marie Noël');
+  assert.equal(calls[0].options.requireExisting, true);
+  assert.equal(calls[0].options.createOnly, undefined);
+});
+
+test('CSV Couple rejects an ambiguous match and leaves an already-coupled guest untouched', async () => {
+  const ambiguous = setup(null, [
+    { id: 'bare', fullName: 'Marie Noël', status: 'pending' },
+    { id: 'couple', fullName: 'Couple Marie Noël', status: 'pending' }
+  ]);
+  const rows = ambiguous.parseCSV('nom\nCouple Marie Noël');
+  const preview = await ambiguous.previewImport(rows);
+  assert.equal(preview.coupleUpdates.length, 0);
+  assert.equal(preview.rejected.length, 1);
+  assert.match(preview.rejected[0].reason, /Plusieurs invités correspondent/);
+  assert.equal((await ambiguous.importCSVRows(rows)).renamedCouples, 0);
+  assert.deepEqual(JSON.parse(JSON.stringify((await ambiguous.loadGuests()).map((guest) => guest.fullName))),
+    ['Marie Noël', 'Couple Marie Noël']);
+
+  const calls = [];
+  const cloud = {
+    isEnabled: () => true,
+    getGuests: async () => [{ id: 'couple', fullName: 'Couple Paul Noël', status: 'pending' }],
+    upsertGuest: async (...args) => { calls.push(args); return { guest: args[1], cloudSynced: true }; }
+  };
+  const alreadyCoupled = setup(cloud);
+  const alreadyRows = alreadyCoupled.parseCSV('nom\nCouple Paul Noël');
+  const alreadyPreview = await alreadyCoupled.previewImport(alreadyRows);
+  assert.equal(alreadyPreview.coupleUpdates.length, 0);
+  assert.equal(alreadyPreview.duplicates.length, 1);
+  assert.equal((await alreadyCoupled.importCSVRows(alreadyRows)).renamedCouples, 0);
+  assert.equal(calls.length, 0);
+});
+
 test('Duplicate deletion requires explicit selection, confirmation and a retained guest', async () => {
   const initial = [
     { id: '1', fullName: 'Marie Noël', phone: '+243 999', status: 'yes' },
@@ -213,6 +295,41 @@ test('Cloud createOnly uses POST with ID and table, never PATCH or lossy payload
   await assert.rejects(denied.upsertGuest('test', { id: 'id' }, { createOnly: true }), /table_number missing/);
 });
 
+test('Cloud requireExisting uses a scoped PATCH and never creates a missing guest', async () => {
+  const guest = {
+    id: 'marie-id', slug: 'marie-noel', token: 'same-token', fullName: 'Couple Marie Noël',
+    phone: '+243 999', status: 'yes', adults: 2, children: 1, tableNumber: '8'
+  };
+  const calls = [];
+  const cloud = cloudSetup(async (url, options) => {
+    calls.push({ url, options });
+    const body = JSON.parse(options.body);
+    return response([{ ...body, id: guest.id }]);
+  });
+  const saved = await cloud.upsertGuest('test', guest, { requireExisting: true });
+  assert.equal(saved.cloudSynced, true);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].options.method, 'PATCH');
+  assert.match(calls[0].url, /id=eq.marie-id&event_id=eq.test/);
+  const payload = JSON.parse(calls[0].options.body);
+  assert.equal(payload.slug, 'marie-noel');
+  assert.equal(payload.token, 'same-token');
+  assert.equal(payload.status, 'yes');
+  assert.equal(payload.phone, '+243 999');
+  assert.equal(payload.table_number, '8');
+
+  const missingCalls = [];
+  const missing = cloudSetup(async (url, options) => {
+    missingCalls.push({ url, options });
+    return response([]);
+  });
+  const absent = await missing.upsertGuest('test', guest, { requireExisting: true });
+  assert.equal(absent.guest, null);
+  assert.equal(absent.cloudSynced, false);
+  assert.ok(missingCalls.length > 0);
+  assert.ok(missingCalls.every((call) => call.options.method === 'PATCH'));
+});
+
 test('Cloud paginates large lists and surfaces a failed subsequent page', async () => {
   const queries = [];
   const cloud = cloudSetup(async (url) => {
@@ -275,6 +392,14 @@ test('Import review shows counts and rejection reasons and supports cancel befor
   assert.equal(document.getElementById('import-preview-apply').disabled, true);
   document.getElementById('import-preview-cancel').onclick();
   assert.equal(await empty, false);
+  const coupleOnly = sandbox.reviewImport({
+    total: 1, valid: [], coupleUpdates: [{ line: 2, currentName: 'Marie Noël', fullName: 'Couple Marie Noël' }],
+    duplicates: [], rejected: []
+  });
+  assert.equal(document.getElementById('import-preview-apply').disabled, false);
+  assert.match(document.getElementById('import-preview-details').textContent, /sera renommé en Couple Marie Noël/);
+  document.getElementById('import-preview-cancel').onclick();
+  assert.equal(await coupleOnly, false);
 });
 
 test('Import outcome keeps per-row error explanations and reload warnings visible', () => {
