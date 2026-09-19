@@ -6,7 +6,11 @@ const { randomUUID } = require('node:crypto');
 
 function setup(cloud = null, initial = []) {
   const store = { wedding_event_test_guests: JSON.stringify(initial) };
-  const config = { isReady: () => true, getEventId: () => 'test' };
+  const config = {
+    isReady: () => true,
+    getEventId: () => 'test',
+    buildInvitationBaseUrl: () => 'https://example.test/pages/invitation.html'
+  };
   const sandbox = { console, URLSearchParams, TextDecoder, Uint8Array, crypto: { randomUUID }, EventConfig: config,
     CloudAPI: cloud, window: { EventConfig: config, CloudAPI: cloud, crypto: { randomUUID } },
     localStorage: { getItem: (key) => store[key] || null, setItem: (key, value) => { store[key] = value; } } };
@@ -25,13 +29,14 @@ for (const separator of [',', ';', '\t']) {
     assert.equal(rows[0].phone, '243999123456');
     assert.equal(rows[0].tableNumber, 'Table; 4');
     const preview = await manager.previewImport(rows);
-    assert.equal(preview.total, 5);
+    // La ligne vide placée avant l'en-tête ne fait pas partie des données.
+    assert.equal(preview.total, 4);
     assert.equal(preview.valid.length, 1);
-    assert.equal(preview.rejected.length, 4);
+    assert.equal(preview.rejected.length, 3);
     assert.equal(preview.valid.length + preview.duplicates.length + preview.rejected.length, preview.total);
     const result = await manager.importCSVRows(rows);
     assert.equal(result.imported, 1);
-    assert.equal(result.skipped, 4);
+    assert.equal(result.skipped, 3);
   });
 }
 
@@ -130,6 +135,18 @@ test('A couple label and the same bare name are treated as the same guest name',
   const repeated = await manager.addGuest({ fullName: 'Paul Noël', phone: '+243 999' });
   assert.equal(repeated.duplicate, true);
   assert.equal(repeated.guest.id, first.guest.id);
+});
+
+test('A bare Couple label is rejected and a later bare CSV row keeps an existing couple label', async () => {
+  const manager = setup();
+  const invalid = await manager.addGuest({ fullName: 'Couple' });
+  assert.equal(invalid.guest, null);
+  const guest = (await manager.addGuest({ fullName: 'Couple Marie Noël' })).guest;
+  assert.equal(await manager.updateGuest(guest.id, { fullName: 'Couple' }), null);
+
+  const sql = fs.readFileSync('docs/SUPABASE-PLATFORM-HARDENING.sql', 'utf8');
+  assert.match(sql, /\^couple\(\[\[:space:\]\]\+\|\$\)/);
+  assert.match(sql, /existing_name ~\* '\^couple\[\[:space:\]\]\+'[\s\S]{0,180}THEN existing_name/);
 });
 
 test('Name lookup keeps an old bare name compatible after it is marked as a couple', async () => {
@@ -248,6 +265,19 @@ test('Duplicate review keeps the entry with a phone before the entry without one
   assert.equal(group[1].id, 'no-phone');
 });
 
+test('Duplicate review does not treat a prefix alone or text as a usable phone number', async () => {
+  const manager = setup(null, [
+    { id: 'no-phone', fullName: 'Marie Noël', phone: '', status: 'pending', createdAt: '2026-01-01' },
+    { id: 'legacy-prefix', fullName: 'Marie Noël', phone: '+243', status: 'pending', createdAt: '2026-01-02' },
+    { id: 'invalid-text', fullName: 'Marie Noël', phone: 'contact inconnu', status: 'pending', createdAt: '2026-01-03' }
+  ]);
+  assert.equal(manager.normalizePhone('contact inconnu'), '');
+  assert.equal(manager.hasUsablePhone({ phone: '+243' }), false);
+  assert.equal(manager.hasUsablePhone({ phone: 'contact inconnu' }), false);
+  const [group] = await manager.findDuplicateGuests();
+  assert.deepEqual(Array.from(group, (guest) => guest.id), ['no-phone', 'legacy-prefix', 'invalid-text']);
+});
+
 test('Cloud import reports per-row failures and never claims failed inserts succeeded', async () => {
   const cloud = { isEnabled: () => true, getGuests: async () => [],
     upsertGuest: async (event, guest, options) => {
@@ -267,6 +297,63 @@ test('Invalid replacement never deletes the current list', async () => {
   const manager = setup(null, [{ id: '1', fullName: 'Marie', status: 'pending' }]);
   await assert.rejects(manager.replaceGuestsExceptConfirmedWithPhone(manager.parseCSV('nom,table\n,3')), /annulé/);
   assert.equal((await manager.loadGuests()).length, 1);
+});
+
+test('Replacement keeps every confirmed guest, including a guest without a phone', async () => {
+  const manager = setup(null, [
+    { id: 'confirmed-no-phone', fullName: 'Marie Confirmée', phone: '', status: 'yes', token: 'keep' },
+    { id: 'pending', fullName: 'Paul À remplacer', phone: '+243 999', status: 'pending', token: 'remove' }
+  ]);
+  const result = await manager.replaceGuestsExceptConfirmed(manager.parseCSV('nom,contact,table\nÉlodie Nouvelle,,8'));
+  assert.equal(result.removed, 1);
+  assert.equal(result.imported, 1);
+  const guests = await manager.loadGuests();
+  assert.equal(guests.some((guest) => guest.id === 'confirmed-no-phone'), true);
+  assert.equal(guests.find((guest) => guest.id === 'confirmed-no-phone').phone, '');
+  assert.equal(guests.some((guest) => guest.id === 'pending'), false);
+  assert.equal(guests.some((guest) => guest.fullName === 'Élodie Nouvelle'), true);
+});
+
+test('Cloud replacement does not delete anything without the transactional RPC', async () => {
+  const cloudGuests = [{ id: 'old', fullName: 'Paul', status: 'pending', token: 'old-token' }];
+  const manager = setup({ isEnabled: () => true, getGuests: async () => cloudGuests });
+  await assert.rejects(
+    manager.replaceGuestsExceptConfirmed(manager.parseCSV('nom\nMarie')),
+    /Aucune fiche n'a été supprimée/
+  );
+  assert.equal(cloudGuests.length, 1);
+  assert.equal(cloudGuests[0].fullName, 'Paul');
+});
+
+test('CSV exports escape quotes, include a UTF-8 BOM and neutralize spreadsheet formulas', async () => {
+  const manager = setup(null, [{
+    id: '1', fullName: '=HYPERLINK("https://example.test")', phone: '123',
+    group: 'Famille "Nord"', status: 'yes', adults: 2, children: 0,
+    rsvpMessage: 'Bonjour, "félicitations"'
+  }]);
+  const links = await manager.exportLinksCSV();
+  const rsvp = await manager.exportRSVPReport();
+  assert.equal(links.charCodeAt(0), 0xFEFF);
+  assert.match(links, /"'=HYPERLINK\(""https:\/\/example\.test""\)"/);
+  assert.match(links, /"Famille ""Nord"""/);
+  assert.equal(rsvp.charCodeAt(0), 0xFEFF);
+  assert.match(rsvp, /"Bonjour, ""félicitations"""/);
+});
+
+test('Cloud CSV corrections leave the visible data untouched when Supabase rejects them', async () => {
+  const cloudGuests = [{ id: 'marie', fullName: 'Marie Noël', status: 'pending', token: 'm' }];
+  const manager = setup({
+    isEnabled: () => true,
+    getGuests: async () => cloudGuests,
+    upsertGuest: async () => { throw new Error('permission refusée'); }
+  });
+  const result = await manager.applyCsvCorrections([{
+    guestId: 'marie', importedName: 'Marie Noël', tableNumber: '8', tableName: 'Famille'
+  }]);
+  assert.equal(result.updated, 0);
+  assert.equal(result.cloudSynced, false);
+  assert.match(result.errors[0].reason, /permission refusée/);
+  assert.equal((await manager.loadGuests())[0].tableNumber, undefined);
 });
 
 function cloudSetup(fetch) {
@@ -328,6 +415,35 @@ test('Cloud requireExisting uses a scoped PATCH and never creates a missing gues
   assert.equal(absent.cloudSynced, false);
   assert.ok(missingCalls.length > 0);
   assert.ok(missingCalls.every((call) => call.options.method === 'PATCH'));
+});
+
+test('Cloud replacement calls the transaction RPC and the migration keeps newly created guests', async () => {
+  const calls = [];
+  const cloud = cloudSetup(async (url, options) => {
+    calls.push({ url, options });
+    return response({ created: 2, updated: 1, preserved: 1, renamedCouples: 1, removed: 3 });
+  });
+  const guests = [{ fullName: 'Couple Marie Noël', phone: '', email: '', group: 'Famille', tableNumber: '8' }];
+
+  const result = await cloud.replaceGuestList('event-test', guests);
+
+  assert.equal(result.cloudSynced, true);
+  assert.equal(result.created, 2);
+  const call = calls.find(({ url }) => url.includes('/rpc/replace_managed_guests'));
+  assert.ok(call);
+  assert.deepEqual(JSON.parse(call.options.body), {
+    p_event_id: 'event-test',
+    p_imported_guests: guests
+  });
+
+  const sql = fs.readFileSync('docs/SUPABASE-PLATFORM-HARDENING.sql', 'utf8');
+  assert.match(sql, /created_guest_id UUID/);
+  assert.match(sql, /RETURNING id INTO created_guest_id;\s*touched_ids := array_append\(touched_ids, created_guest_id\);/);
+  assert.match(sql, /AND NOT \(g\.id = ANY\(touched_ids\)\)/);
+  assert.match(sql, /hashtextextended\('guest-import:' \|\| target_event_id, 0\)/);
+  assert.match(sql, /has_rsvp_response BOOLEAN := FALSE/);
+  assert.match(sql, /r\.guest_id = target_guest\.id[\s\S]{0,180}r\.guest_id IS NULL/);
+  assert.match(sql, /r\.guest_id = g\.id[\s\S]{0,180}r\.guest_id IS NULL/);
 });
 
 test('Cloud paginates large lists and surfaces a failed subsequent page', async () => {

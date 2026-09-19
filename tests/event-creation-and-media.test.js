@@ -79,6 +79,35 @@ test('EventConfig.createEvent keeps open RSVP contacts separate from personal ev
   assert.equal(event.confirmationContacts.female, '+243810000002');
 });
 
+test('EventConfig discards dedicated staff check-in data with a custom event', () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'event-config.js'), 'utf8');
+  const store = {
+    wedding_custom_events: JSON.stringify([{ slug: 'event-test', title: 'Événement test' }]),
+    'wedding_event_event-test_checkin_roster': JSON.stringify([{ token: 'abc' }]),
+    'wedding_event_event-test_check_ins': JSON.stringify([{ guest_token: 'abc' }]),
+    'wedding_event_event-test_check_ins_pending': JSON.stringify([{ guest_token: 'def' }])
+  };
+  const sandbox = {
+    console,
+    URLSearchParams,
+    window: { location: { search: '?event=event-test' } },
+    localStorage: {
+      getItem(key) { return store[key] || null; },
+      setItem(key, value) { store[key] = String(value); },
+      removeItem(key) { delete store[key]; }
+    }
+  };
+  sandbox.window.window = sandbox.window;
+  sandbox.global = sandbox;
+  sandbox.globalThis = sandbox;
+  vm.runInNewContext(source, sandbox, { filename: 'event-config.js' });
+
+  assert.equal(sandbox.window.EventConfig.discardLocalEvent('event-test'), true);
+  assert.equal(store['wedding_event_event-test_checkin_roster'], undefined);
+  assert.equal(store['wedding_event_event-test_check_ins'], undefined);
+  assert.equal(store['wedding_event_event-test_check_ins_pending'], undefined);
+});
+
 test('EventConfig ignores stale local configuration for the built-in demo', async () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'event-config.js'), 'utf8');
   const store = {
@@ -146,6 +175,38 @@ test('EventConfig loads a cloud-only client event when no local JSON exists', as
   assert.equal(config.coupleLeft, 'Léa');
   assert.equal(config.venue, undefined);
   assert.equal(config.backgroundMusicUrl, 'https://cdn.example.test/musique.mp3');
+});
+
+test('EventConfig reuses a cached public client event after a cloud outage', async () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'event-config.js'), 'utf8');
+  const store = {
+    'wedding_event_client-offline_public_config': JSON.stringify({
+      id: 'client-offline', slug: 'client-offline', title: 'Mariage hors ligne', venue: 'Lubumbashi'
+    })
+  };
+  const cloudApi = {
+    isEnabled: () => true,
+    getPublicEventConfig: async () => { throw new Error('network unavailable'); }
+  };
+  const sandbox = {
+    console,
+    URLSearchParams,
+    CustomEvent: class {},
+    fetch: async () => { throw new Error('network unavailable'); },
+    CloudAPI: cloudApi,
+    window: { location: { search: '?event=client-offline' }, dispatchEvent() {}, CloudAPI: cloudApi },
+    localStorage: {
+      getItem(key) { return store[key] || null; },
+      setItem(key, value) { store[key] = String(value); }
+    }
+  };
+  sandbox.window.window = sandbox.window;
+  sandbox.global = sandbox;
+  sandbox.globalThis = sandbox;
+  vm.runInNewContext(source, sandbox, { filename: 'event-config.js' });
+
+  await sandbox.window.EventConfig.init();
+  assert.equal(sandbox.window.EventConfig.getConfig().title, 'Mariage hors ligne');
 });
 
 test('AuthGuard accepts a collaborator authorized for an event', async () => {
@@ -245,6 +306,39 @@ test('CloudAPI uses the Supabase guest list instead of stale local guest data', 
   const guests = await sandbox.window.CloudAPI.getGuests('event-test');
   assert.equal(guests.length, 1);
   assert.equal(guests[0].fullName, 'Liste Supabase');
+});
+
+test('CloudAPI clears Storage before deleting the event that authorizes that cleanup', async () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'cloud-api.js'), 'utf8');
+  const calls = [];
+  const authGuard = { getSession: () => ({ accessToken: 'token' }) };
+  const sandbox = {
+    console,
+    URLSearchParams,
+    SUPABASE_CONFIG: { enabled: true, url: 'https://example.test', anonKey: 'anon-key' },
+    AuthGuard: authGuard,
+    window: { SUPABASE_CONFIG: { enabled: true, url: 'https://example.test', anonKey: 'anon-key' }, AuthGuard: authGuard },
+    fetch: async (url, options) => {
+      calls.push({ url, options });
+      if (url.includes('/storage/v1/object/list/event-assets')) {
+        return { ok: true, status: 200, json: async () => [] };
+      }
+      if (url.includes('/rpc/delete_managed_event')) {
+        return { ok: true, status: 200, text: async () => 'true' };
+      }
+      throw new Error(`Unexpected URL: ${url}`);
+    },
+    localStorage: { getItem() { return null; }, setItem() {} }
+  };
+  sandbox.window.window = sandbox.window;
+  sandbox.global = sandbox;
+  sandbox.globalThis = sandbox;
+  vm.runInNewContext(source, sandbox, { filename: 'cloud-api.js' });
+
+  const result = await sandbox.window.CloudAPI.deleteEvent('event-test');
+  assert.equal(result.deleted, true);
+  assert.ok(calls.findIndex(({ url }) => url.includes('/storage/v1/object/list/event-assets'))
+    < calls.findIndex(({ url }) => url.includes('/rpc/delete_managed_event')));
 });
 
 test('CloudAPI keeps only the latest RSVP shown for each guest', async () => {
@@ -505,7 +599,7 @@ test('GuestManager previews CSV corrections only for pending guests without a ta
   assert.equal(guests.find((guest) => guest.id === assigned.id).tableNumber, '13');
 });
 
-test('GuestManager preserves only confirmed guests with a phone number during CSV replacement', async () => {
+test('GuestManager preserves every RSVP response, including confirmations without a phone number, during CSV replacement', async () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'guest-manager.js'), 'utf8');
   const store = {};
   let nextId = 0;
@@ -542,12 +636,13 @@ test('GuestManager preserves only confirmed guests with a phone number during CS
     { fullName: 'Nelson', tableNumber: '13', tableName: 'Ecclésiaste' },
     { fullName: 'David', tableNumber: '13', tableName: 'Ecclésiaste' }
   ]);
-  assert.deepEqual({ removed: result.removed, imported: result.imported }, { removed: 3, imported: 2 });
+  assert.deepEqual({ removed: result.removed, imported: result.imported }, { removed: 2, imported: 2 });
   const guests = await manager.loadGuests();
   assert.equal(guests.some((guest) => guest.fullName === 'Ancien nom erroné'), false);
   assert.equal(guests.find((guest) => guest.id === confirmed.id).status, 'yes');
   assert.equal(guests.find((guest) => guest.id === confirmed.id).phone, '+243 999 123 456');
-  assert.equal(guests.some((guest) => guest.id === confirmedWithoutPhone.id), false);
+  assert.equal(guests.find((guest) => guest.id === confirmedWithoutPhone.id).status, 'yes');
+  assert.equal(guests.find((guest) => guest.id === confirmedWithoutPhone.id).phone, '');
   assert.equal(guests.some((guest) => guest.id === assigned.id), false);
   assert.equal(guests.find((guest) => guest.fullName === 'Nelson').tableNumber, '13');
 });
@@ -591,6 +686,155 @@ test('CheckinAPI refuses unapproved QR codes and records approved guests per eve
   const saved = JSON.parse(store['wedding_event_event-test_check_ins']);
   assert.equal(saved.length, 1);
   assert.equal(saved[0].guest_token, guest.token);
+});
+
+test('CheckinAPI queues an accepted scan locally when Supabase is unavailable', async () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'checkin-api.js'), 'utf8');
+  const guest = {
+    id: 'guest-offline', token: 'offline-token', fullName: 'Aline Martin',
+    status: 'yes', qrApproved: true
+  };
+  const store = {
+    // CloudAPI may clear this generic cache; CheckinAPI must use its own one.
+    'wedding_event_event-test_guests': JSON.stringify([])
+  };
+  const loadCalls = [];
+  let cloudAvailable = true;
+  const guestManager = {
+    loadGuests: async (force) => {
+      loadCalls.push(force);
+      if (!cloudAvailable) throw new Error('liste Supabase indisponible');
+      return [guest];
+    },
+    updateGuest: async () => {}
+  };
+  const cloud = {
+    isEnabled: () => true,
+    getCheckIns: async () => {
+      if (!cloudAvailable) throw new Error('hors ligne');
+      return [];
+    },
+    insertCheckIn: async () => {
+      if (!cloudAvailable) throw new Error('hors ligne');
+      return { id: 'checkin-online' };
+    },
+    markGuestCheckedIn: async () => false
+  };
+  const sandbox = {
+    console,
+    Date,
+    GuestManager: guestManager,
+    CloudAPI: cloud,
+    window: { GuestManager: guestManager, CloudAPI: cloud },
+    localStorage: {
+      getItem(key) { return store[key] || null; },
+      setItem(key, value) { store[key] = String(value); }
+    }
+  };
+  sandbox.window.window = sandbox.window;
+  vm.runInNewContext(source, sandbox, { filename: 'checkin-api.js' });
+
+  const api = sandbox.window.CheckinAPI;
+  const warmed = await api.warmGuestRoster('event-test');
+  assert.equal(warmed.length, 1);
+  assert.deepEqual(JSON.parse(store['wedding_event_event-test_checkin_roster']), [guest]);
+  assert.deepEqual(JSON.parse(store['wedding_event_event-test_guests']), []);
+  assert.equal(loadCalls[0], true);
+
+  cloudAvailable = false;
+  const accepted = await api.performCheckIn('event-test', guest.token, { scannedBy: 'Staff' });
+  assert.equal(accepted.status, 'pending');
+  assert.match(accepted.message, /Synchronisation/);
+  assert.equal(JSON.parse(store['wedding_event_event-test_check_ins']).length, 1);
+  assert.equal(JSON.parse(store['wedding_event_event-test_check_ins_pending']).length, 1);
+  assert.equal(loadCalls[1], undefined);
+
+  const repeat = await api.performCheckIn('event-test', guest.token);
+  assert.equal(repeat.status, 'duplicate');
+});
+
+test('CheckinAPI valide une file locale déjà synchronisée par un autre appareil', async () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'checkin-api.js'), 'utf8');
+  const row = {
+    event_id: 'event-test', guest_id: 'guest-shared', guest_token: 'shared-token',
+    scanned_at: '2026-09-18T10:00:00.000Z', pending_sync: true
+  };
+  const store = {
+    'wedding_event_event-test_check_ins': JSON.stringify([row]),
+    'wedding_event_event-test_check_ins_pending': JSON.stringify([row])
+  };
+  let lookupToken = '';
+  const cloud = {
+    isEnabled: () => true,
+    insertCheckIn: async () => null,
+    getCheckIns: async (_eventId, options) => {
+      lookupToken = options.token;
+      return [{ ...row, id: 'remote-checkin', pending_sync: undefined }];
+    },
+    markGuestCheckedIn: async () => true
+  };
+  const sandbox = {
+    console,
+    Date,
+    CloudAPI: cloud,
+    window: { CloudAPI: cloud },
+    localStorage: {
+      getItem(key) { return store[key] || null; },
+      setItem(key, value) { store[key] = String(value); }
+    }
+  };
+  sandbox.window.window = sandbox.window;
+  vm.runInNewContext(source, sandbox, { filename: 'checkin-api.js' });
+
+  const result = await sandbox.window.CheckinAPI.syncPendingCheckIns('event-test');
+  assert.equal(result.synced, 1);
+  assert.equal(result.pending, 0);
+  assert.equal(lookupToken, 'shared-token');
+  assert.deepEqual(JSON.parse(store['wedding_event_event-test_check_ins_pending']), []);
+  assert.equal(JSON.parse(store['wedding_event_event-test_check_ins'])[0].pending_sync, false);
+});
+
+test('CheckinAPI garde un scan Supabase réussi pour détecter un doublon hors ligne', async () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'checkin-api.js'), 'utf8');
+  const store = {};
+  const guest = {
+    id: 'guest-synced', token: 'synced-token', fullName: 'Marc Martin',
+    status: 'yes', qrApproved: true
+  };
+  let online = true;
+  const guestManager = {
+    loadGuests: async () => [guest],
+    updateGuest: async () => {}
+  };
+  const cloud = {
+    isEnabled: () => online,
+    getCheckIns: async () => [],
+    insertCheckIn: async (row) => ({ ...row, id: 'checkin-1' }),
+    markGuestCheckedIn: async () => true
+  };
+  const sandbox = {
+    console,
+    Date,
+    GuestManager: guestManager,
+    CloudAPI: cloud,
+    window: { GuestManager: guestManager, CloudAPI: cloud },
+    localStorage: {
+      getItem(key) { return store[key] || null; },
+      setItem(key, value) { store[key] = String(value); }
+    }
+  };
+  sandbox.window.window = sandbox.window;
+  vm.runInNewContext(source, sandbox, { filename: 'checkin-api.js' });
+
+  const api = sandbox.window.CheckinAPI;
+  const accepted = await api.performCheckIn('event-test', guest.token);
+  assert.equal(accepted.status, 'success');
+  assert.equal(JSON.parse(store['wedding_event_event-test_check_ins']).length, 1);
+  assert.equal(store['wedding_event_event-test_check_ins_pending'], undefined);
+
+  online = false;
+  const repeat = await api.performCheckIn('event-test', guest.token);
+  assert.equal(repeat.status, 'duplicate');
 });
 
 test('GuestManager resolves cloud invitation tokens without loading the guest list', async () => {

@@ -48,7 +48,7 @@ let pendingCsvCorrections = [];
 
 function importSummary(preview) {
     return `${preview.total} ligne(s) de données (hors en-tête, retours à la ligne dans les cellules regroupés), ` +
-        `${preview.valid.length} invité(s) valide(s) à importer, ${(preview.coupleUpdates || []).length} renommage(s) en couple, ${preview.duplicates.length} doublon(s), ` +
+        `${preview.valid.length} invité(s) valide(s) à créer, ${(preview.coupleUpdates || []).length} renommage(s) en couple, ${preview.duplicates.length} doublon(s), ` +
         `${preview.rejected.length} ligne(s) ignorée(s).`;
 }
 
@@ -60,6 +60,11 @@ function importOutcome(result) {
 
 function importPreviewDetails(preview) {
     return [
+        ...(preview.valid || []).filter((row) => row?.csvLine || row?.fullName).map((row) => ({
+            line: row.csvLine,
+            fullName: row.fullName,
+            reason: "sera ajouté"
+        })),
         ...(preview.coupleUpdates || []).map((update) => ({
             line: update.line,
             fullName: update.currentName,
@@ -331,7 +336,7 @@ async function renderGuestsTable() {
             if (result.removed && result.cloudSynced) {
                 showToast(`${name} supprimé(e) définitivement`);
             } else if (result.removed) {
-                showToast(`${name} supprimé(e) — si l'invité revient, exécutez SUPABASE-FIX-DELETE.sql dans Supabase`);
+                showToast(`${name} supprimé(e) — vérifiez que la migration SUPABASE-PLATFORM-HARDENING.sql est bien appliquée si la suppression ne persiste pas.`);
             } else {
                 showToast("Suppression impossible");
             }
@@ -408,18 +413,39 @@ async function renderRelances() {
 async function renderAnalytics() {
     const eventId = EventConfig.getEventId();
     const events = await CloudAPI.getAnalytics(eventId);
-    const counts = {};
+    const counts = Object.create(null);
     events.forEach((e) => {
-        counts[e.event_type] = (counts[e.event_type] || 0) + 1;
+        const eventType = String(e.event_type || "Inconnu");
+        counts[eventType] = (counts[eventType] || 0) + 1;
     });
     const summary = document.getElementById("analytics-summary");
-    summary.innerHTML = Object.entries(counts).map(([k, v]) =>
-        `<div class="admin-stat total"><div class="admin-stat-value">${v}</div><div class="admin-stat-label">${k}</div></div>`
-    ).join("") || '<div class="admin-empty"><p>Aucune donnée analytics.</p></div>';
+    summary.replaceChildren();
+    const entries = Object.entries(counts);
+    if (!entries.length) {
+        const empty = document.createElement("div");
+        empty.className = "admin-empty";
+        const text = document.createElement("p");
+        text.textContent = "Aucune donnée analytics.";
+        empty.appendChild(text);
+        summary.appendChild(empty);
+    } else {
+        entries.forEach(([eventType, count]) => {
+            const stat = document.createElement("div");
+            stat.className = "admin-stat total";
+            const value = document.createElement("div");
+            value.className = "admin-stat-value";
+            value.textContent = String(count);
+            const label = document.createElement("div");
+            label.className = "admin-stat-label";
+            label.textContent = eventType;
+            stat.append(value, label);
+            summary.appendChild(stat);
+        });
+    }
 
     const list = document.getElementById("analytics-list");
     list.innerHTML = events.slice(0, 30).map((e) =>
-        `<li>${new Date(e.created_at).toLocaleString("fr-FR")} — <strong>${escapeHtml(e.event_type)}</strong></li>`
+        `<li>${new Date(e.created_at).toLocaleString("fr-FR")} — <strong>${escapeHtml(String(e.event_type || "Inconnu"))}</strong></li>`
     ).join("");
 }
 
@@ -493,13 +519,16 @@ function updateCloudStatus() {
     }
 }
 
-function populateEventSwitcher(currentEventId) {
+async function populateEventSwitcher(currentEventId) {
     const switcher = document.getElementById("admin-event-switcher");
     if (!switcher || !window.EventConfig || !EventConfig.getRegisteredEvents) return;
     const platformAdmin = window.AuthGuard && AuthGuard.isPlatformAdmin();
+    const allEvents = EventConfig.getAvailableEvents
+        ? await EventConfig.getAvailableEvents()
+        : EventConfig.getRegisteredEvents();
     const events = platformAdmin
-        ? EventConfig.getRegisteredEvents()
-        : EventConfig.getRegisteredEvents().filter((event) => event.slug === currentEventId);
+        ? allEvents
+        : allEvents.filter((event) => event.slug === currentEventId);
     switcher.innerHTML = "";
     events.forEach((ev) => {
         const opt = document.createElement("option");
@@ -569,6 +598,7 @@ function closeEventCreatedModal() {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
+    await window.AuthGuard?.refreshSession?.();
     const requestedEvent = new URLSearchParams(window.location.search).get("event");
     const session = window.AuthGuard?.getSession?.();
     if (!requestedEvent && session?.role === "event" && session.eventId) {
@@ -587,7 +617,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("admin-event-title").textContent = `Invités — ${config.title}`;
     }
 
-    populateEventSwitcher(eventId);
+    await populateEventSwitcher(eventId);
 
     const q = EventConfig.preserveEventQuery();
     document.getElementById("back-invitation-link").href = `./invitation.html${q}`;
@@ -772,30 +802,27 @@ window.addEventListener("DOMContentLoaded", async () => {
             try {
                 const rows = GuestManager.parseCSV(GuestManager.decodeCSV(reader.result));
                 const guests = await GuestManager.loadGuests(true);
-                const retained = guests.filter((guest) => guest.status === "yes" && String(guest.phone || "").replace(/\D/g, "").length >= 9);
-                const preview = await GuestManager.previewImport(rows, retained);
+                const { retained, preview } = await GuestManager.buildReplacementPlan(rows, guests);
                 if (!await reviewImport(preview)) return;
-                const replaceable = guests.filter((guest) =>
-                    !(guest.status === "yes" && String(guest.phone || "").replace(/\D/g, "").length >= 9)
-                ).length;
+                const replaceable = guests.filter((guest) => guest.status === "pending").length;
                 if (!confirm(
                     `${replaceable} invité(s) seront supprimés puis remplacés par ${rows.length} invité(s) du CSV. ` +
-                    "Seuls les invités confirmés avec un numéro de téléphone valide seront conservés. Continuer ?"
+                    `${retained.length} réponse(s) RSVP, avec ou sans numéro de téléphone, seront conservée(s). Continuer ?`
                 )) return;
                 const button = document.getElementById("preview-csv-corrections-btn");
                 button.disabled = true;
                 button.textContent = "Remplacement en cours…";
-                const result = await GuestManager.replaceGuestsExceptConfirmedWithPhone(rows);
+                const result = await GuestManager.replaceGuestsExceptConfirmed(rows);
                 document.getElementById("import-result").textContent =
                     `${result.removed} ancien(s) invité(s) retiré(s). ${importOutcome(result)}`;
                 await refreshAll();
-                showToast(result.failed ? "Remplacement partiel : consultez les erreurs d'importation." : "Liste remplacée; confirmations avec téléphone conservées.");
+                showToast(result.failed ? "Remplacement partiel : consultez les erreurs d'importation." : "Liste remplacée ; toutes les réponses RSVP sont conservées.");
                 button.disabled = false;
-                button.textContent = "Remplacer toute la liste sauf les confirmations";
+                button.textContent = "Remplacer la liste sauf les réponses RSVP";
             } catch (error) {
                 const button = document.getElementById("preview-csv-corrections-btn");
                 button.disabled = false;
-                button.textContent = "Remplacer toute la liste sauf les confirmations";
+                button.textContent = "Remplacer la liste sauf les réponses RSVP";
                 showToast(error.message || "Remplacement impossible.");
             }
         };
@@ -830,7 +857,8 @@ window.addEventListener("DOMContentLoaded", async () => {
                     const input = document.createElement("input");
                     input.type = "checkbox";
                     input.dataset.duplicateId = guest.id;
-                    input.checked = !String(guest.phone || "").trim() && group.some((item) => String(item.phone || "").trim());
+                    input.checked = !GuestManager.hasUsablePhone(guest) &&
+                        group.some((item) => GuestManager.hasUsablePhone(item));
                     const description = document.createElement("span");
                     description.textContent = `${guest.fullName} · ${guest.phone || "Sans téléphone"} · ${guest.email || "Sans email"} · Table ${guestTableLabel(guest)} · ${guest.status} · ${guest.createdAt || ""}${index === 0 ? " · Conservation suggérée" : ""}`;
                     label.append(input, description);
@@ -852,7 +880,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         try {
             const result = await GuestManager.removeDuplicateGuests(ids, { confirmed: true });
             document.getElementById("duplicates-summary").textContent = `${result.removed} fiche(s) supprimée(s).` +
-                (result.cloudSynced ? "" : " Certaines suppressions ont échoué. Vérifiez vos droits et la migration SUPABASE-RSVP-INTEGRITY.sql, puis relancez la détection.");
+                (result.cloudSynced ? "" : " Certaines suppressions ont échoué. Vérifiez vos droits et la migration SUPABASE-PLATFORM-HARDENING.sql, puis relancez la détection.");
             document.getElementById("duplicates-list").replaceChildren();
             await refreshAll();
         } catch (error) { document.getElementById("duplicates-summary").textContent = error.message; }
@@ -870,7 +898,9 @@ window.addEventListener("DOMContentLoaded", async () => {
         button.textContent = "Appliquer les corrections sélectionnées";
         closeCsvCorrectionsModal();
         await refreshAll();
-        showToast(`${result.updated} invité(s) corrigé(s)${result.cloudSynced ? "" : " localement; synchronisation cloud à réessayer"}`);
+        showToast(result.cloudSynced
+            ? `${result.updated} invité(s) corrigé(s).`
+            : `${result.updated} correction(s) enregistrée(s). ${result.errors?.length || 0} refusée(s) par Supabase.`);
     });
     document.getElementById("csv-corrections-close-btn")?.addEventListener("click", closeCsvCorrectionsModal);
     document.getElementById("csv-corrections-cancel-btn")?.addEventListener("click", closeCsvCorrectionsModal);

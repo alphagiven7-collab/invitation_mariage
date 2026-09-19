@@ -21,14 +21,14 @@
     <meta name="twitter:image" id="meta-twitter-image" content="https://michelline-invitations.vercel.app/assets/images/previews/preview-demo.png">
     <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#4caf50">
-    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=34">
+    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=57">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Great+Vibes&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@0.469.0"></script>
     <link rel="stylesheet" href="../assets/css/app.css?v=73">
     <link rel="stylesheet" href="../assets/css/drink-menu.css?v=34">
     <script>
         if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("../sw.js?v=38").catch(() => {});
+            navigator.serviceWorker.register("../sw.js?v=57").catch(() => {});
         }
     </script>
     <style>
@@ -171,7 +171,7 @@
 
         <!-- 3. À propos de nous (Bouton d'ouverture modale) -->
         <section class="px-4 mt-6">
-            <div onclick="openModal('about-modal')" class="relative rounded-2xl overflow-hidden h-28 shadow-sm group cursor-pointer bg-gray-900">
+            <div onclick="openModal('about-modal')" role="button" tabindex="0" data-keyboard-activate aria-controls="about-modal" aria-label="Découvrir notre histoire" class="relative rounded-2xl overflow-hidden h-28 shadow-sm group cursor-pointer bg-gray-900">
                 <img id="about-cover-image" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Couple" class="w-full h-full object-cover opacity-60">
                 <div class="absolute inset-0 flex items-center px-6">
                     <div class="text-white">
@@ -184,8 +184,8 @@
             </div>
         </section>
 
-        <section class="px-4 mt-6">
-            <div onclick="openBestPhotosGallery()" class="best-photos-shell p-4 text-white cursor-pointer">
+        <section class="px-4 mt-6" data-event-section="gallery">
+            <div onclick="openBestPhotosGallery()" role="button" tabindex="0" data-keyboard-activate aria-controls="best-photos-modal" aria-label="Ouvrir la galerie des plus belles photos du couple" class="best-photos-shell p-4 text-white cursor-pointer">
                 <p class="text-[10px] tracking-[0.3em] uppercase text-pink-200 text-center">Moments d'exception</p>
                 <h3 id="best-photos-title" class="font-serif text-2xl text-center mb-3">Les plus belles photos du couple</h3>
                 <div class="grid grid-cols-2 gap-2 mb-3">
@@ -207,7 +207,7 @@
         </section>
 
         <!-- 4. Dress Code -->
-        <section class="px-4 mt-6">
+        <section class="px-4 mt-6" data-event-section="dressCode">
             <div class="bg-white rounded-2xl shadow-sm p-6 text-center border border-gray-50">
                 <div class="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
                     <i data-lucide="shirt" class="w-5 h-5 text-gray-600"></i>
@@ -347,7 +347,7 @@
         </section>
 
         <!-- 7. Compte à rebours -->
-        <section class="px-4 mt-6">
+        <section class="px-4 mt-6" data-event-section="countdown">
             <div class="bg-white rounded-2xl shadow-sm p-6 text-center border border-gray-50">
                 <i data-lucide="alarm-clock" class="w-6 h-6 text-gray-300 mx-auto mb-3"></i>
                 <p id="countdown-status" class="text-sm font-medium text-pink-600 mb-3 min-h-[1.25rem]"></p>
@@ -410,12 +410,12 @@
 
             <!-- Galerie / Livre d'Or -->
             <div class="grid grid-cols-2 gap-3 mt-3">
-                <div onclick="openModal('guestbook-modal')" class="bg-gray-800 text-white rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-900 transition h-28 relative overflow-hidden group">
+                <div onclick="openModal('guestbook-modal')" role="button" tabindex="0" data-keyboard-activate data-event-section="guestbook" aria-controls="guestbook-modal" aria-label="Ouvrir le livre d'or" class="bg-gray-800 text-white rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-900 transition h-28 relative overflow-hidden group">
                     <img id="guestbook-cover-image" src="https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" class="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-20 transition" alt="Livre d'or">
                     <i data-lucide="book-open" class="w-6 h-6 mb-2 relative z-10"></i>
                     <span class="font-medium text-[11px] relative z-10">Ouvrir le livre d'or</span>
                 </div>
-                <div onclick="openModal('gallery-modal')" class="bg-white rounded-xl p-1 flex flex-col items-center justify-center cursor-pointer border border-gray-100 h-28 overflow-hidden">
+                <div onclick="openModal('gallery-modal')" role="button" tabindex="0" data-keyboard-activate data-event-section="gallery" aria-controls="gallery-modal" aria-label="Ouvrir la galerie photo" class="bg-white rounded-xl p-1 flex flex-col items-center justify-center cursor-pointer border border-gray-100 h-28 overflow-hidden">
                     <div class="grid grid-cols-2 gap-1 w-full h-full">
                         <img id="gallery-preview-image-1" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=200" class="w-full h-full object-cover rounded-tl-lg" alt="Photo 1">
                         <img id="gallery-preview-image-2" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=200" class="w-full h-full object-cover rounded-tr-lg" alt="Photo 2">
@@ -426,7 +426,7 @@
             </div>
 
             <!-- Offrir un don financier -->
-            <div class="bg-gradient-to-r from-pink-50 to-pink-100 border border-pink-200 rounded-xl p-5 text-center mt-3">
+            <div data-event-section="donation" class="bg-gradient-to-r from-pink-50 to-pink-100 border border-pink-200 rounded-xl p-5 text-center mt-3">
                 <div class="flex items-center justify-center space-x-2 mb-2 text-pink-500">
                     <i data-lucide="gift" class="w-5 h-5"></i>
                     <h3 class="font-bold text-sm">Offrir un don financier</h3>
@@ -496,7 +496,7 @@
             </div>
         </section>
 
-        <section id="guestbook-public-section" class="px-4 mb-12" aria-labelledby="guestbook-public-title">
+        <section id="guestbook-public-section" data-event-section="guestbook" class="px-4 mb-12" aria-labelledby="guestbook-public-title">
             <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
                 <div class="text-center mb-4">
                     <h3 id="guestbook-public-title" class="font-serif text-xl text-gray-800">Livre d'or</h3>
@@ -512,11 +512,11 @@
     <!-- ============================================== -->
 
     <!-- Modale "À propos de nous" -->
-    <div id="about-modal" class="fixed inset-0 z-50 bg-white overflow-y-auto hidden">
+    <div id="about-modal" class="fixed inset-0 z-50 bg-white overflow-y-auto hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="about-story-title">
         <div class="max-w-md mx-auto bg-white min-h-screen relative pb-10">
             <div class="relative h-64">
                 <img id="about-modal-image" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Couple" class="w-full h-full object-cover">
-                <button onclick="closeModal('about-modal')" class="absolute top-4 left-4 bg-white/80 backdrop-blur p-2 rounded-full shadow-sm text-gray-800">
+                <button type="button" onclick="closeModal('about-modal')" aria-label="Fermer notre histoire" class="absolute top-4 left-4 bg-white/80 backdrop-blur p-2 rounded-full shadow-sm text-gray-800">
                     <i data-lucide="arrow-left" class="w-5 h-5"></i>
                 </button>
             </div>
@@ -535,45 +535,35 @@
     </div>
 
     <!-- Modale "Livre d'or" -->
-    <div id="guestbook-modal" class="fixed inset-0 z-50 bg-gray-50 overflow-y-auto hidden">
+    <div id="guestbook-modal" class="fixed inset-0 z-50 bg-gray-50 overflow-y-auto hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="guestbook-modal-title">
         <div class="max-w-md mx-auto bg-gray-50 min-h-screen relative pb-10">
             <div class="bg-white p-4 flex items-center shadow-sm sticky top-0 z-10">
-                <button onclick="closeModal('guestbook-modal')" class="p-2 -ml-2 text-gray-600">
+                <button type="button" onclick="closeModal('guestbook-modal')" aria-label="Fermer le livre d'or" class="p-2 -ml-2 text-gray-600">
                     <i data-lucide="arrow-left" class="w-5 h-5"></i>
                 </button>
-                <h2 class="font-bold text-gray-800 ml-2">Livre d'or</h2>
+                <h2 id="guestbook-modal-title" class="font-bold text-gray-800 ml-2">Livre d'or</h2>
             </div>
             
             <div class="p-4">
                 <div class="bg-white rounded-xl shadow-sm p-4 text-center mb-6 border border-gray-100">
                     <h3 class="font-serif text-lg mb-2">Laissez un mot aux mariés</h3>
                     <p class="text-[11px] text-gray-500 mb-4">Vos vœux de bonheur et vos conseils pour cette nouvelle vie à deux.</p>
+                    <label for="guestbook-textarea" class="sr-only">Votre message pour les mariés</label>
                     <textarea id="guestbook-textarea" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm mb-3 focus:ring-2 focus:ring-pink-300 outline-none" rows="3" placeholder="Écrivez votre message ici..."></textarea>
                     <button id="guestbook-publish-btn" type="button" onclick="publishGuestMessage(event)" class="btn-with-loader bg-gray-800 text-white w-full py-2.5 rounded-lg text-xs font-bold">Publier le message</button>
                 </div>
 
                 <!-- Messages existants -->
                 <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">Derniers messages</h4>
-                <div id="guestbook-messages" class="space-y-3">
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-50">
-                        <div class="flex items-center space-x-2 mb-2">
-                        <div class="w-8 h-8 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center font-bold text-xs">MN</div>
-                            <div>
-                                <p class="text-xs font-bold">Marie N.</p>
-                                <p class="text-[9px] text-gray-400">Il y a 2 heures</p>
-                            </div>
-                        </div>
-                        <p class="text-xs text-gray-600">Félicitations mes amours ! Que Dieu bénisse votre union. J'ai trop hâte de célébrer ça avec vous ! ❤️</p>
-                    </div>
-                </div>
+                <div id="guestbook-messages" class="space-y-3" aria-live="polite"></div>
             </div>
         </div>
     </div>
 
-    <div id="gallery-modal" class="fixed inset-0 z-50 bg-black/80 overflow-y-auto hidden">
+    <div id="gallery-modal" class="fixed inset-0 z-50 bg-black/80 overflow-y-auto hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Galerie photo">
         <div class="max-w-md mx-auto min-h-screen py-6 px-4">
             <div class="flex justify-end mb-3">
-                <button onclick="closeModal('gallery-modal')" class="bg-white/90 rounded-full px-3 py-1 text-xs font-semibold">Fermer</button>
+                <button type="button" onclick="closeModal('gallery-modal')" class="bg-white/90 rounded-full px-3 py-1 text-xs font-semibold">Fermer</button>
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <img id="gallery-modal-image-1" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=500" class="rounded-xl w-full h-40 object-cover" alt="galerie 1">
@@ -584,7 +574,7 @@
         </div>
     </div>
 
-    <div id="best-photos-modal" class="best-photos-modal fixed inset-0 z-[140] bg-black/92 backdrop-blur-sm hidden" role="dialog" aria-modal="true" aria-label="Galerie du couple">
+    <div id="best-photos-modal" class="best-photos-modal fixed inset-0 z-[140] bg-black/92 backdrop-blur-sm hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Galerie du couple">
         <button type="button" id="best-photos-close-btn" class="best-photos-close-btn" onclick="closeBestPhotosGallery()" aria-label="Fermer la galerie">
             <span aria-hidden="true">×</span>
             <span class="best-photos-close-label">Retour</span>
@@ -610,24 +600,24 @@
         </div>
     </div>
 
-    <div id="rsvp-modal" class="fixed inset-0 z-[105] bg-black/55 backdrop-blur-sm overflow-y-auto hidden">
+    <div id="rsvp-modal" class="fixed inset-0 z-[105] bg-black/55 backdrop-blur-sm overflow-y-auto hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="rsvp-modal-title">
         <div class="max-w-md mx-auto min-h-screen px-4 py-8 flex items-start">
             <div class="w-full bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
                 <div class="bg-gradient-to-r from-rose-500 to-pink-600 p-4 text-white">
                     <div class="flex items-center justify-between">
-                        <h3 class="font-serif text-xl">Formulaire RSVP</h3>
-                        <button onclick="closeModal('rsvp-modal')" class="text-xs bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full transition">Fermer</button>
+                        <h3 id="rsvp-modal-title" class="font-serif text-xl">Formulaire RSVP</h3>
+                        <button type="button" onclick="closeModal('rsvp-modal')" class="text-xs bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full transition">Fermer</button>
                     </div>
                     <p id="rsvp-modal-deadline" class="text-[11px] text-white/90 mt-1">Merci de confirmer votre présence avant le 25 avril.</p>
                 </div>
                 <form id="rsvp-form" class="p-4 space-y-3">
                     <div>
-                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Nom complet</label>
+                        <label for="rsvp-name" class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Nom complet</label>
                         <input id="rsvp-name" type="text" required class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200" placeholder="Votre nom">
                     </div>
                     <div id="rsvp-phone-field">
-                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Téléphone</label>
-                        <input id="rsvp-phone" type="tel" required value="+243 " class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200" placeholder="+243 ...">
+                        <label for="rsvp-phone" class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Téléphone</label>
+                        <input id="rsvp-phone" type="tel" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200" placeholder="+243 ...">
                     </div>
                     <div>
                         <span class="block text-[11px] uppercase tracking-wider text-gray-500 mb-2">Présence</span>
@@ -661,16 +651,16 @@
                     </div>
                     <div id="rsvp-count-fields" class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Adultes</label>
+                            <label for="rsvp-adults" class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Adultes</label>
                             <input id="rsvp-adults" type="number" min="1" max="10" value="1" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200">
                         </div>
                         <div>
-                            <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Enfants</label>
+                            <label for="rsvp-children" class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Enfants</label>
                             <input id="rsvp-children" type="number" min="0" max="10" value="0" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200">
                         </div>
                     </div>
                     <div id="rsvp-message-field">
-                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Message</label>
+                        <label for="rsvp-message" class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Message (facultatif)</label>
                         <textarea id="rsvp-message" rows="3" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200" placeholder="Votre message aux mariés..."></textarea>
                     </div>
                     <div id="rsvp-photo-field">
@@ -694,7 +684,7 @@
         </div>
     </div>
 
-    <div id="guest-list-required-modal" class="guest-list-required-modal hidden" role="dialog" aria-modal="true" aria-labelledby="guest-list-required-title" aria-describedby="guest-list-required-message" onclick="if (event.target === this) closeInvitationRequiredModal()">
+    <div id="guest-list-required-modal" class="guest-list-required-modal hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="guest-list-required-title" aria-describedby="guest-list-required-message" onclick="if (event.target === this) closeInvitationRequiredModal()">
         <div class="guest-list-required-card w-full max-w-sm bg-white shadow-2xl border border-rose-100 p-7 text-center flex flex-col items-center justify-center">
             <div class="guest-list-required-icon mb-5" aria-hidden="true">
                 <i data-lucide="user-round-plus" class="w-8 h-8"></i>
@@ -706,14 +696,14 @@
         </div>
     </div>
 
-    <div id="customizer-page" class="fixed inset-0 z-[130] bg-slate-950/85 backdrop-blur-sm hidden overflow-y-auto">
+    <div id="customizer-page" class="fixed inset-0 z-[130] bg-slate-950/85 backdrop-blur-sm hidden overflow-y-auto" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="customizer-page-title">
         <div class="max-w-5xl mx-auto min-h-screen px-4 py-6">
             <div class="bg-white rounded-3xl border border-gray-200 shadow-2xl overflow-hidden">
                 <div class="bg-gradient-to-r from-slate-900 to-indigo-700 px-6 py-5 text-white">
                     <div class="flex flex-wrap gap-3 items-center justify-between">
                         <div>
                             <p class="text-[11px] uppercase tracking-[0.2em] text-indigo-200">Mode concepteur</p>
-                            <h3 class="font-serif text-2xl">Page de personnalisation avancée</h3>
+                            <h3 id="customizer-page-title" class="font-serif text-2xl">Page de personnalisation avancée</h3>
                         </div>
                         <button onclick="closeCustomizer()" class="text-xs bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition">Fermer</button>
                     </div>
@@ -874,7 +864,7 @@
     </div>
 
     <!-- Confirmation RSVP avec QR code -->
-    <div id="rsvp-confirmation-modal" class="fixed inset-0 z-[145] bg-black/65 backdrop-blur-sm overflow-y-auto hidden">
+    <div id="rsvp-confirmation-modal" class="fixed inset-0 z-[145] bg-black/65 backdrop-blur-sm overflow-y-auto hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="confirm-title">
         <div class="max-w-md mx-auto min-h-screen px-4 py-8 flex items-center">
             <div class="w-full confirmation-card-v2 rounded-3xl shadow-2xl overflow-hidden">
                 <div class="confirmation-card-v2-header p-6 text-center text-white relative">
@@ -942,15 +932,15 @@
     <script src="../assets/js/supabase-config.js?v=53"></script>
     <script src="../assets/js/django-api-config.js?v=53"></script>
     <script src="../assets/js/django-api.js?v=53"></script>
-    <script src="../assets/js/event-config.js?v=71"></script>
-    <script src="../assets/js/cloud-api.js?v=77"></script>
+    <script src="../assets/js/event-config.js?v=72"></script>
+    <script src="../assets/js/cloud-api.js?v=79"></script>
     <script src="../assets/js/dashboard-sync.js?v=55"></script>
-    <script src="../assets/js/guest-manager.js?v=70"></script>
+    <script src="../assets/js/guest-manager.js?v=71"></script>
     <script src="../assets/js/checkin-url.js?v=50"></script>
     <script src="../assets/js/access-pass-export.js?v=53"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="../assets/js/invitation-pdf.js?v=10"></script>
-    <script src="../assets/js/content-blocks.js?v=36"></script>
+    <script src="../assets/js/content-blocks.js?v=38"></script>
     <script src="../assets/js/calendar-export.js?v=35"></script>
     <script src="../assets/js/background-music.js?v=34"></script>
     <script src="../assets/js/countdown.js?v=35"></script>
@@ -958,8 +948,8 @@
     <script src="../assets/js/i18n.js?v=34"></script>
     <script src="../assets/js/drink-generic-images.js?v=34"></script>
     <script src="../assets/js/drink-menu.js?v=34"></script>
-    <script src="../assets/js/app.js?v=64"></script>
-    <script src="../assets/js/guest-experience.js?v=88"></script>
+    <script src="../assets/js/app.js?v=65"></script>
+    <script src="../assets/js/guest-experience.js?v=91"></script>
     <script>
         // Fallback robuste si app.js ne se charge pas complètement
         (function () {

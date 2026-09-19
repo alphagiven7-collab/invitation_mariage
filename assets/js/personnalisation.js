@@ -1141,7 +1141,7 @@ function initScrollSpy() {
     if (links[0]) links[0].classList.add("active");
 }
 
-function wireNavLinks() {
+async function wireNavLinks() {
     if (!window.EventConfig || !EventConfig.preserveEventQuery) return;
     const q = EventConfig.preserveEventQuery();
     ["link-view-invitation", "link-open-invitation"].forEach((id) => {
@@ -1155,9 +1155,12 @@ function wireNavLinks() {
     if (switcher && EventConfig.getRegisteredEvents) {
         const currentEventId = getEventId();
         const platformAdmin = window.AuthGuard && AuthGuard.isPlatformAdmin();
+        const availableEvents = EventConfig.getAvailableEvents
+            ? await EventConfig.getAvailableEvents()
+            : EventConfig.getRegisteredEvents();
         const events = platformAdmin
-            ? EventConfig.getRegisteredEvents()
-            : EventConfig.getRegisteredEvents().filter((event) => event.slug === currentEventId);
+            ? availableEvents
+            : availableEvents.filter((event) => event.slug === currentEventId);
         switcher.innerHTML = "";
         events.forEach((ev) => {
             const opt = document.createElement("option");
@@ -1177,11 +1180,12 @@ function wireNavLinks() {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
+    await window.AuthGuard?.refreshSession?.();
     await EventConfig.init();
     const eventId = getEventId();
     if (window.AuthGuard && !AuthGuard.requireAdmin(eventId)) return;
 
-    wireNavLinks();
+    await wireNavLinks();
     updateCloudStatus(null);
 
     document.getElementById("perso-logout-btn")?.addEventListener("click", () => {

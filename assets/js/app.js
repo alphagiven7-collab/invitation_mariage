@@ -181,8 +181,17 @@
                 children: payload.children,
                 confirmedAt: payload.sentAt
             });
-            document.getElementById('rsvp-qr-image').src =
-                `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qrData)}`;
+            const qrImage = document.getElementById('rsvp-qr-image');
+            if (qrImage && window.QRCode?.toDataURL) {
+                QRCode.toDataURL(qrData, { width: 220, margin: 2, color: { dark: '#1a472a', light: '#ffffff' } }, (error, dataUrl) => {
+                    if (!error && dataUrl) qrImage.src = dataUrl;
+                    else qrImage.removeAttribute('src');
+                });
+            } else if (qrImage) {
+                // Ne jamais transmettre un lien personnel à un générateur QR tiers.
+                qrImage.removeAttribute('src');
+                qrImage.alt = 'QR indisponible sur cet appareil.';
+            }
 
             openModal('rsvp-confirmation-modal');
         }
@@ -627,15 +636,30 @@
             const el = document.getElementById("invite-intro-paragraph");
             if (!el) return;
             const couple = formatCoupleLabel(state);
-            if (state.inviteIntro) {
-                el.innerHTML = state.inviteIntro.replace(
-                    /\{couple\}/gi,
-                    `<strong id="invite-couple-display" class="invite-emphasis">${escapeHtml(couple)}</strong>`
-                );
-            } else if (couple) {
-                el.innerHTML =
-                    `C'est avec une grande joie que <strong id="invite-couple-display" class="invite-emphasis">${escapeHtml(couple)}</strong> vous invitent à célébrer leur mariage.`;
-            }
+            const intro = state.inviteIntro || (couple
+                ? "C'est avec une grande joie que {couple} vous invitent à célébrer leur mariage."
+                : "");
+            if (!intro) return;
+
+            const appendText = (text) => {
+                String(text).split(/\r?\n/).forEach((line, index) => {
+                    if (index) el.appendChild(document.createElement("br"));
+                    const fragment = document.createElement("span");
+                    fragment.textContent = line;
+                    el.appendChild(fragment);
+                });
+            };
+            const parts = String(intro).split(/\{couple\}/gi);
+            el.replaceChildren();
+            parts.forEach((part, index) => {
+                appendText(part);
+                if (index >= parts.length - 1) return;
+                const emphasis = document.createElement("strong");
+                if (index === 0) emphasis.id = "invite-couple-display";
+                emphasis.className = "invite-emphasis";
+                emphasis.textContent = couple;
+                el.appendChild(emphasis);
+            });
         }
 
         async function syncAndApplyDashboardState(dashboardState, eventId, cfg) {
@@ -1023,7 +1047,7 @@
                 const payload = {
                     name: document.getElementById('rsvp-name').value.trim(),
                     phone: document.getElementById('rsvp-phone').value.trim(),
-                    status: document.getElementById('rsvp-status').value,
+                    status: document.querySelector('input[name="rsvp-status"]:checked')?.value || 'yes',
                     adults: document.getElementById('rsvp-adults').value,
                     children: document.getElementById('rsvp-children').value,
                     message: document.getElementById('rsvp-message').value.trim(),
@@ -1033,7 +1057,8 @@
                     showToast('Nom obligatoire (2 caractères minimum).');
                     return;
                 }
-                if (!validatePhone(payload.phone)) {
+                // Le téléphone est facultatif : ne valider que lorsqu'un numéro a été saisi.
+                if (payload.phone && !validatePhone(payload.phone)) {
                     showToast('Téléphone invalide (9 chiffres minimum).');
                     return;
                 }
@@ -1125,11 +1150,17 @@
             const container = document.getElementById('guestbook-messages');
             const publicContainer = document.getElementById('guestbook-public-messages');
             const publicEmpty = document.getElementById('guestbook-public-empty');
+            const visibleMessages = Array.isArray(messages) ? messages : [];
             if (!container && !publicContainer) return;
             if (container) container.innerHTML = '';
             if (publicContainer) publicContainer.innerHTML = '';
-            if (publicEmpty) publicEmpty.classList.toggle('hidden', messages.length > 0);
-            messages.forEach(item => {
+            if (publicEmpty) {
+                publicEmpty.classList.toggle('hidden', visibleMessages.length > 0);
+                if (!visibleMessages.length) {
+                    publicEmpty.textContent = 'Les messages des invités apparaîtront ici.';
+                }
+            }
+            visibleMessages.forEach(item => {
                 const initials = (item.author || 'Invité')
                     .split(' ')
                     .map(word => word[0] || '')
@@ -1161,22 +1192,67 @@
             });
         }
 
-        async function loadGuestbookMessages() {
-            let messages = readLocalJson(eventStorageKey('guestbook_messages'), []);
-            if (window.CloudAPI && EventConfig.isReady()) {
-                const cloud = CloudAPI.getPublicGuestbookMessages
-                    ? await CloudAPI.getPublicGuestbookMessages(EventConfig.getEventId())
-                    : await CloudAPI.getGuestbookMessages(EventConfig.getEventId());
-                if (cloud && cloud.length) {
-                    messages = cloud.map((m) => ({
-                        author: m.author_name || m.authorName,
-                        message: m.message,
-                        sentAt: m.created_at
-                    }));
-                }
+        function guestbookMessageFromCloud(message) {
+            return {
+                author: message?.author_name || message?.authorName || 'Invité',
+                message: message?.message || '',
+                sentAt: message?.created_at || message?.createdAt || new Date().toISOString()
+            };
+        }
+
+        function cacheGuestbookMessages(messages) {
+            const safeMessages = Array.isArray(messages) ? messages : [];
+            localStorage.setItem(eventStorageKey('guestbook_messages'), JSON.stringify(safeMessages));
+            return safeMessages;
+        }
+
+        async function loadGuestbookMessages({ notifyOnError = false } = {}) {
+            const cloudEnabled = Boolean(window.CloudAPI?.isEnabled?.());
+            const eventReady = Boolean(window.EventConfig?.isReady?.());
+
+            if (!cloudEnabled) {
+                const localMessages = readLocalJson(eventStorageKey('guestbook_messages'), []);
+                renderGuestbookMessages(localMessages);
+                return localMessages;
             }
-            if (Array.isArray(messages) && messages.length) {
+
+            if (!eventReady) {
+                const cachedMessages = readLocalJson(eventStorageKey('guestbook_messages'), []);
+                renderGuestbookMessages(cachedMessages);
+                const publicEmpty = document.getElementById('guestbook-public-empty');
+                if (publicEmpty && !cachedMessages.length) {
+                    publicEmpty.textContent = "Le livre d'or est momentanément indisponible. Réessayez plus tard.";
+                    publicEmpty.classList.remove('hidden');
+                }
+                if (notifyOnError) {
+                    showToast("Impossible de charger le livre d'or. Réessayez plus tard.");
+                }
+                return null;
+            }
+
+            try {
+                if (!window.CloudAPI?.getPublicGuestbookMessages) {
+                    throw new Error("Le service du livre d'or n'est pas disponible.");
+                }
+                const cloudMessages = await CloudAPI.getPublicGuestbookMessages(EventConfig.getEventId());
+                const messages = (Array.isArray(cloudMessages) ? cloudMessages : [])
+                    .map(guestbookMessageFromCloud);
+                cacheGuestbookMessages(messages);
                 renderGuestbookMessages(messages);
+                return messages;
+            } catch (error) {
+                console.warn("Chargement du livre d'or impossible", error);
+                const cachedMessages = readLocalJson(eventStorageKey('guestbook_messages'), []);
+                renderGuestbookMessages(cachedMessages);
+                const publicEmpty = document.getElementById('guestbook-public-empty');
+                if (publicEmpty && !cachedMessages.length) {
+                    publicEmpty.textContent = "Le livre d'or est momentanément indisponible. Réessayez plus tard.";
+                    publicEmpty.classList.remove('hidden');
+                }
+                if (notifyOnError) {
+                    showToast("Impossible de charger le livre d'or. Réessayez plus tard.");
+                }
+                return null;
             }
         }
 
@@ -1193,28 +1269,54 @@
                     return;
                 }
 
-                const author = guestName || 'Invité';
-                const newItem = { author, message, sentAt: new Date().toISOString() };
-                const messages = readLocalJson(eventStorageKey('guestbook_messages'), []);
-                messages.unshift(newItem);
-                localStorage.setItem(eventStorageKey('guestbook_messages'), JSON.stringify(messages));
-
-                if (window.CloudAPI && EventConfig.isReady()) {
-                    const token = new URLSearchParams(window.location.search).get('t') || '';
-                    if (CloudAPI.postGuestbookMessage && token) {
-                        await CloudAPI.postGuestbookMessage(EventConfig.getEventId(), token, message);
-                    } else if (!CloudAPI.postGuestbookMessage) {
-                        await CloudAPI.addGuestbookMessage(EventConfig.getEventId(), {
-                            authorName: author,
-                            message
-                        });
+                const cloudEnabled = Boolean(window.CloudAPI?.isEnabled?.());
+                if (cloudEnabled) {
+                    if (window.EventConfig?.init && !window.EventConfig.isReady?.()) {
+                        try {
+                            await EventConfig.init();
+                        } catch (error) {
+                            showToast("Impossible de charger cette invitation. Le message n'a pas été publié.");
+                            return;
+                        }
                     }
-                    CloudAPI.track(EventConfig.getEventId(), 'guestbook_post', {});
+                    if (!window.EventConfig?.isReady?.()) {
+                        showToast("Impossible de charger cette invitation. Le message n'a pas été publié.");
+                        return;
+                    }
+
+                    const token = new URLSearchParams(window.location.search).get('t') || '';
+                    if (!token || !window.CloudAPI?.postGuestbookMessage) {
+                        showToast("Utilisez votre lien d'invitation personnel pour publier dans le livre d'or.");
+                        return;
+                    }
+
+                    let created;
+                    try {
+                        created = await CloudAPI.postGuestbookMessage(EventConfig.getEventId(), token, message);
+                    } catch (error) {
+                        console.warn("Publication du livre d'or impossible", error);
+                        showToast(error.message || "Le message n'a pas été publié. Réessayez plus tard.");
+                        return;
+                    }
+
+                    const newItem = guestbookMessageFromCloud(created);
+                    const messages = readLocalJson(eventStorageKey('guestbook_messages'), []);
+                    messages.unshift(newItem);
+                    cacheGuestbookMessages(messages);
+                    renderGuestbookMessages(messages);
+                    textarea.value = '';
+                    showToast('Message publié dans le livre d\'or.');
+                    CloudAPI.track(EventConfig.getEventId(), 'guestbook_post', {}).catch(() => {});
+                    return;
                 }
 
+                const author = guestName || 'Invité';
+                const messages = readLocalJson(eventStorageKey('guestbook_messages'), []);
+                messages.unshift({ author, message, sentAt: new Date().toISOString() });
+                localStorage.setItem(eventStorageKey('guestbook_messages'), JSON.stringify(messages));
                 renderGuestbookMessages(messages);
                 textarea.value = '';
-                showToast('Message publié dans le livre d\'or.');
+                showToast('Message enregistré sur cet appareil.');
             };
 
             if (window.ButtonLoading && publishBtn) {
@@ -1381,7 +1483,8 @@
             if (event.key === 'ArrowRight') changeBestGallerySlide(1);
             if (event.key === 'ArrowLeft') changeBestGallerySlide(-1);
         });
-        loadGuestbookMessages();
+        // Retire le contenu de démonstration avant de charger les messages réels.
+        renderGuestbookMessages([]);
 
         const isPreviewModePage = new URLSearchParams(window.location.search).get('preview') === '1';
         const previewMessageQueue = [];
@@ -1410,6 +1513,10 @@
                 } catch (e) {}
             }
 
+            if (!isPreviewMode) {
+                await loadGuestbookMessages();
+            }
+
             if (window.I18n) {
                 I18n.apply(I18n.getLang());
             }
@@ -1425,7 +1532,7 @@
             }
 
             if ('serviceWorker' in navigator && !isPreviewMode) {
-                navigator.serviceWorker.register('../sw.js?v=36').catch(() => {});
+                navigator.serviceWorker.register('../sw.js?v=57').catch(() => {});
             }
 
             defaultCustomizationState = getCurrentCustomizationState();

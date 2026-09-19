@@ -1,5 +1,7 @@
--- Supabase: exécuter dans SQL Editor (https://supabase.com/dashboard)
--- Active Row Level Security pour usage public sécurisé
+-- Supabase : socle de tables a executer dans SQL Editor.
+-- ATTENTION : ce fichier conserve des politiques de demarrage historiques et
+-- permissives pour compatibilite. Il ne suffit pas pour la production : suivre
+-- integralement docs/SUPABASE-SETUP.md jusqu'a SUPABASE-PLATFORM-HARDENING.sql.
 
 CREATE TABLE IF NOT EXISTS events (
     id TEXT PRIMARY KEY,

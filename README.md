@@ -1,6 +1,6 @@
 # Invitation Mariage — Plateforme multi-événements
 
-> **Live :** https://alphagiven7-collab.github.io/invitation_mariage/  
+> **Live :** https://michelline-invitations.vercel.app/
 > **Repo :** https://github.com/alphagiven7-collab/invitation_mariage  
 > **Code local :** `Z:\projets\invitation de mariages`  
 > **Dernière mise à jour doc :** juin 2026
@@ -30,8 +30,8 @@
 
 - **URL projet :** `https://qotolnmwoceahrnldlbw.supabase.co`
 - **Config :** `assets/js/supabase-config.js`
-- **Migration personnalisation cloud :** exécuter `docs/SUPABASE-EVENT-SETTINGS.sql` dans le SQL Editor Supabase
-- **Schéma complet :** `docs/SUPABASE-SETUP.sql` + `docs/SUPABASE-SEED.sql`
+- **Installation et migration cloud :** suivre `docs/SUPABASE-SETUP.md`, jusqu’à `docs/SUPABASE-PLATFORM-HARDENING.sql`
+- **Schéma complet :** exécuter la séquence décrite dans `docs/SUPABASE-SETUP.md`
 
 ---
 
@@ -169,7 +169,7 @@ draft → pending_review → approved → live → archived
 | `docs/FONCTIONNALITES-MANQUANTES.md` | Analyse fonctionnalités + manques |
 | `docs/ROADMAP.md` | Roadmap technique V1 |
 | `docs/SUPABASE-SETUP.md` | Guide Supabase |
-| `docs/SUPABASE-EVENT-SETTINGS.sql` | Migration sync personnalisation |
+| `docs/SUPABASE-PLATFORM-HARDENING.sql` | Migration canonique : RLS, RSVP, livre d’or et confidentialité |
 | `docs/DATABASE-SCHEMA.sql` | Schéma futur (users, events, RLS) |
 
 ---

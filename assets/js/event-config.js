@@ -22,6 +22,28 @@ const EventConfig = (() => {
         return `wedding_event_${eventId}_${suffix}`;
     }
 
+    function publicConfigCacheKey(slug) {
+        return `wedding_event_${String(slug || "").trim().toLowerCase()}_public_config`;
+    }
+
+    function readCachedPublicConfig(slug) {
+        try {
+            const cached = JSON.parse(localStorage.getItem(publicConfigCacheKey(slug)) || "null");
+            return cached && cached.title ? cached : null;
+        } catch {
+            return null;
+        }
+    }
+
+    function cachePublicConfig(slug, eventConfig) {
+        if (!eventConfig?.title) return;
+        try {
+            localStorage.setItem(publicConfigCacheKey(slug), JSON.stringify(eventConfig));
+        } catch {
+            // Le cache est une optimisation PWA ; l'invitation reste utilisable sans lui.
+        }
+    }
+
     function deepMerge(base, patch) {
         const out = { ...base };
         Object.keys(patch || {}).forEach((key) => {
@@ -44,6 +66,27 @@ const EventConfig = (() => {
 
     function getRegisteredEvents() {
         return [...BUILTIN_EVENTS];
+    }
+
+    async function getAvailableEvents() {
+        const bySlug = new Map();
+        [...BUILTIN_EVENTS, ...getCustomEvents()].forEach((event) => {
+            if (event?.slug) bySlug.set(event.slug, event);
+        });
+
+        if (window.CloudAPI?.isEnabled?.() && typeof CloudAPI.getEvents === "function") {
+            try {
+                const cloudEvents = await CloudAPI.getEvents();
+                (Array.isArray(cloudEvents) ? cloudEvents : []).forEach((event) => {
+                    if (!event?.slug) return;
+                    bySlug.set(event.slug, { ...bySlug.get(event.slug), ...event });
+                });
+            } catch (error) {
+                // La liste locale reste utilisable quand le compte courant ne peut pas lire les événements cloud.
+                console.warn("EventConfig: liste d'événements cloud indisponible", error);
+            }
+        }
+        return [...bySlug.values()];
     }
 
     function createEvent(data) {
@@ -113,7 +156,10 @@ const EventConfig = (() => {
         if (remaining.length === customs.length) return false;
 
         localStorage.setItem("wedding_custom_events", JSON.stringify(remaining));
-        ["config", "settings", "dashboard_state", "guests", "deleted_guests", "guest_name"].forEach((suffix) => {
+        [
+            "config", "settings", "dashboard_state", "guests", "deleted_guests", "guest_name", "public_config",
+            "checkin_roster", "check_ins", "check_ins_pending"
+        ].forEach((suffix) => {
             localStorage.removeItem(`wedding_event_${normalizedSlug}_${suffix}`);
         });
         localStorage.removeItem(`wedding_preview_${normalizedSlug}`);
@@ -142,14 +188,25 @@ const EventConfig = (() => {
         const cloudConfigPromise = window.CloudAPI
             && typeof CloudAPI.getPublicEventConfig === "function"
             && CloudAPI.isEnabled()
-            ? CloudAPI.getPublicEventConfig(slug).catch(() => null)
-            : Promise.resolve(null);
-        const [fileConfig, cloudSettings] = await Promise.all([fileConfigPromise, cloudConfigPromise]);
+            ? CloudAPI.getPublicEventConfig(slug)
+                .then((config) => ({ config, reachable: true }))
+                .catch(() => ({ config: null, reachable: false }))
+            : Promise.resolve({ config: null, reachable: false });
+        const [fileConfig, cloudResult] = await Promise.all([fileConfigPromise, cloudConfigPromise]);
+        const cloudSettings = cloudResult.config;
         if (cloudSettings && cloudSettings.title) {
-            return fileConfig ? deepMerge(fileConfig, cloudSettings) : cloudSettings;
+            const resolved = fileConfig ? deepMerge(fileConfig, cloudSettings) : cloudSettings;
+            cachePublicConfig(slug, resolved);
+            return resolved;
         }
 
         if (fileConfig) return fileConfig;
+
+        // Une copie publique n'est utilisée qu'après un échec réseau/RPC. Une
+        // réponse valide mais vide (événement dépublié) ne réactive donc pas un
+        // ancien lien par erreur.
+        const cached = readCachedPublicConfig(slug);
+        if (!cloudResult.reachable && cached) return cached;
 
         throw new Error(`Événement introuvable : ${slug}`);
     }
@@ -349,6 +406,7 @@ const EventConfig = (() => {
         buildInvitationBaseUrl,
         preserveEventQuery,
         getRegisteredEvents,
+        getAvailableEvents,
         loadEvent: fetchEventJson,
         createEvent,
         publishEvent,

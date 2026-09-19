@@ -44,7 +44,7 @@ const EnvelopeExport = (() => {
                 });
             });
         }
-        return `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(url)}`;
+        throw new Error("Le générateur QR local n'est pas chargé. Réessayez après le rechargement de la page.");
     }
 
     async function drawEnvelopePng(guest, options = {}) {

@@ -1,43 +1,69 @@
-# Configuration Supabase — Guide complet
+# Configuration Supabase — installation sécurisée
 
-## Étape A — Créer le projet (5 min)
+Ce guide décrit l’unique ordre d’installation pris en charge. Il faut terminer
+toutes les étapes SQL avant de rendre le site public. Les scripts historiques
+de correction ne doivent pas être exécutés après cette procédure.
 
-1. Allez sur [supabase.com](https://supabase.com) → **Start your project**
-2. Connectez-vous avec GitHub
-3. **New project** :
-   - Name : `invitation-mariage`
-   - Database password : notez-le (gardez-le secret)
-   - Region : choisissez la plus proche (ex. Frankfurt)
-4. Attendez ~2 min que le projet soit prêt
+## 1. Créer le projet
 
-## Étape B — Créer les tables et sécuriser la production
+1. Créez un projet sur [Supabase](https://supabase.com).
+2. Conservez le mot de passe de base et la clé `service_role` hors du dépôt.
+3. Relevez uniquement l’URL du projet et la clé `anon` pour le site.
 
-1. Menu gauche → **SQL Editor** → **New query**
-2. Exécutez `docs/SUPABASE-SETUP.sql` pour créer les tables.
-3. Exécutez `docs/SUPABASE-SEED.sql` seulement pour installer les exemples de démonstration.
-4. Dans **Authentication → Users**, créez d'abord le compte e-mail/mot de passe de chaque client organisateur.
-5. Exécutez `docs/SUPABASE-AUTH-FOUNDATION.sql` pour créer les profils et la colonne propriétaire.
-6. Marquez votre propre compte comme plateforme, suivant l'instruction SQL à la fin de ce fichier.
-7. Exécutez `docs/SUPABASE-RLS-CORE.sql` pour activer les accès isolés, les RPC invités, les RSVP et la création transactionnelle.
-8. Exécutez `docs/SUPABASE-STORAGE-RLS.sql` pour autoriser les images et musiques uniquement au propriétaire de l'événement.
+## 2. Installer une nouvelle base
 
-`SUPABASE-SETUP.sql` crée volontairement des politiques de démarrage permissives. Ne laissez jamais ce script comme dernière étape sur un projet exposé : `SUPABASE-RLS-CORE.sql` est obligatoire avant toute mise en production.
+Dans **SQL Editor**, exécutez les fichiers dans cet ordre précis :
 
-## Étape C — Récupérer vos clés (1 min)
+1. `docs/SUPABASE-SETUP.sql` — tables de base.
+2. `docs/SUPABASE-SEED.sql` — facultatif, seulement pour les données de démonstration.
+3. Créez les comptes des organisateurs dans **Authentication → Users**.
+4. `docs/SUPABASE-AUTH-FOUNDATION.sql` — profils et propriétaire d’événement.
+5. Désignez le compte plateforme avec l’instruction SQL à la fin de ce fichier.
+6. `docs/SUPABASE-GUEST-EXTRAS.sql` — table, boissons, photo et code QR invité.
+7. `docs/SUPABASE-RLS-CORE.sql` — isolation des événements et RPC invitées.
+8. `docs/SUPABASE-PLATFORM-HARDENING.sql` — correctifs RSVP, livre d’or, règles RLS et confidentialité.
+9. `docs/SUPABASE-GUEST-IMPORT.sql` — contrainte de nom unique par événement.
+10. `docs/SUPABASE-STORAGE-RLS.sql` — droits Storage par propriétaire.
 
-1. Menu gauche → **Project Settings** (engrenage)
-2. **API**
-3. Copiez :
-   - **Project URL** → ex. `https://xxxxx.supabase.co`
-   - **anon public** key → longue chaîne `eyJ...`
+`SUPABASE-SETUP.sql` contient des politiques de démarrage historiques. Il ne
+doit jamais être la dernière étape d’une installation exposée. La migration
+`SUPABASE-PLATFORM-HARDENING.sql` est obligatoire : elle remplace les anciens
+correctifs permissifs et rétablit les politiques strictes.
 
-## Étape D — Brancher le site (2 min)
+## 3. Base déjà existante
 
-### Option 1 — Page assistée (recommandé)
-Ouvrez : `pages/setup-supabase.html` sur votre site local ou en ligne, entrez URL + clé, testez.
+1. Faites une sauvegarde depuis **Database → Backups** ou avec `pg_dump` avant toute migration.
+2. Vérifiez que `SUPABASE-AUTH-FOUNDATION.sql` et `SUPABASE-RLS-CORE.sql` ont déjà été exécutés.
+3. Exécutez immédiatement `docs/SUPABASE-PLATFORM-HARDENING.sql` pour fermer les accès publics historiques et restaurer les RPC sûres.
+4. Ouvrez l’administration et examinez les doublons d’invités. Conservez une fiche par nom ; privilégiez une fiche confirmée, puis une fiche avec contact. Toute suppression doit être confirmée dans l’interface.
+5. Exécutez `docs/SUPABASE-GUEST-IMPORT.sql`. S’il s’arrête, son détail liste les noms à résoudre ; aucune donnée n’a été modifiée.
+6. Vérifiez les politiques et les fonctions avec les requêtes de contrôle situées à la fin de la migration.
 
-### Option 2 — Fichier manuel
-Éditez `assets/js/supabase-config.js` :
+Ne tentez pas de contourner un doublon en modifiant la contrainte SQL ou en
+supprimant une ligne directement dans la base sans sauvegarde. L’outil
+« Gestion des invités » fournit le parcours de revue prévu à cet effet.
+
+## 4. Scripts remplacés
+
+Ne lancez pas ces fichiers après le verrouillage RLS :
+
+- `SUPABASE-FIX-DELETE.sql`
+- `SUPABASE-RELIABILITY-MIGRATION.sql`
+- `SUPABASE-RSVP-INTEGRITY.sql`
+- `SUPABASE-OPEN-RSVP.sql`
+- `SUPABASE-EVENT-SETTINGS.sql`
+- `SUPABASE-CHECK-INS.sql`
+
+Ils appartiennent à des étapes antérieures et certains réintroduisent des
+politiques `USING (true)` ou des RPC RSVP incomplètes. Leur rôle est couvert
+par `SUPABASE-RLS-CORE.sql` et `SUPABASE-PLATFORM-HARDENING.sql`.
+
+Utilisez uniquement `SUPABASE-STORAGE-RLS.sql` pour le bucket `event-assets`.
+Le fichier `SUPABASE-STORAGE.sql` n’est pas la procédure d’installation active.
+
+## 5. Brancher le site
+
+Configurez `assets/js/supabase-config.js` :
 
 ```javascript
 window.SUPABASE_CONFIG = {
@@ -47,31 +73,50 @@ window.SUPABASE_CONFIG = {
 };
 ```
 
-Puis :
-```powershell
-git add assets/js/supabase-config.js
-git commit -m "Enable Supabase cloud database"
-git push origin main
+La clé `anon` peut être présente dans une application web seulement si les
+politiques RLS et les RPC de la procédure ci-dessus sont actives. Ne publiez
+jamais `service_role`, le mot de passe de base ou un jeton d’administrateur.
+
+## 6. Vérification avant production
+
+Exécutez dans SQL Editor :
+
+```sql
+SELECT tablename, policyname, cmd, qual, with_check
+FROM pg_policies
+WHERE schemaname = 'public'
+  AND tablename IN (
+    'events', 'guests', 'rsvps', 'event_settings',
+    'guestbook_messages', 'analytics_events', 'check_ins'
+  )
+ORDER BY tablename, policyname;
+
+SELECT routine_name
+FROM information_schema.routines
+WHERE routine_schema = 'public'
+  AND routine_name IN (
+    'submit_guest_rsvp', 'get_public_rsvp_messages',
+    'get_public_guestbook_messages', 'post_guestbook_message',
+    'replace_managed_guests'
+  )
+ORDER BY routine_name;
 ```
 
-## Étape E — Vérifier
+Puis testez dans une fenêtre privée :
 
-1. Connectez-vous avec le compte plateforme et créez un événement avec l'e-mail d'un compte client existant.
-2. Connectez-vous ensuite depuis un téléphone ou un autre navigateur avec le compte client et ouvrez `pages/admin.html?event=slug`.
-3. Modifiez un texte et importez une image ou une musique, puis ouvrez le lien invité dans une fenêtre privée : les modifications doivent apparaître.
-4. Ajoutez un invité, ouvrez son lien tokenisé, envoyez un RSVP, validez le QR depuis l'admin puis scannez-le avec `pages/checkin.html?event=slug`.
+1. Une invitation personnelle avec réponse `oui`, message et téléphone vide.
+2. Une invitation personnelle avec réponse `non`.
+3. L’affichage du message RSVP personnel et, si activé, du RSVP ouvert, ainsi que du livre d’or après rechargement depuis un second navigateur.
+4. Un événement non publié : aucune configuration, invitation ou liste de messages ne doit être accessible publiquement.
+5. Un import CSV contenant un nom déjà présent, une ligne vide, des accents et un champ `Couple Nom`.
+6. Le remplacement de liste : les réponses RSVP `oui` et `non`, avec ou sans téléphone, doivent rester présentes.
 
-## Sécurité
+## 7. Dépannage
 
-- La clé **anon** peut être publique si RLS est activé (déjà fait dans SUPABASE-SETUP.sql)
-- Ne partagez **jamais** la clé `service_role`
-- Ne commitez **jamais** le mot de passe base de données
-
-## Dépannage
-
-| Problème | Solution |
-|----------|----------|
-| "Mode local" affiché | `enabled: true` + push GitHub |
-| Erreur 401/403 | Vérifiez anon key + RLS policies |
-| Table introuvable | Relancez SUPABASE-SETUP.sql |
-| Invités non visibles | Vérifiez l'identifiant de l'événement concerné |
+| Problème | Action sûre |
+|---|---|
+| Doublons signalés par `SUPABASE-GUEST-IMPORT.sql` | Les examiner dans l’administration, confirmer les suppressions nécessaires, puis relancer le script. |
+| Erreur 401/403 côté organisateur | Vérifier la session Auth et les politiques après la migration canonique ; ne pas appliquer de politique `USING (true)`. |
+| RSVP ou livre d’or refusé | Vérifier que l’événement est publié et que `SUPABASE-PLATFORM-HARDENING.sql` a été exécuté. |
+| Invitation personnelle sans token | Elle doit être refusée ; utilisez le lien individuel généré depuis Gestion des invités. |
+| Import de remplacement interrompu | Ne modifiez pas le cache local. La RPC `replace_managed_guests` annule toutes ses écritures en cas d’erreur. |

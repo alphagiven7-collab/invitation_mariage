@@ -26,11 +26,35 @@ const ContentBlocks = (() => {
     ];
 
     function escapeHtml(str) {
-        return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        return String(str || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
+    function sanitizeExternalUrl(value) {
+        const raw = String(value || "").trim();
+        if (!raw) return "";
+        try {
+            const url = new URL(raw, window.location?.href || "https://example.invalid/");
+            return url.protocol === "https:" ? url.href : "";
+        } catch {
+            return "";
+        }
+    }
+
+    function isGoogleMapsUrl(url) {
+        const host = String(url.hostname || "").toLowerCase();
+        return host === "maps.app.goo.gl"
+            || host === "google.com"
+            || host.endsWith(".google.com");
     }
 
     function buildMapUrl(state) {
-        if (state.mapLink) return state.mapLink;
+        const customMapUrl = sanitizeExternalUrl(state.mapLink);
+        if (customMapUrl) return customMapUrl;
         if (state.venueLat && state.venueLng) {
             return `https://maps.google.com/?q=${encodeURIComponent(state.venueLat)},${encodeURIComponent(state.venueLng)}`;
         }
@@ -41,10 +65,14 @@ const ContentBlocks = (() => {
     }
 
     function buildMapEmbedUrl(state) {
-        if (state.mapLink && state.mapLink.includes("google") && state.mapLink.includes("maps")) {
-            const qMatch = state.mapLink.match(/[?&]q=([^&]+)/);
-            if (qMatch) {
-                return `https://maps.google.com/maps?q=${qMatch[1]}&z=16&output=embed`;
+        const customMapUrl = sanitizeExternalUrl(state.mapLink);
+        if (customMapUrl) {
+            const mapUrl = new URL(customMapUrl);
+            if (isGoogleMapsUrl(mapUrl)) {
+                const query = mapUrl.searchParams.get("q");
+                if (query) {
+                    return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&z=16&output=embed`;
+                }
             }
         }
         if (state.venueLat && state.venueLng) {
@@ -197,6 +225,15 @@ const ContentBlocks = (() => {
         }
     }
 
+    function applySectionVisibility(sections) {
+        if (!sections || typeof sections !== "object") return;
+        document.querySelectorAll("[data-event-section]").forEach((element) => {
+            const key = element.dataset.eventSection;
+            if (!key || sections[key] === undefined) return;
+            element.classList.toggle("hidden", sections[key] === false);
+        });
+    }
+
     function apply(state) {
         if (!state) return;
         if (state.programSectionTitle) {
@@ -210,6 +247,17 @@ const ContentBlocks = (() => {
         renderProgram(state.program || DEFAULT_PROGRAM);
         renderPracticalInfo(state.practicalInfo || DEFAULT_PRACTICAL);
         applyVenue(state);
+        applySectionVisibility(state.sections);
+    }
+
+    function formatRsvpDeadline(value) {
+        const raw = String(value || "").trim();
+        if (!raw) return "";
+        const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T12:00:00` : raw);
+        if (Number.isNaN(date.getTime())) return `Merci de confirmer avant le ${raw}`;
+        return `Merci de confirmer avant le ${date.toLocaleDateString("fr-FR", {
+            day: "numeric", month: "long", year: "numeric"
+        })}`;
     }
 
     function getDefaultsFromConfig(cfg) {
@@ -234,7 +282,10 @@ const ContentBlocks = (() => {
         if (cfg.inviteIntro) out.inviteIntro = cfg.inviteIntro;
         if (cfg.inviteSecondary) out.inviteSecondary = cfg.inviteSecondary;
         if (cfg.reserveText) out.reserveText = cfg.reserveText;
-        if (cfg.rsvpDeadlineText) out.rsvpDeadlineText = cfg.rsvpDeadlineText;
+        if (cfg.rsvpDeadlineText || cfg.rsvpDeadline) {
+            out.rsvpDeadlineText = cfg.rsvpDeadlineText || formatRsvpDeadline(cfg.rsvpDeadline);
+        }
+        if (cfg.sections) out.sections = cfg.sections;
         if (cfg.rsvpButtonColor) out.rsvpButtonColor = cfg.rsvpButtonColor;
         if (cfg.aboutTitle) out.aboutTitle = cfg.aboutTitle;
         if (cfg.aboutStory1) out.aboutStory1 = cfg.aboutStory1;
@@ -268,6 +319,9 @@ const ContentBlocks = (() => {
         applyVenue,
         buildMapUrl,
         buildMapEmbedUrl,
+        sanitizeExternalUrl,
+        applySectionVisibility,
+        formatRsvpDeadline,
         copyGpsToClipboard,
         getDefaultsFromConfig,
         DEFAULT_PROGRAM,

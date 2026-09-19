@@ -21,19 +21,21 @@ const AuthGuard = (() => {
         return sessionStorage;
     }
 
-    function getSession() {
+    function getStoredSession() {
         try {
             const storage = getSessionStorage();
-            const session = JSON.parse(storage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY) || "null");
-            if (session?.expiresAt && Date.now() >= session.expiresAt) {
-                storage.removeItem(SESSION_KEY);
-                sessionStorage.removeItem(SESSION_KEY);
-                return null;
-            }
-            return session;
+            const sessionStorageValue = typeof sessionStorage !== "undefined"
+                ? sessionStorage.getItem(SESSION_KEY)
+                : null;
+            return JSON.parse(storage.getItem(SESSION_KEY) || sessionStorageValue || "null");
         } catch {
             return null;
         }
+    }
+
+    function getSession() {
+        const session = getStoredSession();
+        return session?.expiresAt && Date.now() >= session.expiresAt ? null : session;
     }
 
     function setSession(data) {
@@ -42,7 +44,7 @@ const AuthGuard = (() => {
 
     function clearSession() {
         getSessionStorage().removeItem(SESSION_KEY);
-        sessionStorage.removeItem(SESSION_KEY);
+        if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(SESSION_KEY);
     }
 
     function isPlatformAdmin() {
@@ -135,6 +137,58 @@ const AuthGuard = (() => {
         return { ok: true, role: session.role, session };
     }
 
+    async function refreshSession() {
+        const previous = getStoredSession();
+        if (!previous || !previous.refreshToken || !isSupabaseEnabled()) return getSession();
+
+        // A session still valid for more than one minute does not need a network call.
+        if (previous.expiresAt && Date.now() < previous.expiresAt - 60_000) return previous;
+
+        try {
+            const auth = await requestAuth("token?grant_type=refresh_token", {
+                refresh_token: previous.refreshToken
+            });
+            const user = auth.user || {};
+            if (!auth.access_token || !(user.id || previous.userId)) {
+                throw new Error("Session Supabase invalide.");
+            }
+
+            const userId = user.id || previous.userId;
+            const profile = await getProfile(auth.access_token, userId);
+            const platformAdmin = profile
+                ? profile.role === "platform"
+                : previous.role === "platform";
+            const eventId = platformAdmin ? null : previous.eventId;
+            const eventAdmin = !platformAdmin && eventId
+                ? await canManageEvent(auth.access_token, eventId)
+                : false;
+            if (!platformAdmin && !eventAdmin) {
+                throw new Error("Ce compte n'est plus autorisé pour cet événement.");
+            }
+
+            const expiresAt = auth.expires_at
+                ? Number(auth.expires_at) * 1000
+                : Date.now() + (Number(auth.expires_in) || 3600) * 1000;
+            const refreshed = {
+                ...previous,
+                role: platformAdmin ? "platform" : "event",
+                eventId,
+                userId,
+                email: user.email || previous.email || "",
+                accessToken: auth.access_token,
+                refreshToken: auth.refresh_token || previous.refreshToken,
+                expiresAt,
+                at: Date.now()
+            };
+            setSession(refreshed);
+            return refreshed;
+        } catch (error) {
+            console.warn("AuthGuard: renouvellement de session impossible", error);
+            clearSession();
+            return null;
+        }
+    }
+
     function requireAdmin(eventId) {
         if (isEventAdmin(eventId)) return true;
         const params = new URLSearchParams(window.location.search);
@@ -153,6 +207,7 @@ const AuthGuard = (() => {
 
     return {
         loginWithPassword,
+        refreshSession,
         logout,
         getSession,
         isPlatformAdmin,

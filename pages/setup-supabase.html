@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Configuration Supabase</title>
-    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=19">
+    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=57">
     <link rel="stylesheet" href="../assets/css/app.css">
     <link rel="stylesheet" href="../assets/css/admin.css">
 </head>
@@ -22,12 +22,13 @@
                 <a href="https://supabase.com/dashboard" target="_blank" class="text-indigo-600 font-semibold underline">supabase.com/dashboard</a>
             </p>
             <ol class="text-sm space-y-2 mt-2 list-decimal list-inside text-slate-600 leading-relaxed">
-                <li>SQL Editor → exécuter <code class="bg-slate-100 px-1 rounded">docs/SUPABASE-SETUP.sql</code></li>
-                <li>Puis exécuter <code class="bg-slate-100 px-1 rounded">docs/SUPABASE-SEED.sql</code></li>
-                <li>Exécuter aussi <code class="bg-slate-100 px-1 rounded">docs/SUPABASE-FIX-DELETE.sql</code> (suppression invités)</li>
-                <li>Exécuter <code class="bg-slate-100 px-1 rounded">docs/SUPABASE-RELIABILITY-MIGRATION.sql</code> (création événement et RSVP uniques)</li>
+                <li>SQL Editor → sur une base neuve, exécuter <code class="bg-slate-100 px-1 rounded">docs/SUPABASE-SETUP.sql</code></li>
+                <li>Exécuter ensuite <code class="bg-slate-100 px-1 rounded">docs/SUPABASE-AUTH-FOUNDATION.sql</code>, <code class="bg-slate-100 px-1 rounded">docs/SUPABASE-GUEST-EXTRAS.sql</code> et <code class="bg-slate-100 px-1 rounded">docs/SUPABASE-RLS-CORE.sql</code></li>
+                <li>Exécuter <code class="bg-slate-100 px-1 rounded">docs/SUPABASE-PLATFORM-HARDENING.sql</code>, puis <code class="bg-slate-100 px-1 rounded">docs/SUPABASE-GUEST-IMPORT.sql</code></li>
+                <li>Facultatif : exécuter <code class="bg-slate-100 px-1 rounded">docs/SUPABASE-SEED.sql</code> uniquement pour les données de démonstration.</li>
                 <li>Settings → API → copier URL + anon key</li>
             </ol>
+            <p class="admin-card-desc mt-3 mb-0">N’exécutez pas les anciens scripts de correctif isolés : <code>SUPABASE-FIX-DELETE.sql</code>, <code>SUPABASE-RELIABILITY-MIGRATION.sql</code>, <code>SUPABASE-RSVP-INTEGRITY.sql</code>, <code>SUPABASE-OPEN-RSVP.sql</code>, <code>SUPABASE-EVENT-SETTINGS.sql</code> ou <code>SUPABASE-CHECK-INS.sql</code>. La migration canonique les remplace.</p>
         </section>
 
         <section class="admin-card">

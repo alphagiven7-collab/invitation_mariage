@@ -101,12 +101,13 @@
         const slug = escapeHtml(event.slug);
         const title = escapeHtml(event.title || event.slug);
         const subtitle = escapeHtml(event.subtitle || [event.coupleLeft, event.coupleRight].filter(Boolean).join(" & "));
+        const search = escapeHtml(`${event.title || ""} ${event.slug || ""} ${event.type || ""}`.toLowerCase());
         const welcomeImage = event.welcomeImage || event.branding?.welcomeImage || "";
         const image = welcomeImage
             ? `<img class="event-card-image" src="${escapeHtml(welcomeImage)}" alt="Photo d'accueil de ${title}">`
             : '<div class="event-card-image event-card-image--empty">Aucune photo d’accueil</div>';
 
-        return `<article class="event-card" data-event-id="${escapeHtml(event.id || event.slug)}" data-event-slug="${slug}" data-search="${`${event.title || ""} ${event.slug || ""} ${event.type || ""}`.toLowerCase()}">
+        return `<article class="event-card" data-event-id="${escapeHtml(event.id || event.slug)}" data-event-slug="${slug}" data-search="${search}">
             ${image}
             <div class="event-card-body">
                 <div class="event-card-meta">
@@ -129,6 +130,7 @@
     }
 
     async function init() {
+        await window.AuthGuard?.refreshSession?.();
         await EventConfig.init();
         if (!AuthGuard.isPlatformAdmin()) {
             const redirect = encodeURIComponent(`${window.location.pathname}${window.location.search}`);

@@ -45,6 +45,7 @@
         box.className = "checkin-result checkin-result--show";
         const map = {
             success: "checkin-result--success",
+            pending: "checkin-result--success",
             duplicate: "checkin-result--duplicate",
             invalid: "checkin-result--invalid",
             error: "checkin-result--error"
@@ -56,7 +57,7 @@
         const grid = document.getElementById("checkin-result-grid");
 
         if (title) {
-            title.textContent = result.status === "success"
+            title.textContent = result.status === "success" || result.status === "pending"
                 ? guest?.fullName || "Invité"
                 : result.status === "duplicate"
                     ? "Déjà scanné"
@@ -64,7 +65,7 @@
         }
         if (msg) msg.textContent = result.message;
 
-        if (grid && guest && (result.status === "success" || result.status === "duplicate")) {
+        if (grid && guest && (result.status === "success" || result.status === "pending" || result.status === "duplicate")) {
             const s = CheckinAPI.guestSummary(guest);
             const addDetail = (label, value, fullWidth = false) => {
                 const detail = document.createElement("div");
@@ -86,7 +87,7 @@
             grid.classList.add("hidden");
         }
 
-        if (result.status === "success") {
+        if (result.status === "success" || result.status === "pending") {
             vibrate(80);
             beep("success");
         } else if (result.status === "duplicate") {
@@ -131,7 +132,11 @@
 
     async function startScanner() {
         const el = document.getElementById("checkin-reader");
-        if (!el || !window.Html5Qrcode) return;
+        if (!el) return;
+        if (!window.Html5Qrcode) {
+            el.textContent = "Caméra indisponible — saisissez le token manuellement.";
+            return;
+        }
         scanner = new Html5Qrcode("checkin-reader");
         try {
             await scanner.start(
@@ -160,11 +165,22 @@
 
     window.addEventListener("DOMContentLoaded", async () => {
         initDeviceId();
-        await EventConfig.init();
+        await window.AuthGuard?.refreshSession?.();
+        try {
+            await EventConfig.init();
+        } catch {
+            showResult({ status: "error", message: "Impossible de charger l'événement. Vérifiez votre connexion puis réessayez." });
+            return;
+        }
         const eventId = getEventId();
         if (!AuthGuard.isEventAdmin(eventId)) {
             AuthGuard.requireAdmin(eventId);
             return;
+        }
+
+        // Prepare a dedicated staff roster without delaying the scanner UI.
+        if (window.CheckinAPI?.warmGuestRoster) {
+            CheckinAPI.warmGuestRoster(eventId).catch(() => {});
         }
 
         document.getElementById("checkin-event-label").textContent = EventConfig.getConfig()?.title || eventId;
@@ -175,6 +191,7 @@
             const raw = document.getElementById("checkin-manual-token")?.value || "";
             const parsed = CheckinUrl.parseScannedValue(raw);
             if (parsed?.token) handleToken(parsed.token, parsed.eventId);
+            else showResult({ status: "invalid", message: "QR ou token invalide. Vérifiez le lien d'invitation." });
         });
 
         document.getElementById("checkin-manual-token")?.addEventListener("keydown", (e) => {

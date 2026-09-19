@@ -123,6 +123,14 @@ const AdminPresence = (() => {
         return number || name || "—";
     }
 
+    function formatCsvCell(value) {
+        let text = String(value ?? "").replace(/\r?\n/g, " ");
+        // Les cellules entre guillemets sont encore interprétées comme formules
+        // par certains tableurs. Préserver la donnée comme texte.
+        if (/^[=+\-@]/.test(text)) text = `'${text}`;
+        return `"${text.replace(/"/g, '""')}"`;
+    }
+
     function exportCsv() {
         loadData().then(({ guests, checkIns }) => {
             const rows = buildPresenceRows(guests, checkIns);
@@ -140,7 +148,7 @@ const AdminPresence = (() => {
                     g.adults || 0,
                     g.children || 0,
                     r.staff
-                ].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(";"));
+                ].map(formatCsvCell).join(";"));
             });
             const blob = new Blob(["\ufeff" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
             const a = document.createElement("a");
@@ -178,7 +186,7 @@ const AdminPresence = (() => {
         startPolling();
     }
 
-    return { init, renderTable, stopPolling };
+    return { init, renderTable, stopPolling, formatCsvCell };
 })();
 
 window.AdminPresence = AdminPresence;

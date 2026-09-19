@@ -11,8 +11,8 @@ function bindForms() {
             guests: Number(document.getElementById("rsvp-guests").value || 1),
             message: document.getElementById("rsvp-message").value.trim()
         };
-        if (!payload.name || !payload.phone) {
-            alert("Nom et téléphone sont obligatoires.");
+        if (!payload.name) {
+            alert("Le nom est obligatoire.");
             return;
         }
         WeddingDB.addRSVP(payload);
@@ -45,11 +45,17 @@ function renderStats() {
 function renderGuestbook() {
     const list = WeddingDB.getGuestbook();
     const root = document.getElementById("guestbook-list");
-    root.innerHTML = "";
+    root.replaceChildren();
     list.slice(0, 20).forEach((item) => {
         const card = document.createElement("div");
         card.className = "card";
-        card.innerHTML = `<strong>${item.author}</strong><p>${item.message}</p><small>${new Date(item.createdAt).toLocaleString("fr-FR")}</small>`;
+        const author = document.createElement("strong");
+        author.textContent = item.author || "Invité";
+        const message = document.createElement("p");
+        message.textContent = item.message || "";
+        const createdAt = document.createElement("small");
+        createdAt.textContent = new Date(item.createdAt).toLocaleString("fr-FR");
+        card.append(author, message, createdAt);
         root.appendChild(card);
     });
 }

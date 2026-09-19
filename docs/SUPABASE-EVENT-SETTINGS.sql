@@ -1,23 +1,11 @@
--- Migration : table event_settings (personnalisation cloud)
--- Exécuter dans Supabase SQL Editor après SUPABASE-SETUP.sql
-
-CREATE TABLE IF NOT EXISTS event_settings (
-    event_id TEXT PRIMARY KEY REFERENCES events(id) ON DELETE CASCADE,
-    dashboard_json JSONB NOT NULL DEFAULT '{}',
-    updated_at TIMESTAMPTZ DEFAULT now()
-);
-
-ALTER TABLE event_settings ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "event_settings_read" ON event_settings;
-DROP POLICY IF EXISTS "event_settings_insert" ON event_settings;
-DROP POLICY IF EXISTS "event_settings_update" ON event_settings;
-
-CREATE POLICY "event_settings_read" ON event_settings FOR SELECT USING (true);
-CREATE POLICY "event_settings_insert" ON event_settings FOR INSERT WITH CHECK (true);
-CREATE POLICY "event_settings_update" ON event_settings FOR UPDATE USING (true);
-
--- Seed vide pour demo (optionnel — le JSON sera rempli au premier save)
-INSERT INTO event_settings (event_id, dashboard_json)
-VALUES ('demo', '{}')
-ON CONFLICT (event_id) DO NOTHING;
+-- DEPRECIE — ne pas executer.
+--
+-- event_settings est cree par SUPABASE-SETUP.sql. Cet ancien script recreait
+-- des politiques publiques. La migration canonique gere maintenant la
+-- personnalisation cloud et retire les champs prives de la configuration :
+--   docs/SUPABASE-PLATFORM-HARDENING.sql
+DO $$
+BEGIN
+    RAISE EXCEPTION 'SUPABASE-EVENT-SETTINGS.sql est obsolete. Executez SUPABASE-PLATFORM-HARDENING.sql selon docs/SUPABASE-SETUP.md.';
+END;
+$$;

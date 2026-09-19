@@ -59,18 +59,27 @@ const CloudAPI = (() => {
     }
 
     async function requestRpc(functionName, body, options = {}) {
-        if (!isEnabled()) return null;
+        const expectsArray = options.expectArray === true;
+        if (!isEnabled()) return expectsArray ? [] : null;
         const adminSession = window.AuthGuard && AuthGuard.getSession ? AuthGuard.getSession() : null;
         const accessToken = adminSession?.accessToken || cfg().anonKey;
-        const response = await fetch(`${cfg().url}/rest/v1/rpc/${functionName}`, {
-            method: "POST",
-            headers: {
-                apikey: cfg().anonKey,
-                Authorization: `Bearer ${accessToken}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(body || {})
-        });
+        let response;
+        try {
+            response = await fetch(`${cfg().url}/rest/v1/rpc/${functionName}`, {
+                method: "POST",
+                headers: {
+                    apikey: cfg().anonKey,
+                    Authorization: `Bearer ${accessToken}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body || {})
+            });
+        } catch (error) {
+            const message = "Impossible de joindre le service. Vérifiez votre connexion puis réessayez.";
+            console.warn("CloudAPI RPC", functionName, error);
+            if (options.throwOnError) throw new Error(message);
+            throw error;
+        }
         if (!response.ok) {
             const error = await response.text().catch(() => "");
             let message = "";
@@ -84,7 +93,26 @@ const CloudAPI = (() => {
             }
             return null;
         }
-        const data = await response.json().catch(() => null);
+        const raw = await response.text().catch(() => "");
+        let data = null;
+        if (raw) {
+            try {
+                data = JSON.parse(raw);
+            } catch {
+                const message = "La réponse du service est illisible. Réessayez plus tard.";
+                console.warn("CloudAPI RPC", functionName, message);
+                if (options.throwOnError) throw new Error(message);
+                return expectsArray ? [] : null;
+            }
+        }
+        if (expectsArray) {
+            if (data === null) return [];
+            if (Array.isArray(data)) return data;
+            const message = "Le service a renvoyé une réponse inattendue.";
+            console.warn("CloudAPI RPC", functionName, message, data);
+            if (options.throwOnError) throw new Error(message);
+            return [];
+        }
         return Array.isArray(data) ? data[0] || null : data;
     }
 
@@ -220,6 +248,22 @@ const CloudAPI = (() => {
         return null;
     }
 
+    async function requestAllRows(table, query) {
+        const rows = [];
+        let offset = 0;
+        const separator = query.includes("?") ? "&" : "?";
+        while (true) {
+            const page = await request(table, {
+                query: `${query}${separator}limit=500&offset=${offset}`,
+                throwOnError: true
+            });
+            if (!Array.isArray(page)) throw new Error(`Synchronisation Supabase impossible pour ${table}.`);
+            rows.push(...page);
+            if (page.length < 500) return rows;
+            offset += page.length;
+        }
+    }
+
     // --- Invités ---
     async function getGuests(eventId) {
         const isEventAdmin = window.AuthGuard && AuthGuard.isEventAdmin
@@ -239,18 +283,10 @@ const CloudAPI = (() => {
         }
 
         if (!isEnabled()) return readGuestsLocal(eventId);
-        const cloudGuests = [];
-        let offset = 0;
-        while (true) {
-            const cloud = await request("guests", {
-                query: `?event_id=eq.${encodeURIComponent(eventId)}&order=created_at.desc,id.asc&limit=500&offset=${offset}`,
-                throwOnError: true
-            });
-            if (!Array.isArray(cloud)) throw new Error("Synchronisation Supabase impossible pour cet événement.");
-            cloudGuests.push(...cloud.map(mapGuestFromCloud));
-            if (cloud.length < 500) break;
-            offset += cloud.length;
-        }
+        const cloudGuests = (await requestAllRows(
+            "guests",
+            `?event_id=eq.${encodeURIComponent(eventId)}&order=created_at.desc,id.asc`
+        )).map(mapGuestFromCloud);
         await saveGuestsLocal(eventId, cloudGuests);
         return cloudGuests;
     }
@@ -434,7 +470,7 @@ const CloudAPI = (() => {
         if (deleted !== true) {
             console.warn(
                 "CloudAPI: suppression refusée ou migration Supabase manquante. " +
-                "Exécutez docs/SUPABASE-RSVP-INTEGRITY.sql dans Supabase."
+                "Exécutez docs/SUPABASE-PLATFORM-HARDENING.sql dans Supabase."
             );
             return { removed: false, cloudSynced: false, reason: "cloud_delete_failed" };
         }
@@ -526,15 +562,19 @@ const CloudAPI = (() => {
             p_full_name: data.fullName,
             p_status: data.status === "no" ? "no" : "yes",
             p_side: data.side,
-            p_drink_choices: Array.isArray(data.drinkChoices) ? data.drinkChoices : []
+            p_drink_choices: Array.isArray(data.drinkChoices) ? data.drinkChoices : [],
+            p_message: data.message || ""
         }, { throwOnError: true });
     }
 
     async function getRSVPs(eventId) {
-        const cloud = await request("rsvps", {
-            query: `?event_id=eq.${eventId}&order=created_at.desc`
-        });
-        if (cloud) return keepLatestRsvpPerGuest(cloud);
+        if (isEnabled()) {
+            const cloud = await requestAllRows(
+                "rsvps",
+                `?event_id=eq.${encodeURIComponent(eventId)}&order=created_at.desc,id.asc`
+            );
+            return keepLatestRsvpPerGuest(cloud);
+        }
         const raw = localStorage.getItem(localKey(eventId, "rsvps"));
         return raw ? keepLatestRsvpPerGuest(JSON.parse(raw)) : [];
     }
@@ -622,10 +662,10 @@ const CloudAPI = (() => {
         const raw = localStorage.getItem(localKey(eventId, "analytics"));
         const local = raw ? JSON.parse(raw) : [];
         if (isEnabled()) {
-            const cloud = await request("analytics_events", {
-                query: `?event_id=eq.${eventId}&order=created_at.desc&limit=200`
-            });
-            if (cloud) return cloud;
+            return requestAllRows(
+                "analytics_events",
+                `?event_id=eq.${encodeURIComponent(eventId)}&order=created_at.desc,id.asc`
+            );
         }
         return local;
     }
@@ -656,7 +696,7 @@ const CloudAPI = (() => {
     }
 
     async function getPublicEventConfig(eventId) {
-        return requestRpc("get_public_event_config", { p_event_id: eventId });
+        return requestRpc("get_public_event_config", { p_event_id: eventId }, { throwOnError: true });
     }
 
     async function getEvents() {
@@ -700,21 +740,31 @@ const CloudAPI = (() => {
     }
 
     async function getPublicGuestbookMessages(eventId) {
-        const messages = await requestRpc("get_public_guestbook_messages", { p_event_id: eventId });
-        return Array.isArray(messages) ? messages : [];
+        return requestRpc(
+            "get_public_guestbook_messages",
+            { p_event_id: eventId },
+            { expectArray: true, throwOnError: true }
+        );
     }
 
     async function getPublicRsvpMessages(eventId) {
-        const messages = await requestRpc("get_public_rsvp_messages", { p_event_id: eventId });
-        return Array.isArray(messages) ? messages : [];
+        return requestRpc(
+            "get_public_rsvp_messages",
+            { p_event_id: eventId },
+            { expectArray: true, throwOnError: true }
+        );
     }
 
     async function postGuestbookMessage(eventId, token, message) {
-        return requestRpc("post_guestbook_message", {
+        const created = await requestRpc("post_guestbook_message", {
             p_event_id: eventId,
             p_token: token,
             p_message: message
-        });
+        }, { throwOnError: true });
+        if (!created || !created.message) {
+            throw new Error("Le livre d'or n'a pas confirmé la publication du message.");
+        }
+        return created;
     }
 
     async function createEvent(event) {
@@ -735,6 +785,8 @@ const CloudAPI = (() => {
         if (!isEnabled()) throw new Error("Supabase n'est pas configuré.");
         let mediaCleanupWarning = "";
         try {
+            // Les politiques Storage verifient encore can_manage_event(eventId).
+            // L'evenement doit donc exister pendant le nettoyage de son dossier.
             await deleteEventAssets(eventId);
         } catch (error) {
             console.warn("CloudAPI: nettoyage Storage impossible", error);
@@ -749,9 +801,31 @@ const CloudAPI = (() => {
         return { deleted: true, mediaCleanupWarning };
     }
 
+    async function replaceGuestList(eventId, guests) {
+        if (!eventId || !Array.isArray(guests)) {
+            throw new Error("Liste d'invités invalide.");
+        }
+        if (!window.AuthGuard?.isEventAdmin?.(eventId)) {
+            throw new Error("Connexion organisateur requise pour remplacer la liste.");
+        }
+        const result = await requestRpc("replace_managed_guests", {
+            p_event_id: eventId,
+            p_imported_guests: guests
+        }, { throwOnError: true });
+        if (!result || typeof result !== "object") {
+            throw new Error("Supabase n'a pas confirmé le remplacement de la liste.");
+        }
+        return { cloudSynced: true, ...result };
+    }
+
     async function saveEventSettings(eventId, payload) {
         const clean = { ...(payload || {}) };
         delete clean._cloudUpdatedAt;
+        // Les réglages sont exposés aux visiteurs via une RPC publique : ne jamais y écrire de secret organisateur.
+        delete clean.ownerEmail;
+        delete clean.owner_email;
+        delete clean.adminCode;
+        delete clean.admin_code;
 
         localStorage.setItem(localKey(eventId, "dashboard_state"), JSON.stringify(payload));
 
@@ -790,7 +864,7 @@ const CloudAPI = (() => {
             const sizeKb = Math.round(JSON.stringify(clean).length / 1024);
             console.warn(
                 "CloudAPI: échec sauvegarde event_settings",
-                `(~${sizeKb} Ko). Vérifiez event_settings + bucket event-assets (docs/SUPABASE-STORAGE.sql).`
+                `(~${sizeKb} Ko). Vérifiez event_settings + bucket event-assets (docs/SUPABASE-STORAGE-RLS.sql).`
             );
         }
         return { cloud: ok, updatedAt: now, sizeKb: Math.round(JSON.stringify(clean).length / 1024) };
@@ -838,8 +912,7 @@ const CloudAPI = (() => {
         if (opts.token) {
             query += `&guest_token=eq.${encodeURIComponent(opts.token)}`;
         }
-        const rows = await request("check_ins", { query });
-        return Array.isArray(rows) ? rows : [];
+        return requestAllRows("check_ins", query);
     }
 
     async function insertCheckIn(row) {
@@ -916,6 +989,7 @@ const CloudAPI = (() => {
         createEvent,
         deleteEvent,
         deleteEventAssets,
+        replaceGuestList,
         getEvents,
         getEventSettings,
         getPublicEventConfig,

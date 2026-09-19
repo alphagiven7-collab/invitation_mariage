@@ -64,14 +64,22 @@ const GuestManager = (() => {
     // No implicit country: local numbers cannot safely be equated to international ones.
     function normalizePhone(value) {
         const text = String(value || "").trim();
-        if (!/^[+\d\s().-]*$/.test(text)) return text;
+        if (!/^[+\d\s().-]*$/.test(text)) return "";
         return text.replace(/\D/g, "").replace(/^00/, "");
     }
 
     function cleanPhone(value) {
         const text = String(value || "").trim();
         // The former form default (+243) is a country prefix, not a phone number.
-        return normalizePhone(text) === "243" ? "" : text;
+        const normalized = normalizePhone(text);
+        return !normalized || normalized === "243" ? "" : text;
+    }
+
+    function hasUsablePhone(guest) {
+        const normalized = normalizePhone(guest?.phone);
+        // Un indicatif seul (notamment l'ancien +243 prérempli) ne doit pas
+        // faire conserver une fiche au détriment d'un vrai contact.
+        return normalized.length >= 6 && normalized !== "243";
     }
 
     function identityKey(guest) {
@@ -82,7 +90,11 @@ const GuestManager = (() => {
     function nameKey(guest) {
         return String(guest.fullName || "").normalize("NFC").trim().toLowerCase()
             .replace(/\s+/g, " ")
-            .replace(/^couple\s+/, "");
+            .replace(/^couple(?:\s+|$)/, "");
+    }
+
+    function hasValidGuestName(fullName) {
+        return nameKey({ fullName }).length >= 2;
     }
 
     function isCoupleName(fullName) {
@@ -175,7 +187,7 @@ const GuestManager = (() => {
 
     async function addGuest({ fullName, phone = "", email = "", group = "", tableNumber = "", profilePhotoUrl = "" }) {
         const trimmedName = (fullName || "").trim();
-        if (trimmedName.length < 2) return { guest: null, duplicate: false, cloudSynced: false };
+        if (!hasValidGuestName(trimmedName)) return { guest: null, duplicate: false, cloudSynced: false };
 
         await loadGuests(true);
         const draft = createGuest({ fullName: trimmedName, phone, email, group, tableNumber, profilePhotoUrl });
@@ -246,6 +258,7 @@ const GuestManager = (() => {
         if (idx === -1) return null;
 
         const next = { ...guests[idx], ...patch };
+        if (patch.fullName !== undefined && !hasValidGuestName(patch.fullName)) return null;
         if (patch.fullName && patch.fullName.trim() !== guests[idx].fullName) {
             next.fullName = patch.fullName.trim();
         }
@@ -434,7 +447,8 @@ const GuestManager = (() => {
         if (indexes.fullName < 0) throw new Error("Colonne 'nom' obligatoire dans le CSV.");
         const rows = [], rejected = [];
         records.forEach((cols, i) => {
-            if (i === first) return;
+            // Ignore les éventuelles lignes de préambule avant l'en-tête.
+            if (i <= first) return;
             const line = records.lineNumbers[i];
             let reason = !cols.some(Boolean) ? "Ligne vide" : cols.length !== header.length ?
                 `${cols.length} colonnes au lieu de ${header.length}` : "";
@@ -442,7 +456,11 @@ const GuestManager = (() => {
             for (const [key, index] of Object.entries(indexes)) {
                 if (index >= 0 || !["tableName", "guestType"].includes(key)) row[key] = index >= 0 ? cols[index] || "" : "";
             }
-            if (!reason && row.fullName.trim().length < 2) reason = "Nom absent ou trop court";
+            if (!reason && !hasValidGuestName(row.fullName)) {
+                reason = /^couple\s*$/i.test(row.fullName.trim())
+                    ? "Ajoutez le nom après le préfixe « Couple »."
+                    : "Nom absent ou trop court";
+            }
             if (!reason && Object.values(row).some((value) => value.includes("\uFFFD"))) reason = "Encodage illisible";
             if (reason) rejected.push({ line, reason });
             else {
@@ -451,7 +469,10 @@ const GuestManager = (() => {
                 rows.push(row);
             }
         });
-        Object.defineProperty(rows, "report", { value: { total: records.length - 1, rejected } });
+        // Seules les lignes qui suivent l'en-tête représentent des données CSV.
+        // Des lignes vides avant l'en-tête ne doivent ni gonfler le total ni
+        // produire des rejets qui ne correspondent à aucune fiche.
+        Object.defineProperty(rows, "report", { value: { total: Math.max(0, records.length - first - 1), rejected } });
         return rows;
     }
 
@@ -479,10 +500,14 @@ const GuestManager = (() => {
             const fullName = String(row.fullName || "").trim();
             const key = nameKey(row);
             const matchingGuests = existingByName.get(key) || [];
-            if (fullName.length < 2) {
-                rejected.push({ line, reason: "Nom absent ou trop court" });
-            } else if (/^couple$/i.test(fullName)) {
-                rejected.push({ line, fullName, reason: "Ajoutez le nom après le préfixe « Couple »." });
+            if (!hasValidGuestName(fullName)) {
+                rejected.push({
+                    line,
+                    fullName,
+                    reason: /^couple\s*$/i.test(fullName)
+                        ? "Ajoutez le nom après le préfixe « Couple »."
+                        : "Nom absent ou trop court"
+                });
             } else if (isCoupleName(fullName) && matchingGuests.length > 1) {
                 rejected.push({ line, fullName, reason: "Plusieurs invités correspondent à ce nom : résolvez les doublons avant le renommage." });
             } else if (isCoupleName(fullName) && matchingGuests.length === 1 && !isCoupleName(matchingGuests[0].fullName)) {
@@ -556,43 +581,116 @@ const GuestManager = (() => {
 
         const updatedById = new Map(updates.map((guest) => [guest.id, guest]));
         const merged = guests.map((guest) => updatedById.get(guest.id) || guest);
-        await persistGuests(merged);
         let cloudSynced = true;
+        const errors = [];
         if (window.CloudAPI?.isEnabled?.()) {
             for (let start = 0; start < updates.length; start += 3) {
                 const batch = updates.slice(start, start + 3);
                 const results = await Promise.all(batch.map((guest) =>
-                    CloudAPI.upsertGuest(getEventId(), guest, { saveLocal: false, requireExisting: true }).catch(() => null)
+                    CloudAPI.upsertGuest(getEventId(), guest, { saveLocal: false, requireExisting: true })
+                        .catch((error) => ({ error: error?.message || "Mise à jour refusée" }))
                 ));
-                if (results.some((result) => !result?.cloudSynced)) cloudSynced = false;
+                results.forEach((result, index) => {
+                    if (!result?.cloudSynced || !result?.guest) {
+                        cloudSynced = false;
+                        errors.push({
+                            fullName: batch[index].fullName,
+                            reason: result?.error || "Mise à jour Supabase refusée"
+                        });
+                    }
+                });
             }
+            // Ne pas afficher des corrections locales que le serveur a refusées.
+            cache = null;
+            cacheEventId = null;
+            try { await loadGuests(true); }
+            catch (error) {
+                cloudSynced = false;
+                errors.push({ reason: `Actualisation impossible : ${error.message}` });
+            }
+            return { updated: updates.length - errors.filter((entry) => entry.fullName).length, cloudSynced, errors };
         }
+
+        await persistGuests(merged);
         cache = merged;
         cacheEventId = getEventId();
-        return { updated: updates.length, cloudSynced };
+        return { updated: updates.length, cloudSynced, errors };
     }
 
-    function hasConfirmedPhone(guest) {
-        return guest.status === "yes" && String(guest.phone || "").replace(/\D/g, "").length >= 9;
+    function hasRespondedGuest(guest) {
+        return guest.status === "yes" || guest.status === "no";
     }
 
-    async function replaceGuestsExceptConfirmedWithPhone(rows) {
+    function buildReplacementPlan(rows, guests) {
+        const retained = guests.filter(hasRespondedGuest);
+        return previewImport(rows, retained).then((preview) => ({ retained, preview }));
+    }
+
+    async function replaceGuestsExceptConfirmed(rows) {
         if (!rows.length || rows.report?.rejected.some((entry) => entry.reason !== "Ligne vide")) {
             throw new Error("Remplacement annulé : le CSV est vide ou contient des lignes invalides.");
         }
         const guests = await loadGuests(true);
-        const replaceableIds = guests
-            .filter((guest) => !hasConfirmedPhone(guest))
-            .map((guest) => guest.id);
-        if (replaceableIds.length) {
-            const deleted = await removeGuests(replaceableIds);
-            if (!deleted.cloudSynced) {
-                throw new Error("La suppression cloud n'a pas abouti. Aucun nouvel invité n'a été importé.");
-            }
+        const { retained, preview } = await buildReplacementPlan(rows, guests);
+        if (preview.rejected.some((entry) => entry.reason !== "Ligne vide")) {
+            throw new Error("Remplacement annulé : corrigez les lignes invalides avant de supprimer la liste actuelle.");
         }
-        const imported = await importCSVRows(rows);
-        return { removed: replaceableIds.length, ...imported };
+
+        const replaceableIds = guests.filter((guest) => !hasRespondedGuest(guest)).map((guest) => guest.id);
+        const existingById = new Map(retained.map((guest) => [guest.id, guest]));
+        const coupleRenames = preview.coupleUpdates.map((update) => {
+            const guest = existingById.get(update.guestId);
+            return guest ? { ...guest, fullName: update.fullName } : null;
+        }).filter(Boolean);
+        const knownSlugs = new Set(retained.map((guest) => guest.slug));
+        const additions = preview.valid.map((row) => {
+            const guest = createGuest(row);
+            if (knownSlugs.has(guest.slug)) guest.slug += `-${guest.token}`;
+            knownSlugs.add(guest.slug);
+            return guest;
+        });
+        const finalGuests = [
+            ...retained.map((guest) => coupleRenames.find((updated) => updated.id === guest.id) || guest),
+            ...additions
+        ];
+
+        if (window.CloudAPI?.isEnabled?.()) {
+            if (typeof CloudAPI.replaceGuestList !== "function") {
+                throw new Error("Remplacement sécurisé indisponible : exécutez d'abord la migration Supabase de la plateforme. Aucune fiche n'a été supprimée.");
+            }
+            const result = await CloudAPI.replaceGuestList(getEventId(), finalGuests, replaceableIds);
+            if (!result?.cloudSynced) {
+                throw new Error(result?.error || "Le remplacement Supabase a échoué. Aucune fiche n'a été supprimée.");
+            }
+            cache = null;
+            cacheEventId = null;
+            await loadGuests(true);
+            return {
+                removed: Number(result.removed ?? replaceableIds.length),
+                imported: Number(result.created ?? additions.length),
+                renamedCouples: Number(result.renamedCouples ?? coupleRenames.length),
+                skipped: preview.duplicates.length + preview.rejected.length,
+                failed: 0,
+                errors: []
+            };
+        }
+
+        // En mode local, une seule écriture rend l'opération atomique.
+        await persistGuests(finalGuests);
+        cache = finalGuests;
+        cacheEventId = getEventId();
+        return {
+            removed: replaceableIds.length,
+            imported: additions.length,
+            renamedCouples: coupleRenames.length,
+            skipped: preview.duplicates.length + preview.rejected.length,
+            failed: 0,
+            errors: []
+        };
     }
+
+    // Alias temporaire pour les liens et scripts déjà publiés.
+    const replaceGuestsExceptConfirmedWithPhone = replaceGuestsExceptConfirmed;
 
     let importRunning = false;
     async function importCSVRows(rows, options = {}) {
@@ -698,23 +796,32 @@ const GuestManager = (() => {
         return (await loadGuests()).filter((g) => g.status === "pending");
     }
 
+    function csvCell(value) {
+        let text = String(value ?? "").replace(/\r?\n/g, " ");
+        // Évite qu'Excel interprète une donnée d'invité comme une formule.
+        if (/^[=+\-@]/.test(text)) text = `'${text}`;
+        return `"${text.replace(/"/g, '""')}"`;
+    }
+
     async function exportLinksCSV() {
         const guests = await loadGuests();
         const header = "nom,telephone,email,groupe,statut,adultes,enfants,lien";
         const rows = guests.map((g) => {
             const link = buildInviteLink(g);
-            return `"${g.fullName}","${g.phone || ""}","${g.email || ""}","${g.group || ""}","${g.status}",${g.adults || 0},${g.children || 0},"${link}"`;
+            return [g.fullName, g.phone, g.email, g.group, g.status, g.adults || 0, g.children || 0, link]
+                .map(csvCell).join(",");
         });
-        return [header, ...rows].join("\n");
+        return `\uFEFF${[header, ...rows].join("\n")}`;
     }
 
     async function exportRSVPReport() {
         const guests = await loadGuests();
         const header = "nom,telephone,groupe,statut,adultes,enfants,message,repondu_le";
-        const rows = guests.map((g) =>
-            `"${g.fullName}","${g.phone || ""}","${g.group || ""}","${g.status}",${g.adults || 0},${g.children || 0},"${(g.rsvpMessage || "").replace(/"/g, "'")}","${g.respondedAt || ""}"`
-        );
-        return [header, ...rows].join("\n");
+        const rows = guests.map((g) => [
+            g.fullName, g.phone, g.group, g.status, g.adults || 0, g.children || 0,
+            g.rsvpMessage || "", g.respondedAt || ""
+        ].map(csvCell).join(","));
+        return `\uFEFF${[header, ...rows].join("\n")}`;
     }
 
     async function regenerateToken(guestId) {
@@ -756,7 +863,7 @@ const GuestManager = (() => {
     function duplicateScore(guest) {
         return (guest.status === "yes" ? 100 : 0)
             + (guest.qrApproved ? 20 : 0)
-            + (guest.phone ? 4 : 0)
+            + (hasUsablePhone(guest) ? 4 : 0)
             + (guest.email ? 2 : 0)
             + (guest.tableNumber ? 1 : 0);
     }
@@ -800,11 +907,14 @@ const GuestManager = (() => {
         decodeCSV,
         previewImport,
         normalizePhone,
+        hasUsablePhone,
         findDuplicateGuests,
         parseCsvRecords,
         importCSVRows,
         previewCsvCorrections,
         applyCsvCorrections,
+        buildReplacementPlan,
+        replaceGuestsExceptConfirmed,
         replaceGuestsExceptConfirmedWithPhone,
         getStats,
         getPendingGuests,

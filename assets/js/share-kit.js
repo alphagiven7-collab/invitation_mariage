@@ -2,7 +2,7 @@
  * Kit promotion Michelline — v2 efficacité
  */
 (function () {
-    const SITE_BASE = "https://alphagiven7-collab.github.io/invitation_mariage";
+    const SITE_BASE = "https://michelline-invitations.vercel.app";
     const OFFRES_URL = SITE_BASE + "/pages/offres.html";
     const SHORT_URL = SITE_BASE + "/o.html";
     const DEMO_URL = SITE_BASE + "/pages/invitation.html?event=demo";

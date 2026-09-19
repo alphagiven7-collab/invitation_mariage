@@ -5,6 +5,7 @@
 const GuestExperience = (() => {
     let profile = null;
     let initDone = false;
+    let initPromise = null;
     let rsvpProfilePhotoUrl = "";
 
     function unwrapGuest(g) {
@@ -65,6 +66,161 @@ const GuestExperience = (() => {
         }
     }
 
+    const ACCESSIBLE_MODAL_IDS = [
+        "rsvp-confirmation-modal",
+        "guest-list-required-modal",
+        "rsvp-modal",
+        "best-photos-modal",
+        "gallery-modal",
+        "guestbook-modal",
+        "about-modal",
+        "customizer-page"
+    ];
+
+    function isVisibleModal(modal) {
+        return !!modal
+            && !modal.classList.contains("hidden")
+            && modal.getAttribute("aria-hidden") !== "true";
+    }
+
+    function getActiveModal() {
+        return ACCESSIBLE_MODAL_IDS
+            .map((id) => document.getElementById(id))
+            .find(isVisibleModal) || null;
+    }
+
+    function getModalFocusables(modal) {
+        if (!modal) return [];
+        return [...modal.querySelectorAll(
+            'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )].filter((element) => !element.hidden && element.getAttribute("aria-hidden") !== "true");
+    }
+
+    function openModalAccessibility(modal, preferredFocus) {
+        if (!modal) return;
+        const active = document.activeElement;
+        // Une confirmation peut s'ouvrir pendant que le formulaire RSVP se ferme.
+        // Dans ce cas, le focus actif est encore dans la modale devenue aria-hidden :
+        // la nouvelle modale doit reprendre son point de retour initial, pas ce
+        // bouton bientôt caché.
+        const closingParentModal = active?.closest?.('[role="dialog"][aria-hidden="true"]');
+        const returnFocus = closingParentModal?.__returnFocus || active;
+        modal.__returnFocus = returnFocus && typeof returnFocus.focus === "function" ? returnFocus : null;
+        modal.setAttribute("aria-hidden", "false");
+        window.setTimeout(() => {
+            if (!isVisibleModal(modal)) return;
+            const target = preferredFocus
+                || modal.querySelector("[autofocus], [data-modal-initial-focus]")
+                || getModalFocusables(modal)[0];
+            if (target && typeof target.focus === "function") target.focus();
+            else {
+                modal.setAttribute("tabindex", "-1");
+                modal.focus?.();
+            }
+        }, 0);
+    }
+
+    function closeModalAccessibility(modal, delay = 0) {
+        if (!modal) return;
+        modal.setAttribute("aria-hidden", "true");
+        const restoreFocus = () => {
+            const target = modal.__returnFocus;
+            modal.__returnFocus = null;
+            // Une modale plus récente (par exemple la confirmation RSVP) garde
+            // le focus : ne jamais le renvoyer sous son overlay.
+            if (getActiveModal()) return;
+            if (target && document.contains(target) && typeof target.focus === "function") target.focus();
+        };
+        window.setTimeout(restoreFocus, delay);
+    }
+
+    function closeActiveModal(modal) {
+        if (!modal) return;
+        if (modal.id === "guest-list-required-modal") {
+            closeInvitationRequiredModal();
+            return;
+        }
+        if (modal.id === "best-photos-modal" && typeof window.closeBestPhotosGallery === "function") {
+            window.closeBestPhotosGallery();
+            return;
+        }
+        if (modal.id === "customizer-page" && typeof window.closeCustomizer === "function") {
+            window.closeCustomizer();
+            return;
+        }
+        if (typeof window.closeModal === "function") {
+            window.closeModal(modal.id);
+            return;
+        }
+        modal.classList.add("hidden");
+        closeModalAccessibility(modal);
+        document.body.style.overflow = "auto";
+    }
+
+    function handleModalKeyboard(event) {
+        const modal = getActiveModal();
+        if (!modal) return;
+        if (event.key === "Escape") {
+            event.preventDefault();
+            closeActiveModal(modal);
+            return;
+        }
+        if (event.key !== "Tab") return;
+        const focusables = getModalFocusables(modal);
+        if (!focusables.length) {
+            event.preventDefault();
+            modal.focus?.();
+            return;
+        }
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    }
+
+    function handleKeyboardActivation(event) {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        const target = event.target.closest?.("[data-keyboard-activate]");
+        if (!target) return;
+        event.preventDefault();
+        target.click();
+    }
+
+    function wrapModalFunction(name, { open = false, close = false, delay = 0, modalId = "" } = {}) {
+        const original = window[name];
+        if (typeof original !== "function" || original.__accessibleModalWrapped) return;
+        const wrapped = function (...args) {
+            const modal = document.getElementById(modalId || args[0]);
+            const result = original.apply(this, args);
+            if (open && modal && !modal.classList.contains("hidden")) openModalAccessibility(modal);
+            if (close) closeModalAccessibility(modal, delay);
+            return result;
+        };
+        wrapped.__accessibleModalWrapped = true;
+        window[name] = wrapped;
+    }
+
+    function setupModalAccessibility() {
+        ACCESSIBLE_MODAL_IDS.forEach((id) => {
+            const modal = document.getElementById(id);
+            if (!modal) return;
+            modal.setAttribute("role", modal.getAttribute("role") || "dialog");
+            modal.setAttribute("aria-modal", "true");
+            modal.setAttribute("aria-hidden", modal.classList.contains("hidden") ? "true" : "false");
+        });
+        wrapModalFunction("openModal", { open: true });
+        wrapModalFunction("closeModal", { close: true, delay: 320 });
+        wrapModalFunction("openBestPhotosGallery", { open: true, modalId: "best-photos-modal" });
+        wrapModalFunction("closeBestPhotosGallery", { close: true, modalId: "best-photos-modal" });
+        wrapModalFunction("openCustomizer", { open: true, modalId: "customizer-page" });
+        wrapModalFunction("closeCustomizer", { close: true, modalId: "customizer-page" });
+    }
+
     function showInvitationRequiredModal() {
         const eventConfig = window.EventConfig?.getConfig?.() || {};
         if (isOpenRsvpEvent(eventConfig)) {
@@ -80,7 +236,7 @@ const GuestExperience = (() => {
         modal.classList.remove("hidden");
         modal.classList.add("flex");
         document.body.style.overflow = "hidden";
-        document.getElementById("guest-list-required-close")?.focus();
+        openModalAccessibility(modal, document.getElementById("guest-list-required-close"));
     }
 
     function closeInvitationRequiredModal() {
@@ -90,11 +246,11 @@ const GuestExperience = (() => {
         modal.classList.remove("flex");
         document.body.classList.remove("overflow-hidden");
         document.body.style.overflow = "auto";
+        closeModalAccessibility(modal);
     }
 
-    document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") closeInvitationRequiredModal();
-    });
+    document.addEventListener("keydown", handleModalKeyboard);
+    document.addEventListener("keydown", handleKeyboardActivation);
 
     function applyProfile(guest) {
         if (!guest || !guest.fullName) return;
@@ -311,41 +467,68 @@ const GuestExperience = (() => {
         }
     }
 
-    async function initAsync() {
-        if (initDone) return !!profile;
-        initDone = true;
+    function initAsync() {
+        if (initPromise) return initPromise;
+        initPromise = (async () => {
+            if (initDone) return !!profile;
+            initDone = true;
 
-        if (window.EventConfig && EventConfig.init) {
-            try {
-                await EventConfig.init();
-                if (EventConfig.applyToPage) EventConfig.applyToPage();
-                applyRsvpModeForm();
-                await loadPublicRsvpMessages();
-            } catch (e) {}
-        }
-
-        const guest = await resolveGuestFromUrl();
-        if (guest) {
-            applyProfile(guest);
-            lockPersonalDetails();
-            showPersonalWelcome(guest);
-            if ((guest.status === "yes" || isPrintRequested())
-                && hasPersonalInviteToken(guest)
-                && typeof window.openMainSite === "function") {
-                await window.openMainSite(null, { skipLoader: true });
-            }
-            if (isPrintRequested()) window.dispatchEvent(new CustomEvent("personalinvitation:ready"));
-            const token = getParams().get("t");
-            if (token && window.CloudAPI && CloudAPI.isEnabled()) {
+            if (window.EventConfig && EventConfig.init) {
                 try {
-                    CloudAPI.track(getEventId(), "guest_link_open", { guestToken: token });
-                } catch (e) {}
+                    await EventConfig.init();
+                    if (EventConfig.applyToPage) EventConfig.applyToPage();
+                    applyRsvpModeForm();
+                    await loadPublicRsvpMessages();
+                } catch (error) {
+                    console.warn("Initialisation de l'invitation impossible", error);
+                    renderPublicRsvpMessages([]);
+                    const empty = document.getElementById("rsvp-messages-empty");
+                    if (empty) {
+                        empty.textContent = "Les messages RSVP sont momentanément indisponibles. Réessayez plus tard.";
+                        empty.classList.remove("hidden");
+                    }
+                }
+            }
+
+            const guest = await resolveGuestFromUrl();
+            if (guest) {
+                applyProfile(guest);
+                lockPersonalDetails();
+                showPersonalWelcome(guest);
+                if ((guest.status === "yes" || isPrintRequested())
+                    && hasPersonalInviteToken(guest)
+                    && typeof window.openMainSite === "function") {
+                    await window.openMainSite(null, { skipLoader: true });
+                }
+                if (isPrintRequested()) window.dispatchEvent(new CustomEvent("personalinvitation:ready"));
+                const token = getParams().get("t");
+                if (token && window.CloudAPI && CloudAPI.isEnabled()) {
+                    try {
+                        CloudAPI.track(getEventId(), "guest_link_open", { guestToken: token });
+                    } catch (e) {}
+                }
+                if (!isPrintRequested()) await tryRestoreConfirmation();
+                return true;
             }
             if (!isPrintRequested()) await tryRestoreConfirmation();
-            return true;
+            return false;
+        })();
+        return initPromise;
+    }
+
+    async function resolvePersonalInviteIfNeeded(isOpenRsvp) {
+        const token = (getParams().get("t") || "").trim();
+        if (isOpenRsvp || !token) return profile;
+        // initSync peut préremplir l'écran depuis ?guest=… avant que la fiche
+        // protégée par token ne soit résolue. Cette fiche provisoire ne suffit
+        // jamais à autoriser un RSVP personnel.
+        if (profile?.id && hasPersonalInviteToken(profile)) return profile;
+        try {
+            await initAsync();
+        } catch (error) {
+            console.warn("Résolution de l'invitation personnelle impossible", error);
         }
-        if (!isPrintRequested()) await tryRestoreConfirmation();
-        return false;
+        return profile;
     }
 
     function prefillRsvp() {
@@ -378,7 +561,9 @@ const GuestExperience = (() => {
         dressPatterns?.classList.toggle("grid-cols-2", !isOpenRsvp);
         document.getElementById("rsvp-phone-field")?.classList.toggle("hidden", isOpenRsvp);
         document.getElementById("rsvp-count-fields")?.classList.toggle("hidden", isOpenRsvp);
-        document.getElementById("rsvp-message-field")?.classList.toggle("hidden", isOpenRsvp);
+        // Un RSVP ouvert peut aussi laisser un vœu public : le champ reste
+        // disponible dans les deux parcours de confirmation.
+        document.getElementById("rsvp-message-field")?.classList.remove("hidden");
         document.getElementById("rsvp-photo-field")?.classList.toggle("hidden", isOpenRsvp);
         document.getElementById("rsvp-drinks-section")?.classList.remove("hidden");
         document.getElementById("open-rsvp-side-field")?.classList.toggle("hidden", !isOpenRsvp);
@@ -413,9 +598,13 @@ const GuestExperience = (() => {
         const empty = document.getElementById("rsvp-messages-empty");
         if (!list || !empty) return;
 
+        const visibleMessages = Array.isArray(messages) ? messages : [];
         list.replaceChildren();
-        empty.classList.toggle("hidden", messages.length > 0);
-        messages.forEach((message) => {
+        empty.classList.toggle("hidden", visibleMessages.length > 0);
+        if (!visibleMessages.length) {
+            empty.textContent = "Les premiers messages apparaîtront ici.";
+        }
+        visibleMessages.forEach((message) => {
             const item = document.createElement("article");
             item.className = "border border-rose-100 bg-rose-50/40 rounded-xl p-4";
             const header = document.createElement("div");
@@ -442,13 +631,34 @@ const GuestExperience = (() => {
     }
 
     async function loadPublicRsvpMessages() {
-        if (!window.CloudAPI?.isEnabled?.() || !window.CloudAPI.getPublicRsvpMessages) return;
-        const messages = await CloudAPI.getPublicRsvpMessages(getEventId());
-        renderPublicRsvpMessages(messages);
+        if (!window.CloudAPI?.isEnabled?.()) {
+            renderPublicRsvpMessages([]);
+            return [];
+        }
+        try {
+            if (!window.EventConfig?.isReady?.()) {
+                throw new Error("La configuration de l'invitation n'est pas disponible.");
+            }
+            if (!window.CloudAPI.getPublicRsvpMessages) {
+                throw new Error("Le service des messages RSVP n'est pas disponible.");
+            }
+            const messages = await CloudAPI.getPublicRsvpMessages(getEventId());
+            const visibleMessages = Array.isArray(messages) ? messages : [];
+            renderPublicRsvpMessages(visibleMessages);
+            return visibleMessages;
+        } catch (error) {
+            console.warn("Chargement des messages RSVP impossible", error);
+            renderPublicRsvpMessages([]);
+            const empty = document.getElementById("rsvp-messages-empty");
+            if (empty) {
+                empty.textContent = "Les messages RSVP sont momentanément indisponibles. Réessayez plus tard.";
+                empty.classList.remove("hidden");
+            }
+            return null;
+        }
     }
 
     async function openRsvp() {
-        prefillRsvp();
         if (window.EventConfig?.init && !window.EventConfig.isReady?.()) {
             try { await EventConfig.init(); } catch (error) {
                 showToast("Impossible de charger la configuration de cette invitation.");
@@ -458,7 +668,13 @@ const GuestExperience = (() => {
         applyRsvpModeForm();
         const eventConfig = window.EventConfig?.getConfig?.() || {};
         const isOpenRsvp = isOpenRsvpEvent(eventConfig);
+        await resolvePersonalInviteIfNeeded(isOpenRsvp);
+        prefillRsvp();
         const hasPersonalInvite = hasPersonalInviteToken(profile) && !!profile?.id;
+        if (!isOpenRsvp && !hasPersonalInvite) {
+            showInvitationRequiredModal();
+            return;
+        }
         if (hasPersonalInvite && profile.status !== "pending") {
             showAlreadyConfirmed(profile);
             return;
@@ -572,18 +788,27 @@ const GuestExperience = (() => {
             if (typeof onReady === "function") onReady("");
             return;
         }
-        const fallbackUrl =
-            `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(data)}`;
         const done = (url) => {
             img.src = url;
+            img.alt = "QR code confirmation";
             if (typeof onReady === "function") onReady(url);
         };
+        const unavailable = () => {
+            img.removeAttribute("src");
+            img.alt = "QR code indisponible";
+            if (typeof onReady === "function") onReady("");
+        };
         if (window.QRCode && typeof QRCode.toDataURL === "function") {
-            QRCode.toDataURL(data, { width: 220, margin: 2, color: { dark: "#1a472a", light: "#ffffff" } }, (err, url) => {
-                done((!err && url) ? url : fallbackUrl);
-            });
+            try {
+                QRCode.toDataURL(data, { width: 220, margin: 2, color: { dark: "#1a472a", light: "#ffffff" } }, (err, url) => {
+                    if (!err && url) done(url);
+                    else unavailable();
+                });
+            } catch {
+                unavailable();
+            }
         } else {
-            done(fallbackUrl);
+            unavailable();
         }
     }
 
@@ -705,7 +930,16 @@ const GuestExperience = (() => {
             lastConfirmationExport = {
                 payload, accessCode, tableLabel, drinksLabel, eventTitle, guest: resolvedGuest, meta, dateLabel
             };
-            setQrImage(buildQrPayload(payload, accessCode, resolvedGuest));
+            setQrImage(buildQrPayload(payload, accessCode, resolvedGuest), (url) => {
+                if (url) return;
+                if (qrWrap) qrWrap.classList.add("hidden");
+                if (downloadBtn) downloadBtn.classList.add("hidden");
+                if (qrHint) {
+                    qrHint.textContent = "Votre confirmation est enregistrée. Le QR code n'a pas pu être généré sur cet appareil : rouvrez votre invitation ou contactez l'organisateur.";
+                    qrHint.classList.remove("hidden");
+                }
+                lastConfirmationExport = null;
+            });
         } else {
             if (qrWrap) qrWrap.classList.add("hidden");
             if (pendingWrap) pendingWrap.classList.toggle("hidden", !isYes);
@@ -776,8 +1010,12 @@ const GuestExperience = (() => {
         showConfirmation(payload, buildConfirmCode(guest, payload), guest);
     }
 
-    function validatePhone(phone) {
-        return (phone || "").replace(/\D/g, "").length >= 9;
+    function normalizeOptionalPhone(phone) {
+        const text = String(phone || "").trim();
+        if (!text) return "";
+        if (!/^[+\d\s().-]+$/.test(text)) return null;
+        const digits = text.replace(/\D/g, "").replace(/^00/, "");
+        return digits.length >= 9 ? digits : null;
     }
 
     function redirectOpenRsvpToWhatsApp(payload, eventConfig, contactType) {
@@ -821,7 +1059,6 @@ const GuestExperience = (() => {
         const submitBtn = document.getElementById("rsvp-submit-btn") || event.submitter;
 
         const run = async () => {
-            prefillRsvp();
             if (window.EventConfig?.init && !window.EventConfig.isReady?.()) {
                 try { await EventConfig.init(); } catch (error) {
                     showToast("Impossible de charger la configuration de cette invitation.");
@@ -831,7 +1068,13 @@ const GuestExperience = (() => {
 
             const eventConfig = window.EventConfig?.getConfig?.() || {};
             const isOpenRsvp = isOpenRsvpEvent(eventConfig);
+            await resolvePersonalInviteIfNeeded(isOpenRsvp);
+            prefillRsvp();
             const hasPersonalInvite = hasPersonalInviteToken(profile) && !!profile?.id;
+            if (!isOpenRsvp && !hasPersonalInvite) {
+                showInvitationRequiredModal();
+                return;
+            }
             if (hasPersonalInvite && profile.status !== "pending") {
                 showAlreadyConfirmed(profile);
                 return;
@@ -854,6 +1097,12 @@ const GuestExperience = (() => {
                 showToast("Nom obligatoire (2 caractères minimum).");
                 return;
             }
+            const normalizedPhone = normalizeOptionalPhone(payload.phone);
+            if (normalizedPhone === null) {
+                showToast("Téléphone invalide (9 chiffres minimum). Laissez le champ vide si vous n'en avez pas.");
+                return;
+            }
+            payload.phone = normalizedPhone;
             const openRsvpSide = document.querySelector('input[name="open-rsvp-side"]:checked')?.value || "";
             if (isOpenRsvp && !openRsvpSide) {
                 showToast("Choisissez le côté homme ou femme.");
@@ -873,7 +1122,8 @@ const GuestExperience = (() => {
                         fullName: payload.name,
                         status: payload.status,
                         side: openRsvpSide,
-                        drinkChoices: payload.drinkChoices
+                        drinkChoices: payload.drinkChoices,
+                        message: payload.message
                     });
                 } catch (error) {
                     showToast(error.message || "Votre réponse n'a pas été enregistrée.");
@@ -972,6 +1222,7 @@ const GuestExperience = (() => {
     }
 
     function boot() {
+        setupModalAccessibility();
         initSync();
         bindHandlers();
         initAsync().catch(() => {});
