@@ -1514,7 +1514,9 @@
             }
 
             if (!isPreviewMode) {
-                await loadGuestbookMessages();
+                // Le livre d'or est affiché plus bas dans la page : il ne doit
+                // pas empêcher l'invitation et son enveloppe de devenir visibles.
+                void loadGuestbookMessages();
             }
 
             if (window.I18n) {
@@ -1532,7 +1534,7 @@
             }
 
             if ('serviceWorker' in navigator && !isPreviewMode) {
-                navigator.serviceWorker.register('../sw.js?v=57').catch(() => {});
+                navigator.serviceWorker.register('../sw.js?v=58').catch(() => {});
             }
 
             defaultCustomizationState = getCurrentCustomizationState();

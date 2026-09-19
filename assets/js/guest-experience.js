@@ -425,14 +425,20 @@ const GuestExperience = (() => {
         return true;
     }
 
-    async function tryRestoreConfirmation() {
+    async function tryRestoreConfirmation(resolvedGuest = null) {
         if (!window.GuestManager) return;
         const token = (getParams().get("t") || "").trim();
-        let guest = null;
+        // Une fiche obtenue via le token vient déjà de la RPC protégée. La
+        // réutiliser évite une seconde requête identique au démarrage.
+        let guest = token && resolvedGuest?.id && hasPersonalInviteToken(resolvedGuest)
+            ? resolvedGuest
+            : null;
         let saved = null;
 
         if (token) {
-            try { guest = await GuestManager.findByToken(token); } catch (e) {}
+            if (!guest) {
+                try { guest = await GuestManager.findByToken(token); } catch (e) {}
+            }
             saved = localStorage.getItem(eventStorageKey(`confirm_${token}`));
         } else {
             const name = (localStorage.getItem(eventStorageKey("guest_name")) || "").trim();
@@ -478,7 +484,10 @@ const GuestExperience = (() => {
                     await EventConfig.init();
                     if (EventConfig.applyToPage) EventConfig.applyToPage();
                     applyRsvpModeForm();
-                    await loadPublicRsvpMessages();
+                    // Ces messages ne conditionnent pas l'accès à un lien
+                    // personnel. Leur chargement peut avancer en parallèle du
+                    // lookup par token, sans retarder l'accueil de l'invité.
+                    void loadPublicRsvpMessages();
                 } catch (error) {
                     console.warn("Initialisation de l'invitation impossible", error);
                     renderPublicRsvpMessages([]);
@@ -507,7 +516,7 @@ const GuestExperience = (() => {
                         CloudAPI.track(getEventId(), "guest_link_open", { guestToken: token });
                     } catch (e) {}
                 }
-                if (!isPrintRequested()) await tryRestoreConfirmation();
+                if (!isPrintRequested()) await tryRestoreConfirmation(guest);
                 return true;
             }
             if (!isPrintRequested()) await tryRestoreConfirmation();

@@ -70,10 +70,22 @@ const BackgroundMusic = (() => {
 
     function stopAudioElement() {
         const el = getAudio();
-        if (!el) return;
+        if (!el || !el.getAttribute("src")) return;
         el.pause();
         el.removeAttribute("src");
         el.load();
+    }
+
+    function prepareAudioElement() {
+        const el = getAudio();
+        if (!el || !settings.backgroundMusicUrl) return null;
+        el.volume = settings.backgroundMusicVolume;
+        if (el.getAttribute("src") !== settings.backgroundMusicUrl) {
+            el.src = settings.backgroundMusicUrl;
+            el.loop = true;
+            el.load();
+        }
+        return el;
     }
 
     async function setupYouTubePlayer(videoId) {
@@ -160,6 +172,7 @@ const BackgroundMusic = (() => {
 
     function apply(state) {
         if (!state) return;
+        const previousTrackUrl = settings.backgroundMusicUrl;
         settings = {
             backgroundMusicUrl: state.backgroundMusicUrl || "",
             backgroundMusicVolume: clampVolume(state.backgroundMusicVolume ?? 0.35),
@@ -183,19 +196,19 @@ const BackgroundMusic = (() => {
         if (ytId) {
             stopAudioElement();
             playbackMode = "youtube";
-            setupYouTubePlayer(ytId).then(() => {
-                if (wantAutoplay && !userPaused) play();
-                updateToggleUi();
-            }).catch(updateToggleUi);
+            if (youtubePlayer && youtubeVideoId !== ytId) destroyYouTubePlayer();
+            // La configuration peut changer après l'entrée (aperçu ou édition).
+            // Dans ce cas seulement, initialise la nouvelle piste YouTube.
+            if (wantAutoplay && !userPaused && shouldAutoplayNow()) void play();
         } else {
             destroyYouTubePlayer();
             playbackMode = "audio";
             const el = getAudio();
             if (el) {
                 el.volume = settings.backgroundMusicVolume;
-                if (el.src !== settings.backgroundMusicUrl) {
-                    el.src = settings.backgroundMusicUrl;
-                    el.loop = true;
+                if (previousTrackUrl !== settings.backgroundMusicUrl && el.getAttribute("src")) {
+                    el.pause();
+                    el.removeAttribute("src");
                     el.load();
                 }
             }
@@ -230,9 +243,8 @@ const BackgroundMusic = (() => {
                 youtubePlayer.setVolume(Math.round(settings.backgroundMusicVolume * 100));
                 youtubePlayer.playVideo();
             } else if (playbackMode === "audio") {
-                const el = getAudio();
+                const el = prepareAudioElement();
                 if (!el) return false;
-                el.volume = settings.backgroundMusicVolume;
                 await el.play();
             } else {
                 const ytId = parseYouTubeId(settings.backgroundMusicUrl);
@@ -241,14 +253,8 @@ const BackgroundMusic = (() => {
                     return play();
                 }
                 playbackMode = "audio";
-                const el = getAudio();
-                if (!el || !settings.backgroundMusicUrl) return false;
-                if (el.src !== settings.backgroundMusicUrl) {
-                    el.src = settings.backgroundMusicUrl;
-                    el.loop = true;
-                    el.load();
-                }
-                el.volume = settings.backgroundMusicVolume;
+                const el = prepareAudioElement();
+                if (!el) return false;
                 await el.play();
             }
             updateToggleUi();

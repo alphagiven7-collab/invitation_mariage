@@ -204,6 +204,22 @@ test('Guestbook keeps its confirmed cloud snapshot when a new message is publish
   assert.match(publisher, /messages\.unshift\(newItem\);\s*cacheGuestbookMessages\(messages\);/);
 });
 
+test('Invitation startup does not wait for public message feeds before resolving a personal link', () => {
+  const appSource = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'app.js'), 'utf8');
+  const bootstrap = appSource.slice(appSource.indexOf('(async function bootstrapApp()'), appSource.indexOf('// Fallback listeners'));
+  const guestExperience = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'guest-experience.js'), 'utf8');
+  const init = guestExperience.slice(guestExperience.indexOf('function initAsync()'), guestExperience.indexOf('async function resolvePersonalInviteIfNeeded'));
+  const restore = guestExperience.slice(guestExperience.indexOf('async function tryRestoreConfirmation'), guestExperience.indexOf('function initAsync()'));
+
+  assert.doesNotMatch(bootstrap, /await loadGuestbookMessages\(\)/);
+  assert.match(bootstrap, /void loadGuestbookMessages\(\)/);
+  assert.doesNotMatch(init, /await loadPublicRsvpMessages\(\)/);
+  assert.match(init, /void loadPublicRsvpMessages\(\)/);
+  assert.match(init, /await tryRestoreConfirmation\(guest\)/);
+  assert.match(restore, /resolvedGuest = null/);
+  assert.match(restore, /resolvedGuest\?\.id && hasPersonalInviteToken\(resolvedGuest\)/);
+});
+
 test('Personal RSVP validates optional phone input before it reaches the RPC', () => {
   const guestExperience = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'guest-experience.js'), 'utf8');
   const submit = guestExperience.slice(guestExperience.indexOf('async function submitRsvp'), guestExperience.indexOf('function bindHandlers'));

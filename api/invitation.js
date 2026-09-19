@@ -3,6 +3,8 @@ const path = require("node:path");
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://qotolnmwoceahrnldlbw.supabase.co";
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "sb_publishable_J0_MF6G6iptQfYY1nSeIvA_YFZ0r9BO";
+const SHARE_CRAWLER = /facebookexternalhit|facebot|twitterbot|linkedinbot|slackbot|discordbot|telegrambot|whatsapp|pinterestbot|googlebot|bingbot/i;
+let invitationTemplatePromise = null;
 
 function escapeHtml(value) {
     return String(value || "")
@@ -30,6 +32,8 @@ function getShareImage(config) {
 
 async function getEventConfig(eventId) {
     if (!eventId) return null;
+    const controller = typeof AbortController === "function" ? new AbortController() : null;
+    const timeout = controller ? setTimeout(() => controller.abort(), 1800) : null;
     const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_public_event_config`, {
         method: "POST",
         headers: {
@@ -37,21 +41,44 @@ async function getEventConfig(eventId) {
             Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ p_event_id: eventId })
+        body: JSON.stringify({ p_event_id: eventId }),
+        ...(controller ? { signal: controller.signal } : {})
+    }).finally(() => {
+        if (timeout) clearTimeout(timeout);
     });
     if (!response.ok) return null;
     return response.json();
 }
 
+function isShareCrawler(request) {
+    return SHARE_CRAWLER.test(String(request?.headers?.["user-agent"] || ""));
+}
+
+function loadInvitationTemplate() {
+    if (!invitationTemplatePromise) {
+        invitationTemplatePromise = fs.readFile(
+            path.join(process.cwd(), "pages", "invitation.html"),
+            "utf8"
+        ).catch((error) => {
+            invitationTemplatePromise = null;
+            throw error;
+        });
+    }
+    return invitationTemplatePromise;
+}
+
 module.exports = async (request, response) => {
-    const template = await fs.readFile(path.join(process.cwd(), "pages", "invitation.html"), "utf8");
+    const template = await loadInvitationTemplate();
     const host = request.headers["x-forwarded-host"] || request.headers.host || "michelline-invitations.vercel.app";
     const protocol = request.headers["x-forwarded-proto"] || "https";
     const url = new URL(request.url, `${protocol}://${host}`);
     const eventId = (url.searchParams.get("event") || "").trim().toLowerCase();
     let html = template;
 
-    try {
+    // Les métadonnées personnalisées servent aux aperçus sociaux. Elles ne
+    // doivent pas faire attendre chaque visiteur avant l'envoi du HTML.
+    if (isShareCrawler(request)) {
+        try {
         const config = await getEventConfig(eventId);
         if (config?.title) {
             const image = getShareImage(config);
@@ -72,11 +99,13 @@ module.exports = async (request, response) => {
                 );
             }
         }
-    } catch (error) {
-        console.warn("Invitation share metadata unavailable", error.message);
+        } catch (error) {
+            console.warn("Invitation share metadata unavailable", error.message);
+        }
     }
 
     response.setHeader("Content-Type", "text/html; charset=utf-8");
-    response.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+    response.setHeader("Vary", "User-Agent");
+    response.setHeader("Cache-Control", "public, max-age=0, s-maxage=60, stale-while-revalidate=300");
     response.status(200).send(html);
 };

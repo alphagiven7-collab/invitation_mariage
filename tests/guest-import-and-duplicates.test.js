@@ -105,6 +105,31 @@ test('Guests can be added without a phone number and the old country-prefix defa
   assert.equal((await manager.loadGuests()).length, 2);
 });
 
+test('GuestManager shares concurrent forced guest loads for the same event', async () => {
+  let calls = 0;
+  let resolveGuests;
+  const manager = setup({
+    isEnabled: () => true,
+    getGuests: () => {
+      calls += 1;
+      return new Promise((resolve) => { resolveGuests = resolve; });
+    }
+  });
+
+  const first = manager.loadGuests(true);
+  const second = manager.loadGuests(true);
+  const regular = manager.loadGuests();
+  assert.equal(calls, 1);
+
+  resolveGuests([{ id: 'marie', fullName: 'Marie Sanson', status: 'pending' }]);
+  const [firstGuests, secondGuests, regularGuests] = await Promise.all([first, second, regular]);
+  assert.equal(firstGuests.length, 1);
+  assert.equal(secondGuests[0].id, 'marie');
+  assert.equal(regularGuests[0].fullName, 'Marie Sanson');
+  assert.equal((await manager.loadGuests()).length, 1);
+  assert.equal(calls, 1);
+});
+
 test('Marking a guest as a couple preserves their invitation data and cannot create a duplicate', async () => {
   const manager = setup();
   const first = (await manager.addGuest({ fullName: 'Marie Noël', phone: '+243 999', tableNumber: '8' })).guest;

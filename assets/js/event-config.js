@@ -12,6 +12,7 @@ const EventConfig = (() => {
     let eventId = DEFAULT_EVENT;
     let config = null;
     let ready = false;
+    let initPromise = null;
 
     function getEventId() {
         const params = new URLSearchParams(window.location.search);
@@ -230,21 +231,31 @@ const EventConfig = (() => {
         document.body.appendChild(main);
     }
 
-    async function init() {
-        if (ready && config) return config;
-        eventId = getEventId();
-        try {
-            config = await fetchEventJson(eventId);
-        } catch (error) {
-            config = null;
-            ready = false;
-            showEventLoadError(eventId);
-            throw error;
-        }
+    function init() {
+        if (ready && config) return Promise.resolve(config);
+        if (initPromise) return initPromise;
 
-        ready = true;
-        window.dispatchEvent(new CustomEvent("eventconfig:ready", { detail: config }));
-        return config;
+        const requestedEventId = getEventId();
+        eventId = requestedEventId;
+        initPromise = fetchEventJson(requestedEventId)
+            .then((loadedConfig) => {
+                config = loadedConfig;
+                ready = true;
+                window.dispatchEvent(new CustomEvent("eventconfig:ready", { detail: config }));
+                return config;
+            })
+            .catch((error) => {
+                config = null;
+                ready = false;
+                showEventLoadError(requestedEventId);
+                throw error;
+            })
+            .finally(() => {
+                // Une erreur reste retentable, tandis que les appels simultanés
+                // pendant le chargement partagent la même requête réseau.
+                initPromise = null;
+            });
+        return initPromise;
     }
 
     function getConfig() {

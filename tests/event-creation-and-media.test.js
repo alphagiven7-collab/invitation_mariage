@@ -137,6 +137,38 @@ test('EventConfig ignores stale local configuration for the built-in demo', asyn
   );
 });
 
+test('EventConfig shares one in-flight initialization request', async () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'event-config.js'), 'utf8');
+  let fetchCount = 0;
+  let resolveResponse;
+  const pendingResponse = new Promise((resolve) => { resolveResponse = resolve; });
+  const sandbox = {
+    console,
+    URLSearchParams,
+    CustomEvent: class {},
+    fetch: () => {
+      fetchCount += 1;
+      return pendingResponse;
+    },
+    window: { location: { search: '?event=demo' }, dispatchEvent() {} },
+    localStorage: { getItem() { return null; }, setItem() {} }
+  };
+  sandbox.window.window = sandbox.window;
+  sandbox.global = sandbox;
+  sandbox.globalThis = sandbox;
+  vm.runInNewContext(source, sandbox, { filename: 'event-config.js' });
+
+  const first = sandbox.window.EventConfig.init();
+  const second = sandbox.window.EventConfig.init();
+  assert.equal(first, second);
+  assert.equal(fetchCount, 1);
+
+  resolveResponse({ ok: true, json: async () => ({ id: 'demo', title: 'Configuration partagée' }) });
+  const [firstConfig, secondConfig] = await Promise.all([first, second]);
+  assert.equal(firstConfig.title, 'Configuration partagée');
+  assert.equal(secondConfig.title, 'Configuration partagée');
+});
+
 test('EventConfig loads a cloud-only client event when no local JSON exists', async () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'event-config.js'), 'utf8');
     let requestedSlug = '';

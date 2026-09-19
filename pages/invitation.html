@@ -22,13 +22,18 @@
     <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#4caf50">
     <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=57">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Great+Vibes&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@0.469.0"></script>
     <link rel="stylesheet" href="../assets/css/app.css?v=73">
     <link rel="stylesheet" href="../assets/css/drink-menu.css?v=34">
     <script>
         if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("../sw.js?v=57").catch(() => {});
+            navigator.serviceWorker.register("../sw.js?v=58").catch(() => {});
         }
     </script>
     <style>
@@ -71,7 +76,7 @@
         </button>
     </div>
 
-    <audio id="background-music" loop preload="auto" class="hidden"></audio>
+    <audio id="background-music" loop preload="none" class="hidden"></audio>
 
     <div id="welcome-gate" class="fixed inset-0 z-[100] welcome-gate-bg backdrop-blur-sm flex items-center justify-center px-5 transition-opacity duration-500">
         <div class="w-full max-w-sm welcome-envelope-shell rounded-3xl p-6 text-center">
@@ -123,7 +128,7 @@
         
         <!-- 1. En-tête -->
         <header class="hero-bg">
-            <img id="hero-image" class="hero-bg-image" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Photo de l'événement">
+            <img id="hero-image" class="hero-bg-image" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Photo de l'événement" loading="eager" fetchpriority="high" decoding="async">
             <div class="hero-bg-content text-white px-4">
                 <h1 id="hero-title" class="font-serif text-2xl md:text-3xl mb-3 tracking-wide">Invitation</h1>
                 <i data-lucide="heart" class="w-6 h-6 text-pink-300 mx-auto mb-3 animate-pulse" fill="currentColor"></i>
@@ -172,7 +177,7 @@
         <!-- 3. À propos de nous (Bouton d'ouverture modale) -->
         <section class="px-4 mt-6">
             <div onclick="openModal('about-modal')" role="button" tabindex="0" data-keyboard-activate aria-controls="about-modal" aria-label="Découvrir notre histoire" class="relative rounded-2xl overflow-hidden h-28 shadow-sm group cursor-pointer bg-gray-900">
-                <img id="about-cover-image" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Couple" class="w-full h-full object-cover opacity-60">
+                <img id="about-cover-image" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Couple" class="w-full h-full object-cover opacity-60" loading="lazy" decoding="async">
                 <div class="absolute inset-0 flex items-center px-6">
                     <div class="text-white">
                         <h3 class="font-serif text-xl mb-1">À propos de nous</h3>
@@ -189,17 +194,17 @@
                 <p class="text-[10px] tracking-[0.3em] uppercase text-pink-200 text-center">Moments d'exception</p>
                 <h3 id="best-photos-title" class="font-serif text-2xl text-center mb-3">Les plus belles photos du couple</h3>
                 <div class="grid grid-cols-2 gap-2 mb-3">
-                    <img id="best-photo-1" src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=700&q=80" class="h-40 w-full object-cover rounded-xl" alt="Couple 1">
-                    <img id="best-photo-2" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=700&q=80" class="h-40 w-full object-cover rounded-xl" alt="Couple 2">
+                    <img id="best-photo-1" src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=700&q=80" class="h-40 w-full object-cover rounded-xl" alt="Couple 1" loading="lazy" decoding="async">
+                    <img id="best-photo-2" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=700&q=80" class="h-40 w-full object-cover rounded-xl" alt="Couple 2" loading="lazy" decoding="async">
                 </div>
                 <div class="premium-marquee">
                     <div class="premium-marquee-track">
-                        <img id="best-marquee-1" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=500&q=80" alt="Souvenir 1">
-                        <img id="best-marquee-2" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=500&q=80" alt="Souvenir 2">
-                        <img id="best-marquee-3" src="https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=500&q=80" alt="Souvenir 3">
-                        <img id="best-marquee-4" src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=500&q=80" alt="Souvenir 4">
-                        <img id="best-marquee-5" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=500&q=80" alt="Souvenir 1b">
-                        <img id="best-marquee-6" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=500&q=80" alt="Souvenir 2b">
+                        <img id="best-marquee-1" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=500&q=80" alt="Souvenir 1" loading="lazy" decoding="async">
+                        <img id="best-marquee-2" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=500&q=80" alt="Souvenir 2" loading="lazy" decoding="async">
+                        <img id="best-marquee-3" src="https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=500&q=80" alt="Souvenir 3" loading="lazy" decoding="async">
+                        <img id="best-marquee-4" src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=500&q=80" alt="Souvenir 4" loading="lazy" decoding="async">
+                        <img id="best-marquee-5" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=500&q=80" alt="Souvenir 1b" loading="lazy" decoding="async">
+                        <img id="best-marquee-6" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=500&q=80" alt="Souvenir 2b" loading="lazy" decoding="async">
                     </div>
                 </div>
                 <p class="text-[10px] text-indigo-100 text-center mt-3">Touchez ici pour ouvrir la galerie complète</p>
@@ -228,13 +233,13 @@
 
                 <div id="dress-patterns" class="hidden grid grid-cols-2 gap-4 mb-5">
                     <figure id="dress-pattern-men-wrap" class="dress-attire-photo hidden text-left">
-                        <img id="dress-pattern-men" alt="Tenue attendue côté homme">
+                        <img id="dress-pattern-men" alt="Tenue attendue côté homme" loading="lazy" decoding="async">
                         <figcaption>
                             <strong>Côté Homme</strong><span data-dress-code="men"></span>
                         </figcaption>
                     </figure>
                     <figure id="dress-pattern-women-wrap" class="dress-attire-photo hidden text-left">
-                        <img id="dress-pattern-women" alt="Tenue attendue côté femme">
+                        <img id="dress-pattern-women" alt="Tenue attendue côté femme" loading="lazy" decoding="async">
                         <figcaption>
                             <strong>Côté Femme</strong><span data-dress-code="women"></span>
                         </figcaption>
@@ -243,14 +248,14 @@
 
                 <div id="dress-marquee-wrapper" class="dress-marquee-wrapper">
                     <div class="dress-marquee-track">
-                        <img id="dress-photo-1" src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 1">
-                        <img id="dress-photo-2" src="https://images.unsplash.com/photo-1591369822096-ffd140ec948f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 2">
-                        <img id="dress-photo-3" src="https://images.unsplash.com/photo-1617137968427-85924c800a22?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 3">
-                        <img id="dress-photo-4" src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 4">
-                        <img id="dress-photo-5" src="https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 5">
-                        <img id="dress-photo-6" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 6">
-                        <img id="dress-photo-7" src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 1 bis">
-                        <img id="dress-photo-8" src="https://images.unsplash.com/photo-1591369822096-ffd140ec948f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 2 bis">
+                        <img id="dress-photo-1" src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 1" loading="lazy" decoding="async">
+                        <img id="dress-photo-2" src="https://images.unsplash.com/photo-1591369822096-ffd140ec948f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 2" loading="lazy" decoding="async">
+                        <img id="dress-photo-3" src="https://images.unsplash.com/photo-1617137968427-85924c800a22?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 3" loading="lazy" decoding="async">
+                        <img id="dress-photo-4" src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 4" loading="lazy" decoding="async">
+                        <img id="dress-photo-5" src="https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 5" loading="lazy" decoding="async">
+                        <img id="dress-photo-6" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 6" loading="lazy" decoding="async">
+                        <img id="dress-photo-7" src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 1 bis" loading="lazy" decoding="async">
+                        <img id="dress-photo-8" src="https://images.unsplash.com/photo-1591369822096-ffd140ec948f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" alt="Tenue elegante 2 bis" loading="lazy" decoding="async">
                     </div>
                 </div>
             </div>
@@ -317,7 +322,7 @@
                 <div id="venue-map-container" class="venue-map-container relative bg-gray-200">
                     <iframe id="venue-map-embed" class="venue-map-embed hidden" title="Carte Google Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
                     <div id="venue-map-fallback" class="venue-map-fallback h-48 relative">
-                        <img id="map-image" src="https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover opacity-50" alt="Carte du lieu">
+                        <img id="map-image" src="https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover opacity-50" alt="Carte du lieu" loading="lazy" decoding="async">
                         <div class="absolute inset-0 flex justify-center items-center pointer-events-none">
                             <div class="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center animate-bounce">
                                 <i data-lucide="map-pin" class="w-6 h-6 text-gray-800"></i>
@@ -411,15 +416,15 @@
             <!-- Galerie / Livre d'Or -->
             <div class="grid grid-cols-2 gap-3 mt-3">
                 <div onclick="openModal('guestbook-modal')" role="button" tabindex="0" data-keyboard-activate data-event-section="guestbook" aria-controls="guestbook-modal" aria-label="Ouvrir le livre d'or" class="bg-gray-800 text-white rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-900 transition h-28 relative overflow-hidden group">
-                    <img id="guestbook-cover-image" src="https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" class="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-20 transition" alt="Livre d'or">
+                    <img id="guestbook-cover-image" src="https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" class="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-20 transition" alt="Livre d'or" loading="lazy" decoding="async">
                     <i data-lucide="book-open" class="w-6 h-6 mb-2 relative z-10"></i>
                     <span class="font-medium text-[11px] relative z-10">Ouvrir le livre d'or</span>
                 </div>
                 <div onclick="openModal('gallery-modal')" role="button" tabindex="0" data-keyboard-activate data-event-section="gallery" aria-controls="gallery-modal" aria-label="Ouvrir la galerie photo" class="bg-white rounded-xl p-1 flex flex-col items-center justify-center cursor-pointer border border-gray-100 h-28 overflow-hidden">
                     <div class="grid grid-cols-2 gap-1 w-full h-full">
-                        <img id="gallery-preview-image-1" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=200" class="w-full h-full object-cover rounded-tl-lg" alt="Photo 1">
-                        <img id="gallery-preview-image-2" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=200" class="w-full h-full object-cover rounded-tr-lg" alt="Photo 2">
-                        <img id="gallery-preview-image-3" src="https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?w=200" class="w-full h-full object-cover rounded-bl-lg" alt="Photo 3">
+                        <img id="gallery-preview-image-1" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=200" class="w-full h-full object-cover rounded-tl-lg" alt="Photo 1" loading="lazy" decoding="async">
+                        <img id="gallery-preview-image-2" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=200" class="w-full h-full object-cover rounded-tr-lg" alt="Photo 2" loading="lazy" decoding="async">
+                        <img id="gallery-preview-image-3" src="https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?w=200" class="w-full h-full object-cover rounded-bl-lg" alt="Photo 3" loading="lazy" decoding="async">
                         <div class="bg-gray-100 flex items-center justify-center rounded-br-lg text-xs font-semibold text-gray-500">+12</div>
                     </div>
                 </div>
@@ -515,7 +520,7 @@
     <div id="about-modal" class="fixed inset-0 z-50 bg-white overflow-y-auto hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="about-story-title">
         <div class="max-w-md mx-auto bg-white min-h-screen relative pb-10">
             <div class="relative h-64">
-                <img id="about-modal-image" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Couple" class="w-full h-full object-cover">
+                <img id="about-modal-image" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Couple" class="w-full h-full object-cover" loading="lazy" decoding="async">
                 <button type="button" onclick="closeModal('about-modal')" aria-label="Fermer notre histoire" class="absolute top-4 left-4 bg-white/80 backdrop-blur p-2 rounded-full shadow-sm text-gray-800">
                     <i data-lucide="arrow-left" class="w-5 h-5"></i>
                 </button>
@@ -566,10 +571,10 @@
                 <button type="button" onclick="closeModal('gallery-modal')" class="bg-white/90 rounded-full px-3 py-1 text-xs font-semibold">Fermer</button>
             </div>
             <div class="grid grid-cols-2 gap-2">
-                <img id="gallery-modal-image-1" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=500" class="rounded-xl w-full h-40 object-cover" alt="galerie 1">
-                <img id="gallery-modal-image-2" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=500" class="rounded-xl w-full h-40 object-cover" alt="galerie 2">
-                <img id="gallery-modal-image-3" src="https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?w=500" class="rounded-xl w-full h-40 object-cover" alt="galerie 3">
-                <img id="gallery-modal-image-4" src="https://images.unsplash.com/photo-1519741497674-611481863552?w=500" class="rounded-xl w-full h-40 object-cover" alt="galerie 4">
+                <img id="gallery-modal-image-1" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=500" class="rounded-xl w-full h-40 object-cover" alt="galerie 1" loading="lazy" decoding="async">
+                <img id="gallery-modal-image-2" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=500" class="rounded-xl w-full h-40 object-cover" alt="galerie 2" loading="lazy" decoding="async">
+                <img id="gallery-modal-image-3" src="https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?w=500" class="rounded-xl w-full h-40 object-cover" alt="galerie 3" loading="lazy" decoding="async">
+                <img id="gallery-modal-image-4" src="https://images.unsplash.com/photo-1519741497674-611481863552?w=500" class="rounded-xl w-full h-40 object-cover" alt="galerie 4" loading="lazy" decoding="async">
             </div>
         </div>
     </div>
@@ -588,7 +593,7 @@
                 <button type="button" onclick="changeBestGallerySlide(-1)" class="absolute left-2 z-10 bg-white/15 hover:bg-white/30 text-white rounded-full w-10 h-10 flex items-center justify-center transition" aria-label="Photo précédente">
                     <i data-lucide="chevron-left" class="w-5 h-5"></i>
                 </button>
-                <img id="best-gallery-main-image" src="" alt="Photo du couple" class="w-full max-h-[72vh] object-contain rounded-2xl shadow-2xl border border-white/20">
+                <img id="best-gallery-main-image" src="" alt="Photo du couple" class="w-full max-h-[72vh] object-contain rounded-2xl shadow-2xl border border-white/20" loading="lazy" decoding="async">
                 <button type="button" onclick="changeBestGallerySlide(1)" class="absolute right-2 z-10 bg-white/15 hover:bg-white/30 text-white rounded-full w-10 h-10 flex items-center justify-center transition" aria-label="Photo suivante">
                     <i data-lucide="chevron-right" class="w-5 h-5"></i>
                 </button>
@@ -669,7 +674,7 @@
                             Ajouter ma photo
                             <input id="rsvp-profile-photo" type="file" accept="image/*" class="hidden">
                         </label>
-                        <img id="rsvp-profile-preview" class="rsvp-profile-preview hidden" alt="Aperçu de votre photo">
+                        <img id="rsvp-profile-preview" class="rsvp-profile-preview hidden" alt="Aperçu de votre photo" loading="lazy" decoding="async">
                     </div>
                     <div id="rsvp-drinks-section" class="hidden">
                         <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-2">Menu des boissons</label>
@@ -875,12 +880,12 @@
                 </div>
                 <div id="confirmation-card-export" class="p-6 bg-gradient-to-b from-white to-rose-50/40">
                     <div id="confirm-guest-photo-wrap" class="confirm-guest-photo-wrap hidden mb-3">
-                        <img id="confirm-guest-photo" src="" alt="" class="confirm-guest-photo">
+                        <img id="confirm-guest-photo" src="" alt="" class="confirm-guest-photo" loading="lazy" decoding="async">
                     </div>
                     <div id="confirm-couple-photos" class="confirm-couple-photos hidden mb-4">
-                        <img id="confirm-photo-left" src="" alt="" class="confirm-couple-photo">
+                        <img id="confirm-photo-left" src="" alt="" class="confirm-couple-photo" loading="lazy" decoding="async">
                         <div class="confirm-couple-heart" aria-hidden="true">♥</div>
-                        <img id="confirm-photo-right" src="" alt="" class="confirm-couple-photo">
+                        <img id="confirm-photo-right" src="" alt="" class="confirm-couple-photo" loading="lazy" decoding="async">
                     </div>
                     <p id="confirm-guest-line" class="font-serif text-xl text-gray-800 text-center mb-1"></p>
                     <p id="confirm-event-date" class="confirm-event-date hidden"></p>
@@ -900,7 +905,7 @@
                         </div>
                     </div>
                     <div class="confirmation-qr-wrap mx-auto mb-3" id="confirm-qr-wrap">
-                        <img id="rsvp-qr-image" alt="QR code confirmation" class="mx-auto rounded-xl border border-gray-100 shadow-sm">
+                        <img id="rsvp-qr-image" alt="QR code confirmation" class="mx-auto rounded-xl border border-gray-100 shadow-sm" loading="lazy" decoding="async">
                     </div>
                     <p id="confirm-code-line" class="text-xs font-mono tracking-wider text-emerald-700 bg-emerald-50 inline-block px-4 py-2 rounded-full mb-3 w-full text-center"></p>
                     <p id="confirm-qr-hint" class="text-[11px] text-gray-500 text-center mb-4">Présentez ce QR code le jour J — accueil rapide à l'entrée.</p>
@@ -932,24 +937,24 @@
     <script src="../assets/js/supabase-config.js?v=53"></script>
     <script src="../assets/js/django-api-config.js?v=53"></script>
     <script src="../assets/js/django-api.js?v=53"></script>
-    <script src="../assets/js/event-config.js?v=72"></script>
+    <script src="../assets/js/event-config.js?v=73"></script>
     <script src="../assets/js/cloud-api.js?v=79"></script>
     <script src="../assets/js/dashboard-sync.js?v=55"></script>
-    <script src="../assets/js/guest-manager.js?v=71"></script>
+    <script src="../assets/js/guest-manager.js?v=72"></script>
     <script src="../assets/js/checkin-url.js?v=50"></script>
     <script src="../assets/js/access-pass-export.js?v=53"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="../assets/js/invitation-pdf.js?v=10"></script>
     <script src="../assets/js/content-blocks.js?v=38"></script>
     <script src="../assets/js/calendar-export.js?v=35"></script>
-    <script src="../assets/js/background-music.js?v=34"></script>
+    <script src="../assets/js/background-music.js?v=35"></script>
     <script src="../assets/js/countdown.js?v=35"></script>
     <script src="../assets/js/lucide-init.js?v=34"></script>
     <script src="../assets/js/i18n.js?v=34"></script>
     <script src="../assets/js/drink-generic-images.js?v=34"></script>
     <script src="../assets/js/drink-menu.js?v=34"></script>
-    <script src="../assets/js/app.js?v=65"></script>
-    <script src="../assets/js/guest-experience.js?v=91"></script>
+    <script src="../assets/js/app.js?v=66"></script>
+    <script src="../assets/js/guest-experience.js?v=92"></script>
     <script>
         // Fallback robuste si app.js ne se charge pas complètement
         (function () {

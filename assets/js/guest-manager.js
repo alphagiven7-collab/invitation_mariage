@@ -5,6 +5,8 @@
 const GuestManager = (() => {
     let cache = null;
     let cacheEventId = null;
+    let guestsLoadPromise = null;
+    let guestsLoadEventId = null;
 
     function getEventId() {
         if (window.EventConfig && EventConfig.isReady()) return EventConfig.getEventId();
@@ -160,19 +162,38 @@ const GuestManager = (() => {
     async function loadGuests(force = false) {
         const eventId = getEventId();
         const cloudEnabled = !!window.CloudAPI?.isEnabled?.();
+        // Plusieurs vues de l'administration peuvent demander la liste au
+        // même instant. Elles doivent partager la même requête, y compris
+        // lorsqu'un rafraîchissement forcé est en cours.
+        if (guestsLoadPromise && guestsLoadEventId === eventId) return guestsLoadPromise;
         if (cache && cacheEventId === eventId && !force) return cache;
-        if (cloudEnabled) {
-            cache = await CloudAPI.getGuests(eventId);
-        } else {
-            try {
-                const raw = localStorage.getItem(storageKey());
-                cache = raw ? JSON.parse(raw) : [];
-            } catch {
-                cache = [];
+
+        const load = (async () => {
+            let guests;
+            if (cloudEnabled) {
+                guests = await CloudAPI.getGuests(eventId);
+            } else {
+                try {
+                    const raw = localStorage.getItem(storageKey());
+                    guests = raw ? JSON.parse(raw) : [];
+                } catch {
+                    guests = [];
+                }
+            }
+            cache = guests;
+            cacheEventId = eventId;
+            return guests;
+        })();
+        guestsLoadPromise = load;
+        guestsLoadEventId = eventId;
+        try {
+            return await load;
+        } finally {
+            if (guestsLoadPromise === load) {
+                guestsLoadPromise = null;
+                guestsLoadEventId = null;
             }
         }
-        cacheEventId = eventId;
-        return cache;
     }
 
     async function persistGuests(guests) {

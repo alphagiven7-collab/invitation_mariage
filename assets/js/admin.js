@@ -172,7 +172,6 @@ async function renderStats() {
         const el = document.getElementById(id);
         if (el) el.textContent = "…";
     });
-    if (GuestManager.loadGuests) await GuestManager.loadGuests(true);
     const stats = await GuestManager.getStats();
     document.getElementById("stat-total").textContent = stats.total;
     document.getElementById("stat-yes").textContent = stats.yes;
@@ -293,7 +292,7 @@ async function renderGuestsTable() {
                 const result = await GuestManager.markGuestAsCouple(guest.id);
                 if (result?.guest) {
                     showToast(`${result.guest.fullName} enregistré comme couple.`);
-                    await refreshAll();
+                    await refreshCurrentTab();
                 } else if (result?.duplicate) {
                     showToast("Un autre invité porte déjà ce nom de couple.");
                 } else {
@@ -321,7 +320,7 @@ async function renderGuestsTable() {
             const updated = await GuestManager.updateGuest(btn.dataset.approveQr, { qrApproved: true });
             if (updated) {
                 showToast(`QR validé pour ${updated.fullName}`);
-                await refreshAll();
+                await refreshCurrentTab();
             }
         });
     });
@@ -332,7 +331,7 @@ async function renderGuestsTable() {
             const name = guest ? guest.fullName : "cet invité";
             if (!confirm(`Supprimer ${name} ? Cette action est irréversible.`)) return;
             const result = await GuestManager.removeGuest(btn.dataset.remove);
-            await refreshAll();
+            await refreshCurrentTab();
             if (result.removed && result.cloudSynced) {
                 showToast(`${name} supprimé(e) définitivement`);
             } else if (result.removed) {
@@ -471,17 +470,41 @@ async function renderRSVPList() {
     });
 }
 
-async function refreshAll() {
+function getActiveAdminTab() {
+    return document.querySelector(".admin-tab.active")?.dataset.tab || "overview";
+}
+
+function renderActiveAdminTab(tabName) {
+    switch (tabName) {
+        case "guests":
+            return Promise.all([renderGuestsTable(), renderAdminGuestbook()]);
+        case "relances":
+            return renderRelances();
+        case "rsvps":
+            return renderRSVPList();
+        case "presence":
+            return window.AdminPresence
+                ? AdminPresence.renderTable(document.getElementById("presence-search")?.value || "")
+                : Promise.resolve();
+        case "analytics":
+            return renderAnalytics();
+        case "exports":
+            return Promise.resolve();
+        default:
+            return renderStats();
+    }
+}
+
+async function refreshCurrentTab() {
     try {
-        const results = await Promise.allSettled([
-            renderStats(),
-            renderGuestsTable(),
-            renderRelances(),
-            renderRSVPList(),
-            renderAdminGuestbook(),
-            window.AdminPresence ? AdminPresence.renderTable() : Promise.resolve(),
-            renderAnalytics()
-        ]);
+        const tabName = getActiveAdminTab();
+        const needsGuests = ["overview", "guests", "relances", "rsvps", "presence"].includes(tabName);
+        const tasks = [];
+        // Réchauffe une fois la liste pour l'onglet visible. GuestManager
+        // mutualise cette promesse avec le rendu qui en a besoin.
+        if (needsGuests && GuestManager.loadGuests) tasks.push(GuestManager.loadGuests(true));
+        tasks.push(renderActiveAdminTab(tabName));
+        const results = await Promise.allSettled(tasks);
         const failure = results.find((result) => result.status === "rejected");
         if (failure) throw failure.reason;
     } catch (error) {
@@ -501,9 +524,7 @@ function setupTabs() {
             document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
             tab.classList.add("active");
             document.getElementById(`tab-${tab.dataset.tab}`).classList.add("active");
-            if (tab.dataset.tab === "presence" && window.AdminPresence) {
-                AdminPresence.renderTable(document.getElementById("presence-search")?.value || "");
-            }
+            void refreshCurrentTab();
         });
     });
 }
@@ -631,10 +652,10 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("wa-template").value = GuestManager.getMessageTemplate();
     setupTabs();
     if (window.AdminPresence) AdminPresence.init();
-    await refreshAll();
+    await refreshCurrentTab();
 
     document.getElementById("refresh-btn").addEventListener("click", async () => {
-        await refreshAll();
+        await refreshCurrentTab();
         showToast("Données actualisées");
     });
 
@@ -671,7 +692,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         });
         e.target.reset();
         await GuestManager.loadGuests(true);
-        await refreshAll();
+        await refreshCurrentTab();
         if (!result || !result.guest) {
             showToast("Impossible d'ajouter cet invité.");
             return;
@@ -718,7 +739,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             await renderGuestsTable();
             closeEditModal();
             showToast(`Modification enregistrée : ${updated.fullName}`);
-            await refreshAll();
+            await refreshCurrentTab();
         } catch (error) {
             showToast(error.message || "Modification impossible.");
         } finally {
@@ -772,7 +793,7 @@ window.addEventListener("DOMContentLoaded", async () => {
                 if (!await reviewImport(preview)) return;
                 const result = await GuestManager.importCSVRows(rows, { onProgress: updateProgress });
                 document.getElementById("import-result").textContent = importOutcome(result);
-                try { await refreshAll(); }
+                try { await refreshCurrentTab(); }
                 catch (error) { showToast(`Import traité ; actualisation impossible : ${error.message}`); return; }
                 showToast(result.failed ? "Import partiel : vérifiez les échecs de synchronisation." : "Import terminé");
             } catch (err) {
@@ -815,7 +836,7 @@ window.addEventListener("DOMContentLoaded", async () => {
                 const result = await GuestManager.replaceGuestsExceptConfirmed(rows);
                 document.getElementById("import-result").textContent =
                     `${result.removed} ancien(s) invité(s) retiré(s). ${importOutcome(result)}`;
-                await refreshAll();
+                await refreshCurrentTab();
                 showToast(result.failed ? "Remplacement partiel : consultez les erreurs d'importation." : "Liste remplacée ; toutes les réponses RSVP sont conservées.");
                 button.disabled = false;
                 button.textContent = "Remplacer la liste sauf les réponses RSVP";
@@ -882,7 +903,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             document.getElementById("duplicates-summary").textContent = `${result.removed} fiche(s) supprimée(s).` +
                 (result.cloudSynced ? "" : " Certaines suppressions ont échoué. Vérifiez vos droits et la migration SUPABASE-PLATFORM-HARDENING.sql, puis relancez la détection.");
             document.getElementById("duplicates-list").replaceChildren();
-            await refreshAll();
+            await refreshCurrentTab();
         } catch (error) { document.getElementById("duplicates-summary").textContent = error.message; }
         finally { button.disabled = false; }
     });
@@ -897,7 +918,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         button.disabled = false;
         button.textContent = "Appliquer les corrections sélectionnées";
         closeCsvCorrectionsModal();
-        await refreshAll();
+        await refreshCurrentTab();
         showToast(result.cloudSynced
             ? `${result.updated} invité(s) corrigé(s).`
             : `${result.updated} correction(s) enregistrée(s). ${result.errors?.length || 0} refusée(s) par Supabase.`);
@@ -934,7 +955,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         button.textContent = "Suppression en cours…";
         const result = await GuestManager.removeGuests(ids);
         selectedGuestIds.clear();
-        await refreshAll();
+        await refreshCurrentTab();
         button.textContent = "Supprimer la sélection";
         showToast(`${result.removed} invité(s) supprimé(s)${result.cloudSynced ? "" : " localement; synchronisation cloud à réessayer"}`);
     });

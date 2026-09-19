@@ -1,4 +1,4 @@
-const CACHE = "invitation-v57";
+const CACHE = "invitation-v58";
 
 self.addEventListener("install", (e) => {
     self.skipWaiting();
