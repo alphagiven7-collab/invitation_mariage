@@ -6,7 +6,7 @@
     <title>Administration invités</title>
     <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=57">
     <link rel="stylesheet" href="../assets/css/app.css">
-    <link rel="stylesheet" href="../assets/css/admin.css?v=8">
+    <link rel="stylesheet" href="../assets/css/admin.css?v=9">
 </head>
 <body class="admin-shell text-slate-800">
     <main class="dash-wrap">
@@ -95,6 +95,8 @@
                         </form>
                         </details>
                     </div>
+
+                    <div id="guests-load-more" class="hidden mt-3 text-center"><button type="button" class="admin-btn admin-btn-ghost">Afficher plus d'invités</button></div>
 
                     <section class="admin-card">
                         <h2 class="admin-card-title">Liste des invités</h2>
@@ -454,6 +456,7 @@
         </div>
     </div>
 
+    <div id="guest-qr-modal" class="admin-modal-backdrop" aria-hidden="true"><div class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="guest-qr-title" style="max-width:420px"><div class="admin-modal-header"><div class="admin-modal-header-row"><div><h3 id="guest-qr-title">QR d'invitation</h3><p id="guest-qr-name" class="admin-modal-subtitle"></p></div><button type="button" id="guest-qr-close-btn" class="admin-modal-close" aria-label="Fermer">×</button></div></div><div class="admin-modal-body text-center"><p class="admin-card-desc">Ce QR ouvre le lien personnel de l'invité. Le QR d'accès sera validé après sa confirmation.</p><div class="flex justify-center py-3"><img id="guest-qr-image" width="240" height="240" alt="QR d'invitation" class="rounded-xl border border-slate-200 bg-white p-2"></div><p id="guest-qr-link" class="text-xs break-all text-slate-500"></p><div class="admin-modal-footer"><button type="button" id="guest-qr-download-btn" class="admin-btn admin-btn-primary">Télécharger le QR</button><button type="button" id="guest-qr-copy-btn" class="admin-btn admin-btn-ghost">Copier le lien</button></div></div></div></div>
     <div id="toast" class="toast"></div>
 
     <script src="../assets/js/supabase-config.js?v=53"></script>
@@ -469,6 +472,6 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="../assets/js/envelope-export.js?v=51"></script>
     <script src="../assets/js/admin-presence.js?v=51"></script>
-    <script src="../assets/js/admin.js?v=86"></script>
+    <script src="../assets/js/admin.js?v=87"></script>
 </body>
 </html>

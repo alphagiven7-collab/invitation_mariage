@@ -540,6 +540,68 @@
             border-color: #f472b6 !important;
             box-shadow: 0 0 0 2px rgba(244, 114, 182, 0.28);
         }
+        /* Messages publics : les couleurs rose pâles de la version claire
+           deviennent peu contrastées sur un écran sombre. */
+        body.dark-mode #rsvp-messages-title,
+        body.dark-mode #guestbook-public-title,
+        body.dark-mode #guestbook-modal-title,
+        body.dark-mode #guestbook-modal h3 {
+            color: #f8fafc !important;
+        }
+        body.dark-mode #rsvp-messages-empty,
+        body.dark-mode #guestbook-public-empty {
+            color: #cbd5e1 !important;
+        }
+        body.dark-mode #rsvp-messages-list > article {
+            background: #1e293b !important;
+            border-color: #475569 !important;
+        }
+        body.dark-mode #rsvp-messages-list .text-gray-800 {
+            color: #f8fafc !important;
+        }
+        body.dark-mode #rsvp-messages-list .text-gray-600 {
+            color: #e2e8f0 !important;
+        }
+        body.dark-mode #rsvp-messages-list .text-gray-400 {
+            color: #cbd5e1 !important;
+        }
+        body.dark-mode #rsvp-messages-list .bg-rose-200 {
+            background: #4c1d3a !important;
+        }
+        body.dark-mode #rsvp-messages-list .text-rose-700 {
+            color: #fecdd3 !important;
+        }
+        body.dark-mode #guestbook-messages > div,
+        body.dark-mode #guestbook-public-messages > div {
+            background: #1e293b !important;
+            border-color: #475569 !important;
+            color: #f8fafc;
+        }
+        body.dark-mode #guestbook-messages .text-gray-600,
+        body.dark-mode #guestbook-public-messages .text-gray-600 {
+            color: #e2e8f0 !important;
+        }
+        body.dark-mode #guestbook-messages .text-gray-400,
+        body.dark-mode #guestbook-public-messages .text-gray-400 {
+            color: #cbd5e1 !important;
+        }
+        body.dark-mode #guestbook-messages .bg-pink-100,
+        body.dark-mode #guestbook-public-messages .bg-pink-100 {
+            background: #4c1d3a !important;
+        }
+        body.dark-mode #guestbook-modal textarea {
+            background: #0f172a !important;
+            color: #f8fafc !important;
+            border-color: #475569 !important;
+        }
+        body.dark-mode #guestbook-modal textarea::placeholder {
+            color: #94a3b8 !important;
+            opacity: 1;
+        }
+        body.dark-mode #guestbook-modal textarea:focus {
+            border-color: #f472b6 !important;
+            box-shadow: 0 0 0 2px rgba(244, 114, 182, 0.28);
+        }
 
 /* Pages formulaires / personnalisation */
 .pro-page {

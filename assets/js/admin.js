@@ -213,7 +213,12 @@ async function renderGuestsTable() {
     }
     empty.classList.add("hidden");
 
-    guests.forEach((guest) => {
+    const loadMore = document.getElementById("guests-load-more");
+    const pageSize = window.matchMedia?.("(max-width: 640px)").matches ? 30 : 80;
+    const currentLimit = Number(tbody.dataset.renderLimit) > 0 ? Number(tbody.dataset.renderLimit) : pageSize;
+    const visibleGuests = guests.slice(0, currentLimit);
+    tbody.dataset.renderLimit = String(currentLimit);
+    visibleGuests.forEach((guest) => {
         const tr = document.createElement("tr");
         const link = GuestManager.buildInviteLink(guest);
         const waLink = GuestManager.buildWhatsAppLink(guest);
@@ -231,6 +236,7 @@ async function renderGuestsTable() {
             <td data-label="Statut">${statusBadge(guest.status)}${guest.qrApproved ? ' <span class="admin-badge admin-badge-yes" title="QR validé">QR ✓</span>' : ''}</td>
             <td data-label="Actions">
                 <div class="admin-actions">
+                    <button type="button" class="admin-btn admin-btn-ghost admin-btn-icon" data-qr="${guest.id}" title="Afficher le QR d'invitation">QR</button>
                     <button type="button" class="admin-btn admin-btn-ghost admin-btn-icon" data-envelope="${guest.id}" title="Enveloppe + QR PNG">📥</button>
                     <button type="button" class="admin-btn admin-btn-ghost admin-btn-icon" data-edit="${guest.id}" title="Modifier">✎</button>
                     <button type="button" class="admin-btn admin-btn-ghost admin-btn-icon" data-copy="${encodeURIComponent(link)}" title="Copier le lien">🔗</button>
@@ -241,6 +247,12 @@ async function renderGuestsTable() {
             </td>`;
         tbody.appendChild(tr);
     });
+    if (loadMore) {
+        loadMore.classList.toggle("hidden", guests.length <= visibleGuests.length);
+        const button = loadMore.querySelector("button");
+        if (button) button.textContent = `Afficher plus (${guests.length - visibleGuests.length})`;
+        if (button) button.onclick = () => { tbody.dataset.renderLimit = String(currentLimit + pageSize); void renderGuestsTable(); };
+    }
 
     const selectAll = document.getElementById("select-all-guests");
     const deleteSelected = document.getElementById("delete-selected-guests-btn");
@@ -312,6 +324,13 @@ async function renderGuestsTable() {
             if (!guest || !window.EnvelopeExport) return;
             const ok = await EnvelopeExport.downloadForGuest(guest);
             showToast(ok ? `PNG généré — ${guest.fullName}` : "Export impossible");
+        });
+    });
+
+    tbody.querySelectorAll("[data-qr]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const guest = guestsCache.find((g) => g.id === btn.dataset.qr);
+            if (guest) void openGuestQrModal(guest);
         });
     });
 
@@ -417,6 +436,7 @@ async function renderAnalytics() {
         const eventType = String(e.event_type || "Inconnu");
         counts[eventType] = (counts[eventType] || 0) + 1;
     });
+
     const summary = document.getElementById("analytics-summary");
     summary.replaceChildren();
     const entries = Object.entries(counts);
@@ -502,7 +522,7 @@ async function refreshCurrentTab() {
         const tasks = [];
         // Réchauffe une fois la liste pour l'onglet visible. GuestManager
         // mutualise cette promesse avec le rendu qui en a besoin.
-        if (needsGuests && GuestManager.loadGuests) tasks.push(GuestManager.loadGuests(true));
+        if (needsGuests && GuestManager.loadGuests) tasks.push(GuestManager.loadGuests(false));
         tasks.push(renderActiveAdminTab(tabName));
         const results = await Promise.allSettled(tasks);
         const failure = results.find((result) => result.status === "rejected");
@@ -618,6 +638,27 @@ function closeEventCreatedModal() {
     modal.setAttribute("aria-hidden", "true");
 }
 
+async function openGuestQrModal(guest) {
+    const modal = document.getElementById("guest-qr-modal");
+    if (!modal || !guest?.token || !window.QRCode?.toDataURL) return;
+    const link = GuestManager.buildInviteLink(guest);
+    const image = document.getElementById("guest-qr-image");
+    document.getElementById("guest-qr-name").textContent = guest.fullName || "Invité";
+    document.getElementById("guest-qr-link").textContent = link;
+    QRCode.toDataURL(link, { width: 240, margin: 2, color: { dark: "#1a472a", light: "#ffffff" } }, (error, dataUrl) => {
+        if (error) { showToast("QR indisponible sur cet appareil."); return; }
+        image.src = dataUrl;
+        document.getElementById("guest-qr-download-btn").onclick = () => downloadFile(dataUrl, "qr-invitation.png", "image/png");
+        document.getElementById("guest-qr-copy-btn").onclick = async () => { try { await navigator.clipboard.writeText(link); showToast("Lien copié dans le presse-papiers"); } catch { showToast(link); } };
+        modal.classList.add("open"); modal.setAttribute("aria-hidden", "false");
+    });
+}
+
+function closeGuestQrModal() {
+    const modal = document.getElementById("guest-qr-modal");
+    if (modal) { modal.classList.remove("open"); modal.setAttribute("aria-hidden", "true"); }
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
     await window.AuthGuard?.refreshSession?.();
     const requestedEvent = new URLSearchParams(window.location.search).get("event");
@@ -655,6 +696,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     await refreshCurrentTab();
 
     document.getElementById("refresh-btn").addEventListener("click", async () => {
+        await GuestManager.loadGuests(true);
         await refreshCurrentTab();
         showToast("Données actualisées");
     });
@@ -691,7 +733,6 @@ window.addEventListener("DOMContentLoaded", async () => {
             profilePhotoUrl
         });
         e.target.reset();
-        await GuestManager.loadGuests(true);
         await refreshCurrentTab();
         if (!result || !result.guest) {
             showToast("Impossible d'ajouter cet invité.");
@@ -701,6 +742,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             showToast(`Invité déjà présent : ${result.guest.fullName}`);
             return;
         }
+        if (result.guest) void openGuestQrModal(result.guest);
         if (!result.cloudSynced && CloudAPI.isEnabled()) {
             showToast(`Invité ajouté localement : ${result.guest.fullName} (cloud en attente)`);
             return;
@@ -944,8 +986,18 @@ window.addEventListener("DOMContentLoaded", async () => {
         downloadFile(JSON.stringify(data, null, 2), `export-${eventId}.json`, "application/json");
     });
 
-    document.getElementById("guest-search").addEventListener("input", renderGuestsTable);
-    document.getElementById("guest-filter").addEventListener("change", renderGuestsTable);
+    let guestSearchTimer;
+    document.getElementById("guest-search").addEventListener("input", () => {
+        clearTimeout(guestSearchTimer);
+        const tbody = document.getElementById("guests-table-body");
+        if (tbody) tbody.removeAttribute("data-render-limit");
+        guestSearchTimer = setTimeout(() => { void renderGuestsTable(); }, 180);
+    });
+    document.getElementById("guest-filter").addEventListener("change", () => {
+        const tbody = document.getElementById("guests-table-body");
+        if (tbody) tbody.removeAttribute("data-render-limit");
+        void renderGuestsTable();
+    });
     document.getElementById("delete-selected-guests-btn").addEventListener("click", async () => {
         const ids = [...selectedGuestIds];
         if (!ids.length) return;
@@ -971,6 +1023,10 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("event-created-close-btn")?.addEventListener("click", closeEventCreatedModal);
     document.getElementById("event-created-modal")?.addEventListener("click", (e) => {
         if (e.target.id === "event-created-modal") closeEventCreatedModal();
+    });
+    document.getElementById("guest-qr-close-btn")?.addEventListener("click", closeGuestQrModal);
+    document.getElementById("guest-qr-modal")?.addEventListener("click", (e) => {
+        if (e.target.id === "guest-qr-modal") closeGuestQrModal();
     });
 
     // Auto slugify
