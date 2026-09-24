@@ -135,6 +135,7 @@ const EventConfig = (() => {
                 about: true,
                 music: true,
                 messages: true,
+                supportContact: true,
                 quiz: true,
                 donation: true,
                 guestbook: true,

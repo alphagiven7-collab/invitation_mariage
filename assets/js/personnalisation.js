@@ -90,7 +90,7 @@ function getConfigDefaults() {
     const cfg = window.EventConfig && EventConfig.getConfig ? EventConfig.getConfig() : null;
     const blocks = window.ContentBlocks ? ContentBlocks.getDefaultsFromConfig(cfg) : {};
     return {
-        sections: { rsvp: true, program: true, practical: true, venue: true, about: true, music: true, messages: true, gallery: true, countdown: true, dressCode: true, donation: true },
+        sections: { rsvp: true, program: true, practical: true, venue: true, about: true, music: true, messages: true, supportContact: true, gallery: true, countdown: true, dressCode: true, donation: true },
         program: blocks.program || ContentBlocks?.DEFAULT_PROGRAM || [],
         practicalInfo: blocks.practicalInfo || ContentBlocks?.DEFAULT_PRACTICAL || [],
         programSectionTitle: cfg?.programSectionTitle || "Programme de la journée",
