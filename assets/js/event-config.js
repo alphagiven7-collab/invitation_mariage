@@ -128,6 +128,13 @@ const EventConfig = (() => {
                 heroImage: data.heroImage || ""
             },
             sections: {
+                rsvp: true,
+                program: true,
+                practical: true,
+                venue: true,
+                about: true,
+                music: true,
+                messages: true,
                 quiz: true,
                 donation: true,
                 guestbook: true,

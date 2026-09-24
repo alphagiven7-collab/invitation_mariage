@@ -1192,6 +1192,16 @@
             });
         }
 
+        function applySectionVisibility(config) {
+            const sections = config?.sections || {};
+            document.querySelectorAll('[data-event-section]').forEach((element) => {
+                const key = element.dataset.eventSection;
+                const disabled = sections[key] === false;
+                element.classList.toggle('hidden', disabled);
+                element.setAttribute('aria-hidden', disabled ? 'true' : 'false');
+            });
+        }
+
         function guestbookMessageFromCloud(message) {
             return {
                 author: message?.author_name || message?.authorName || 'Invité',
@@ -1617,6 +1627,11 @@
                 BackgroundMusic.apply(merged);
                 BackgroundMusic.init();
             }
+
+            applySectionVisibility({
+                ...(EventConfig.getConfig && EventConfig.getConfig()),
+                ...(dashboardState || {})
+            });
 
             await initEntryFlow();
 

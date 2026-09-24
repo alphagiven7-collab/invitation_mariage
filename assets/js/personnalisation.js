@@ -90,6 +90,7 @@ function getConfigDefaults() {
     const cfg = window.EventConfig && EventConfig.getConfig ? EventConfig.getConfig() : null;
     const blocks = window.ContentBlocks ? ContentBlocks.getDefaultsFromConfig(cfg) : {};
     return {
+        sections: { rsvp: true, program: true, practical: true, venue: true, about: true, music: true, messages: true, gallery: true, countdown: true, dressCode: true, donation: true },
         program: blocks.program || ContentBlocks?.DEFAULT_PROGRAM || [],
         practicalInfo: blocks.practicalInfo || ContentBlocks?.DEFAULT_PRACTICAL || [],
         programSectionTitle: cfg?.programSectionTitle || "Programme de la journée",
@@ -354,6 +355,7 @@ function readPracticalFromEditor() {
 
 function readFormState() {
     return {
+        sections: Object.fromEntries([...document.querySelectorAll('[data-module-toggle]')].map((input) => [input.dataset.moduleToggle, input.checked])),
         title: document.getElementById("title").value.trim(),
         subtitle: document.getElementById("subtitle").value.trim(),
         mainText: document.getElementById("message").value.trim(),
@@ -734,6 +736,7 @@ function renderPracticalEditor(items) {
 }
 
 function hydrateForm(state) {
+    document.querySelectorAll('[data-module-toggle]').forEach((input) => { input.checked = state.sections?.[input.dataset.moduleToggle] !== false; });
     document.getElementById("title").value = state.title || "";
     document.getElementById("subtitle").value = state.subtitle || "";
     if (!state.coupleLeft && !state.coupleRight && state.subtitle) {

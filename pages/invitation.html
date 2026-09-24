@@ -137,7 +137,7 @@
         </header>
 
         <!-- 2. Invitation -->
-        <section class="px-4 -mt-12 relative z-10 invite-section">
+        <section class="px-4 -mt-12 relative z-10 invite-section" data-event-section="rsvp">
             <article class="glass-card invitation-card invitation-card--floral rounded-2xl text-center" aria-label="Carte d'invitation">
                 <div class="invitation-card-floral invitation-card-floral--tl" aria-hidden="true"></div>
                 <div class="invitation-card-floral invitation-card-floral--br" aria-hidden="true"></div>
@@ -175,7 +175,7 @@
         </section>
 
         <!-- 3. À propos de nous (Bouton d'ouverture modale) -->
-        <section class="px-4 mt-6">
+        <section class="px-4 mt-6" data-event-section="about">
             <div onclick="openModal('about-modal')" role="button" tabindex="0" data-keyboard-activate aria-controls="about-modal" aria-label="Découvrir notre histoire" class="relative rounded-2xl overflow-hidden h-28 shadow-sm group cursor-pointer bg-gray-900">
                 <img id="about-cover-image" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Couple" class="w-full h-full object-cover opacity-60" loading="lazy" decoding="async">
                 <div class="absolute inset-0 flex items-center px-6">
@@ -262,7 +262,7 @@
         </section>
 
         <!-- 5. Date & Programme -->
-        <section class="px-4 mt-6">
+        <section class="px-4 mt-6" data-event-section="program">
             <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-50">
                 
                 <!-- En-tête Date -->
@@ -317,7 +317,7 @@
         </section>
 
         <!-- 6. Lieu / Carte Google -->
-        <section class="px-4 mt-6">
+        <section class="px-4 mt-6" data-event-section="venue">
             <div class="bg-white rounded-2xl shadow-sm p-1 border border-gray-50 overflow-hidden relative">
                 <div id="venue-map-container" class="venue-map-container relative bg-gray-200">
                     <iframe id="venue-map-embed" class="venue-map-embed hidden" title="Carte Google Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
@@ -453,7 +453,7 @@
         </section>
 
         <!-- 10. Informations Pratiques -->
-        <section class="px-4 mt-6">
+        <section class="px-4 mt-6" data-event-section="practical">
             <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-50">
                 <h3 class="font-semibold text-xs text-gray-800 mb-4 px-2 flex justify-between items-center">
                     <span id="practical-info-title">Informations pratiques</span>
@@ -490,7 +490,7 @@
             </div>
         </section>
 
-        <section id="rsvp-messages-section" class="px-4 mb-12" aria-labelledby="rsvp-messages-title">
+        <section id="rsvp-messages-section" data-event-section="messages" class="px-4 mb-12" aria-labelledby="rsvp-messages-title">
             <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
                 <div class="text-center mb-4">
                     <p class="text-[10px] font-semibold uppercase tracking-widest text-pink-500">Vos mots comptent</p>
@@ -937,7 +937,7 @@
     <script src="../assets/js/supabase-config.js?v=53"></script>
     <script src="../assets/js/django-api-config.js?v=53"></script>
     <script src="../assets/js/django-api.js?v=53"></script>
-    <script src="../assets/js/event-config.js?v=73"></script>
+    <script src="../assets/js/event-config.js?v=74"></script>
     <script src="../assets/js/cloud-api.js?v=79"></script>
     <script src="../assets/js/dashboard-sync.js?v=55"></script>
     <script src="../assets/js/guest-manager.js?v=72"></script>
@@ -953,7 +953,7 @@
     <script src="../assets/js/i18n.js?v=34"></script>
     <script src="../assets/js/drink-generic-images.js?v=34"></script>
     <script src="../assets/js/drink-menu.js?v=34"></script>
-    <script src="../assets/js/app.js?v=66"></script>
+    <script src="../assets/js/app.js?v=67"></script>
     <script src="../assets/js/guest-experience.js?v=92"></script>
     <script>
         // Fallback robuste si app.js ne se charge pas complètement
