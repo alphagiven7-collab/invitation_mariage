@@ -433,6 +433,7 @@ function readFormState() {
 function toDashboardPayload(formState) {
     const photos = formState.bestPhotos || [];
     return {
+        sections: { ...(formState.sections || {}) },
         title: formState.title,
         subtitle: formState.subtitle,
         coupleLeft: formState.coupleLeft,
