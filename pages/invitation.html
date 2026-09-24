@@ -71,7 +71,7 @@
             </span>
         </label>
         <button id="lang-toggle-btn" type="button" onclick="I18n.toggle()" aria-label="Changer de langue" title="Français / English">EN</button>
-        <button id="music-toggle-btn" type="button" class="music-toggle-btn hidden" aria-label="Musique de fond" title="Lancer la musique">
+        <button id="music-toggle-btn" type="button" data-event-section="music" class="music-toggle-btn hidden" aria-label="Musique de fond" title="Lancer la musique">
             <span class="music-toggle-icon" aria-hidden="true">♪</span>
         </button>
     </div>
@@ -137,7 +137,7 @@
         </header>
 
         <!-- 2. Invitation -->
-        <section class="px-4 -mt-12 relative z-10 invite-section" data-event-section="rsvp">
+        <section class="px-4 -mt-12 relative z-10 invite-section">
             <article class="glass-card invitation-card invitation-card--floral rounded-2xl text-center" aria-label="Carte d'invitation">
                 <div class="invitation-card-floral invitation-card-floral--tl" aria-hidden="true"></div>
                 <div class="invitation-card-floral invitation-card-floral--br" aria-hidden="true"></div>
@@ -167,7 +167,7 @@
                 </div>
             </article>
 
-            <div class="invitation-rsvp-wrap">
+            <div class="invitation-rsvp-wrap" data-event-section="rsvp">
                 <button id="reserve-deadline-btn" type="button" onclick="confirmPresence(event)" class="btn-rsvp btn-with-loader w-full rounded-xl p-4 shadow-lg transition">
                     <span id="reserve-deadline-text" class="text-sm font-bold uppercase tracking-widest">Confirmer ma présence</span>
                 </button>
