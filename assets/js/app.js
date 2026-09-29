@@ -74,7 +74,7 @@
         }
 
         function openMainSite(ev, options = {}) {
-            const { skipLoader = false } = options;
+            const { skipLoader = false, instant = false } = options;
             const run = () => {
                 if (!guestName) {
                     guestName = (localStorage.getItem(eventStorageKey('guest_name')) || '').trim();
@@ -88,6 +88,14 @@
                 if (window.BackgroundMusic) BackgroundMusic.armAutoplay();
                 const gate = document.getElementById('welcome-gate');
                 const main = document.getElementById('main-view');
+                if (!gate || !main || gate.classList.contains('hidden')) return Promise.resolve();
+                if (instant) {
+                    main.classList.remove('hidden', 'opacity-0');
+                    gate.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                    if (window.BackgroundMusic) BackgroundMusic.onGuestEnter();
+                    return Promise.resolve();
+                }
                 gate.classList.add('opacity-0', 'pointer-events-none');
                 return new Promise((resolve) => {
                     setTimeout(() => {
@@ -577,7 +585,7 @@
                 bestGridImages: [document.getElementById('best-photo-1').src, document.getElementById('best-photo-2').src],
                 bestMarqueeImages: Array.from({ length: 6 }, (_, i) => document.getElementById(`best-marquee-${i + 1}`).src),
                 guestbookCoverImage: document.getElementById('guestbook-cover-image').src,
-                galleryPreviewImages: Array.from({ length: 3 }, (_, i) => document.getElementById(`gallery-preview-image-${i + 1}`).src),
+                galleryPreviewImages: Array.from({ length: 3 }, (_, i) => document.getElementById(`gallery-preview-image-${i + 1}`)?.src || ''),
                 galleryModalImages: Array.from({ length: 4 }, (_, i) => document.getElementById(`gallery-modal-image-${i + 1}`).src),
                 primaryColor: getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#4caf50',
                 accentColor: getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim() || '#ec4899',
@@ -931,7 +939,7 @@
                 const parsed = new Date(merged.countdownDate).getTime();
                 if (!Number.isNaN(parsed)) {
                     EventCountdown.setTarget(parsed);
-                    EventCountdown.applyDateToUI(merged.countdownDate);
+                    EventCountdown.applyDateToUI(merged.countdownDate, merged.eventEndTime || '');
                     EventCountdown.tick();
                 }
             }
@@ -1622,8 +1630,6 @@
                 I18n.apply(I18n.getLang());
             }
 
-            document.body.classList.remove('app-loading');
-
             document.querySelectorAll('img:not([loading])').forEach((img, i) => {
                 if (i > 2) img.loading = 'lazy';
             });
@@ -1722,11 +1728,17 @@
                 ...(dashboardState || {})
             });
 
+            if (!isPreviewMode && EventConfig.getConfig?.()?.entryMode === 'direct') {
+                // L'identité peut encore se charger sans retenir l'invitation derrière l'enveloppe.
+                void openMainSite(null, { skipLoader: true, instant: true });
+            }
+            document.body.classList.remove('app-loading');
+
             await initEntryFlow();
 
             const entrySettings = { ...(EventConfig.getConfig?.() || {}), ...(dashboardState || {}) };
             if (entrySettings.entryMode === 'direct') {
-                await openMainSite(null, { skipLoader: true });
+                await openMainSite(null, { skipLoader: true, instant: true });
             }
 
             if (isPreviewMode) {
