@@ -18,45 +18,25 @@
             overflow: hidden;
             background: #201923;
         }
-        .hero-bg[data-image-fit="contain"]::before {
-            content: "";
-            position: absolute;
-            inset: -24px;
-            z-index: 0;
-            background-image: var(--hero-image-url);
-            background-position: var(--hero-image-position-x, 50%) var(--hero-image-position-y, 50%);
-            background-size: cover;
-            filter: blur(22px) brightness(.55);
-            transform: scale(1.06);
-        }
         .hero-bg::after {
             content: "";
             position: absolute;
             inset: 0;
-            z-index: 2;
             background: linear-gradient(rgba(20, 15, 25, var(--hero-overlay-opacity, 0.58)), rgba(20, 15, 25, var(--hero-overlay-opacity, 0.58)));
             pointer-events: none;
         }
         .hero-bg-image {
-            position: relative;
-            z-index: 1;
             display: block;
             width: 100%;
             height: auto;
-            min-height: 360px;
-            max-height: 560px;
-            object-fit: contain;
-            object-position: var(--hero-image-position-x, 50%) var(--hero-image-position-y, 50%);
-        }
-        .hero-bg[data-image-fit="cover"] .hero-bg-image {
+            min-height: 320px;
             aspect-ratio: 4 / 3;
-            max-height: 520px;
             object-fit: cover;
         }
         .hero-bg-content {
             position: absolute;
             inset: 0;
-            z-index: 3;
+            z-index: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -67,7 +47,6 @@
         }
         .hero-bg[data-text-position="top"] .hero-bg-content { justify-content: flex-start; }
         .hero-bg[data-text-position="bottom"] .hero-bg-content { justify-content: flex-end; }
-        .hero-bg[data-image-fit="contain"] + .invite-section { margin-top: 0; padding-top: 1rem; }
         .hero-date {
             max-width: 95%;
             margin-top: .65rem;
@@ -1003,7 +982,6 @@
     display: block;
     margin-bottom: 8px;
 }
-#preview-heroImage { object-fit: contain; background: #201923; }
 .dash-upload-btn {
     display: inline-flex;
     align-items: center;

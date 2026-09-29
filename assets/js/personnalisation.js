@@ -108,9 +108,6 @@ function getConfigDefaults() {
         coupleRight: cfg?.coupleRight || "",
         welcomeImage: cfg?.branding?.welcomeImage || "",
         heroImage: cfg?.branding?.heroImage || "",
-        heroImageFit: cfg?.heroImageFit === "cover" ? "cover" : "contain",
-        heroImagePositionX: cfg?.heroImagePositionX ?? 50,
-        heroImagePositionY: cfg?.heroImagePositionY ?? 50,
         heroTextPosition: cfg?.heroTextPosition || "center",
         heroOverlayOpacity: cfg?.heroOverlayOpacity ?? 0.58,
         heroTitleFont: cfg?.heroTitleFont || "Playfair Display",
@@ -168,9 +165,6 @@ const DEFAULT_STATE = {
     mainText: "Votre présence rendra cette journée inoubliable.",
     welcomeImage: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
     heroImage: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=80",
-    heroImageFit: "contain",
-    heroImagePositionX: 50,
-    heroImagePositionY: 50,
     heroOverlayOpacity: 0.58,
     heroTextPosition: "center",
     heroTitleFont: "Playfair Display",
@@ -371,9 +365,6 @@ function readFormState() {
         subtitle: document.getElementById("subtitle").value.trim(),
         mainText: document.getElementById("message").value.trim(),
         heroImage: document.getElementById("heroImage").value.trim(),
-        heroImageFit: document.getElementById("heroImageFit").value,
-        heroImagePositionX: Number(document.getElementById("heroImagePositionX").value),
-        heroImagePositionY: Number(document.getElementById("heroImagePositionY").value),
         heroTextPosition: document.getElementById("heroTextPosition").value,
         heroOverlayOpacity: Number(document.getElementById("heroOverlayOpacity").value) / 100,
         heroTitleFont: document.getElementById("heroTitleFont").value,
@@ -457,9 +448,6 @@ function toDashboardPayload(formState) {
         mainText: formState.mainText,
         welcomeImage: formState.welcomeImage,
         heroImage: formState.heroImage,
-        heroImageFit: formState.heroImageFit,
-        heroImagePositionX: formState.heroImagePositionX,
-        heroImagePositionY: formState.heroImagePositionY,
         heroTextPosition: formState.heroTextPosition,
         heroOverlayOpacity: formState.heroOverlayOpacity,
         heroTitleFont: formState.heroTitleFont,
@@ -802,13 +790,6 @@ function hydrateForm(state) {
     document.getElementById("primaryColor").value = state.primaryColor || "#4caf50";
     document.getElementById("accentColor").value = state.accentColor || "#ec4899";
     document.getElementById("heroImage").value = state.heroImage || "";
-    document.getElementById("heroImageFit").value = state.heroImageFit === "cover" ? "cover" : "contain";
-    ["heroImagePositionX", "heroImagePositionY"].forEach((id) => {
-        const raw = Number(state[id]);
-        const value = Number.isFinite(raw) ? Math.max(0, Math.min(100, Math.round(raw))) : 50;
-        document.getElementById(id).value = String(value);
-        document.getElementById(`${id}-value`).textContent = `${value} %`;
-    });
     document.getElementById("heroTextPosition").value = ["top", "center", "bottom"].includes(state.heroTextPosition) ? state.heroTextPosition : "center";
     document.getElementById("heroOverlayOpacity").value = Math.round((state.heroOverlayOpacity ?? 0.58) * 100);
     document.getElementById("heroOverlayOpacity-value").textContent = `${document.getElementById("heroOverlayOpacity").value}%`;
@@ -1278,13 +1259,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("dressPatternMen").addEventListener("input", () => renderSinglePreview("dressPatternMen", "preview-dressPatternMen"));
     document.getElementById("dressPatternWomen").addEventListener("input", () => renderSinglePreview("dressPatternWomen", "preview-dressPatternWomen"));
     document.getElementById("heroImage").addEventListener("input", () => renderSinglePreview("heroImage", "preview-heroImage"));
-    document.getElementById("heroImageFit")?.addEventListener("change", () => schedulePreviewRefresh());
-    ["heroImagePositionX", "heroImagePositionY"].forEach((id) => {
-        document.getElementById(id)?.addEventListener("input", (event) => {
-            document.getElementById(`${id}-value`).textContent = `${event.target.value} %`;
-            schedulePreviewRefresh();
-        });
-    });
     document.getElementById("heroOverlayOpacity")?.addEventListener("input", (event) => {
         const value = event.target.value;
         document.getElementById("heroOverlayOpacity-value").textContent = `${value}%`;

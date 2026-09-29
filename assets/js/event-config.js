@@ -288,13 +288,6 @@ const EventConfig = (() => {
 
         setText("hero-title", config.title);
         setText("hero-subtitle", config.subtitle);
-        const hero = document.querySelector(".hero-bg");
-        if (hero) hero.dataset.imageFit = config.heroImageFit === "cover" ? "cover" : "contain";
-        for (const axis of ["X", "Y"]) {
-            const raw = Number(config[`heroImagePosition${axis}`]);
-            const position = Number.isFinite(raw) ? Math.max(0, Math.min(100, raw)) : 50;
-            document.documentElement.style.setProperty(`--hero-image-position-${axis.toLowerCase()}`, `${position}%`);
-        }
         document.documentElement.style.setProperty("--hero-overlay-opacity", String(config.heroOverlayOpacity ?? 0.58));
         document.documentElement.style.setProperty("--hero-title-font", config.heroTitleFont || "Playfair Display");
         document.documentElement.style.setProperty("--hero-subtitle-font", config.heroSubtitleFont || "Montserrat");
