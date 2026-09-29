@@ -9,6 +9,39 @@
         let activeBestPhotos = null;
         let galleryReturnFocus = null;
         let bestGalleryIndex = 0;
+        let preparedHeroFont = '';
+        let pendingHeroFont = null;
+        let heroFontRequest = 0;
+
+        function prepareHeroTitleFont() {
+            const title = document.getElementById('hero-title');
+            if (!title || !document.fonts?.load || typeof getComputedStyle !== 'function') return Promise.resolve();
+            const computed = getComputedStyle(title);
+            const requestedFamily = document.documentElement.style.getPropertyValue('--hero-title-font').trim();
+            const family = ['Playfair Display', 'Cormorant Garamond', 'Great Vibes', 'Cinzel'].includes(requestedFamily)
+                ? requestedFamily : 'Playfair Display';
+            if (family === preparedHeroFont) return Promise.resolve();
+            if (pendingHeroFont?.family === family) return pendingHeroFont.promise;
+
+            const request = ++heroFontRequest;
+            title.classList.add('hero-title-loading');
+            let timeout;
+            const promise = Promise.race([
+                document.fonts.load(`${computed.fontWeight} ${computed.fontSize} "${family}"`, title.textContent || 'Invitation')
+                    .then((faces) => faces.length > 0)
+                    .catch(() => false),
+                new Promise((resolve) => { timeout = setTimeout(() => resolve(false), 2000); })
+            ]).then((loaded) => {
+                if (request === heroFontRequest) {
+                    document.documentElement.classList.toggle('hero-font-fallback', !loaded);
+                    preparedHeroFont = family;
+                    title.classList.remove('hero-title-loading');
+                    pendingHeroFont = null;
+                }
+            }).finally(() => clearTimeout(timeout));
+            pendingHeroFont = { family, promise };
+            return promise;
+        }
 
         function eventStorageKey(suffix) {
             const eventId = window.EventConfig && EventConfig.getEventId
@@ -701,6 +734,27 @@
             if (state.subtitle) document.getElementById('hero-subtitle').textContent = state.subtitle;
             const hero = document.querySelector('.hero-bg');
             if (hero) hero.dataset.textPosition = ['top', 'center', 'bottom'].includes(state.heroTextPosition) ? state.heroTextPosition : 'center';
+            const heroStyle = document.documentElement.style;
+            if (['Playfair Display', 'Cormorant Garamond', 'Great Vibes', 'Cinzel'].includes(state.heroTitleFont)) {
+                heroStyle.setProperty('--hero-title-font', state.heroTitleFont);
+            }
+            if (['Montserrat', 'Cormorant Garamond', 'Great Vibes', 'Lato'].includes(state.heroSubtitleFont)) {
+                heroStyle.setProperty('--hero-subtitle-font', state.heroSubtitleFont);
+            }
+            const titleSize = Number(state.heroTitleSize);
+            if (state.heroTitleSize != null && Number.isFinite(titleSize)) {
+                heroStyle.setProperty('--hero-title-size', `${Math.max(32, Math.min(76, titleSize))}px`);
+            }
+            const subtitleSize = Number(state.heroSubtitleSize);
+            if (state.heroSubtitleSize != null && Number.isFinite(subtitleSize)) {
+                heroStyle.setProperty('--hero-subtitle-size', `${Math.max(14, Math.min(34, subtitleSize))}px`);
+            }
+            if (/^#[0-9a-f]{6}$/i.test(state.heroTitleColor || '')) heroStyle.setProperty('--hero-title-color', state.heroTitleColor);
+            if (/^#[0-9a-f]{6}$/i.test(state.heroSubtitleColor || '')) heroStyle.setProperty('--hero-subtitle-color', state.heroSubtitleColor);
+            if (state.heroOverlayOpacity != null && Number.isFinite(Number(state.heroOverlayOpacity))) {
+                heroStyle.setProperty('--hero-overlay-opacity', String(Math.max(0, Math.min(.9, Number(state.heroOverlayOpacity)))));
+            }
+            void prepareHeroTitleFont();
             if (state.coupleLeft) document.getElementById('couple-name-left').textContent = state.coupleLeft;
             if (state.coupleRight) document.getElementById('couple-name-right').textContent = state.coupleRight;
             applyInviteIntroParagraph(state);
@@ -1555,6 +1609,8 @@
                     }
                 } catch (e) {}
             }
+
+            await prepareHeroTitleFont();
 
             if (!isPreviewMode) {
                 // Le livre d'or est affiché plus bas dans la page : il ne doit
