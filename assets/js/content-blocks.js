@@ -3,15 +3,6 @@
  */
 const ContentBlocks = (() => {
     const PROGRAM_COLORS = ["blue", "green", "pink", "purple", "indigo", "amber"];
-    const COLOR_CLASSES = {
-        blue: { bg: "bg-blue-50", text: "text-blue-500" },
-        green: { bg: "bg-green-50", text: "text-green-500" },
-        pink: { bg: "bg-pink-50", text: "text-pink-500" },
-        purple: { bg: "bg-purple-50", text: "text-purple-500" },
-        indigo: { bg: "bg-indigo-50", text: "text-indigo-500" },
-        amber: { bg: "bg-amber-50", text: "text-amber-600" }
-    };
-
     const DEFAULT_PROGRAM = [
         { time: "19h30 - 20h00", title: "Arrivée des invités", color: "blue" },
         { time: "20h00 - 20h30", title: "Emplacements", color: "green" },
@@ -128,25 +119,25 @@ const ContentBlocks = (() => {
 
     function renderProgram(steps) {
         const root = document.getElementById("program-timeline");
-        if (!root || !Array.isArray(steps) || !steps.length) return;
+        if (!root || !Array.isArray(steps)) return;
+        if (!steps.length) {
+            root.innerHTML = '<p class="program-empty">Le programme sera bientôt annoncé.</p>';
+            return;
+        }
 
-        const line = `<div class="absolute inset-0 ml-[1.1rem] -translate-x-px h-full w-0.5 bg-gradient-to-b from-transparent via-gray-200 to-transparent pointer-events-none" aria-hidden="true"></div>`;
-
-        root.innerHTML = line + steps.map((step, i) => {
-            const color = COLOR_CLASSES[step.color] || COLOR_CLASSES[PROGRAM_COLORS[i % PROGRAM_COLORS.length]];
-            const colorKey = step.color || PROGRAM_COLORS[i % PROGRAM_COLORS.length];
-            const cls = COLOR_CLASSES[colorKey] || color;
+        root.innerHTML = '<ol class="program-list" role="list">' + steps.map((step, i) => {
+            const colorKey = PROGRAM_COLORS.includes(step.color) ? step.color : PROGRAM_COLORS[i % PROGRAM_COLORS.length];
+            const time = String(step.time || "").trim();
+            const title = String(step.title || "").trim();
             return `
-            <div class="relative flex items-center justify-between group is-active">
-                <div class="flex items-center justify-center w-9 h-9 rounded-full border-2 border-white ${cls.bg} ${cls.text} shadow shrink-0 z-10">
-                    <span class="text-[10px] font-bold">${i + 1}</span>
+            <li class="program-step" data-color="${colorKey}">
+                <span class="program-step-number" aria-hidden="true">${String(i + 1).padStart(2, "0")}</span>
+                <div class="program-step-card">
+                    ${time ? `<span class="program-step-time">${escapeHtml(time)}</span>` : ""}
+                    ${title ? `<p class="program-step-title">${escapeHtml(title)}</p>` : ""}
                 </div>
-                <div class="w-[calc(100%-3rem)] pl-4 font-medium">
-                    <p class="text-[10px] text-gray-400 program-step-time">${escapeHtml(step.time)}</p>
-                    <p class="text-sm text-gray-800 program-step-title">${escapeHtml(step.title)}</p>
-                </div>
-            </div>`;
-        }).join("");
+            </li>`;
+        }).join("") + '</ol>';
 
         if (window.initLucideIconsOnce) window.initLucideIconsOnce();
     }

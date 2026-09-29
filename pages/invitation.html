@@ -31,6 +31,7 @@
     <script src="https://unpkg.com/lucide@0.469.0"></script>
     <link rel="stylesheet" href="../assets/css/app.css?v=82">
     <link rel="stylesheet" href="../assets/css/gallery-enhancement.css?v=1">
+    <link rel="stylesheet" href="../assets/css/program-presentation.css?v=1">
     <link rel="stylesheet" href="../assets/css/drink-menu.css?v=34">
     <script>
         if ("serviceWorker" in navigator) {
@@ -221,10 +222,16 @@
             </div>
         </section>
 
-        <section class="px-4 mt-4" data-event-section="program">
-            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-50">
-                <p id="program-section-title" class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-5 text-center">Programme de la journée</p>
-                <div id="program-timeline" class="space-y-6 relative"></div>
+        <section class="px-4 mt-6" data-event-section="program" aria-labelledby="program-section-title">
+            <div class="program-panel">
+                <div class="program-header">
+                    <div class="flex items-center justify-between gap-3">
+                        <p class="program-kicker">Les temps forts</p>
+                        <span class="program-header-mark" aria-hidden="true">✦</span>
+                    </div>
+                    <h2 id="program-section-title" class="program-title">Programme de la journée</h2>
+                </div>
+                <div id="program-timeline" class="program-timeline"></div>
             </div>
         </section>
 
@@ -937,7 +944,7 @@
     <script src="../assets/js/access-pass-export.js?v=53"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="../assets/js/invitation-pdf.js?v=10"></script>
-    <script src="../assets/js/content-blocks.js?v=38"></script>
+    <script src="../assets/js/content-blocks.js?v=39"></script>
     <script src="../assets/js/calendar-export.js?v=35"></script>
     <script src="../assets/js/background-music.js?v=35"></script>
     <script src="../assets/js/countdown.js?v=36"></script>
