@@ -6,8 +6,9 @@
         let currentGuestProfile = null;
         let defaultCustomizationState = null;
         let bestGalleryImages = [];
+        let activeBestPhotos = null;
+        let galleryReturnFocus = null;
         let bestGalleryIndex = 0;
-        let bestGalleryInterval = null;
 
         function eventStorageKey(suffix) {
             const eventId = window.EventConfig && EventConfig.getEventId
@@ -698,6 +699,8 @@
         function applyCustomizationState(state) {
             if (state.title) document.getElementById('hero-title').textContent = state.title;
             if (state.subtitle) document.getElementById('hero-subtitle').textContent = state.subtitle;
+            const hero = document.querySelector('.hero-bg');
+            if (hero) hero.dataset.textPosition = ['top', 'center', 'bottom'].includes(state.heroTextPosition) ? state.heroTextPosition : 'center';
             if (state.coupleLeft) document.getElementById('couple-name-left').textContent = state.coupleLeft;
             if (state.coupleRight) document.getElementById('couple-name-right').textContent = state.coupleRight;
             applyInviteIntroParagraph(state);
@@ -780,20 +783,33 @@
                 applyDressImageList(state.dressImages);
             }
             if (Array.isArray(state.bestPhotos) && state.bestPhotos.length) {
-                applyImageList(['best-photo-1', 'best-photo-2'], state.bestPhotos.slice(0, 2));
+                activeBestPhotos = [...new Set(state.bestPhotos.filter(Boolean))];
+                applyImageList(['best-photo-1', 'best-photo-2'], activeBestPhotos.slice(0, 2));
+                const secondPhoto = document.getElementById('best-photo-2');
+                if (secondPhoto) secondPhoto.hidden = activeBestPhotos.length < 2;
+                document.querySelector('.best-photos-preview')?.classList.toggle('best-photos-preview--single', activeBestPhotos.length < 2);
+                const photoCount = document.getElementById('best-photos-count');
+                if (photoCount) photoCount.textContent = `${activeBestPhotos.length} photo${activeBestPhotos.length > 1 ? 's' : ''} à découvrir`;
                 applyImageList(
                     ['best-marquee-1', 'best-marquee-2', 'best-marquee-3', 'best-marquee-4', 'best-marquee-5', 'best-marquee-6'],
-                    state.bestPhotos.slice(0, 6)
+                    activeBestPhotos.slice(0, 6)
                 );
+                const marquee = document.querySelector('.best-photos-shell .premium-marquee');
+                if (marquee) marquee.hidden = activeBestPhotos.length < 3;
+                for (let i = 1; i <= 6; i++) {
+                    const photo = document.getElementById(`best-marquee-${i}`);
+                    if (photo) photo.hidden = i > activeBestPhotos.length;
+                }
                 applyImageList(
                     ['gallery-preview-image-1', 'gallery-preview-image-2', 'gallery-preview-image-3'],
-                    state.bestPhotos.slice(0, 3)
+                    activeBestPhotos.slice(0, 3)
                 );
                 applyImageList(
                     ['gallery-modal-image-1', 'gallery-modal-image-2', 'gallery-modal-image-3', 'gallery-modal-image-4'],
-                    state.bestPhotos.slice(0, 4)
+                    activeBestPhotos.slice(0, 4)
                 );
             } else {
+                activeBestPhotos = null;
                 if (Array.isArray(state.bestGridImages)) {
                     applyImageList(['best-photo-1', 'best-photo-2'], state.bestGridImages);
                 }
@@ -1357,6 +1373,7 @@
         }
 
         function collectBestGalleryImages() {
+            if (activeBestPhotos?.length) return activeBestPhotos;
             const ids = [
                 'best-photo-1', 'best-photo-2',
                 'best-marquee-1', 'best-marquee-2', 'best-marquee-3', 'best-marquee-4', 'best-marquee-5', 'best-marquee-6',
@@ -1373,13 +1390,21 @@
         function renderBestGalleryDots() {
             const dots = document.getElementById('best-gallery-dots');
             dots.innerHTML = '';
-            bestGalleryImages.forEach((_, index) => {
-                const dot = document.createElement('button');
-                dot.className = `w-2.5 h-2.5 rounded-full transition ${index === bestGalleryIndex ? 'bg-white' : 'bg-white/35'}`;
-                dot.setAttribute('aria-label', `Photo ${index + 1}`);
-                dot.onclick = () => setBestGallerySlide(index);
-                dots.appendChild(dot);
+            bestGalleryImages.forEach((src, index) => {
+                const thumb = document.createElement('button');
+                thumb.type = 'button';
+                thumb.className = `best-gallery-thumbnail${index === bestGalleryIndex ? ' is-active' : ''}`;
+                thumb.setAttribute('aria-label', `Afficher la photo ${index + 1}`);
+                thumb.setAttribute('aria-current', index === bestGalleryIndex ? 'true' : 'false');
+                const image = document.createElement('img');
+                image.src = src;
+                image.alt = '';
+                image.loading = 'lazy';
+                thumb.appendChild(image);
+                thumb.onclick = () => setBestGallerySlide(index);
+                dots.appendChild(thumb);
             });
+            dots.querySelector('.is-active')?.scrollIntoView?.({ block: 'nearest', inline: 'center' });
         }
 
         function setBestGallerySlide(index) {
@@ -1392,6 +1417,7 @@
             image.classList.remove('best-gallery-image-animate');
             void image.offsetWidth;
             image.src = bestGalleryImages[bestGalleryIndex];
+            image.alt = `Photo ${bestGalleryIndex + 1} sur ${bestGalleryImages.length}`;
             image.classList.add('best-gallery-image-animate');
 
             document.getElementById('best-gallery-caption').textContent = `Photo ${bestGalleryIndex + 1} / ${bestGalleryImages.length}`;
@@ -1402,18 +1428,6 @@
             setBestGallerySlide(bestGalleryIndex + step);
         }
 
-        function startBestGalleryAutoplay() {
-            stopBestGalleryAutoplay();
-            bestGalleryInterval = setInterval(() => changeBestGallerySlide(1), 3500);
-        }
-
-        function stopBestGalleryAutoplay() {
-            if (bestGalleryInterval) {
-                clearInterval(bestGalleryInterval);
-                bestGalleryInterval = null;
-            }
-        }
-
         function openBestPhotosGallery() {
             bestGalleryImages = collectBestGalleryImages();
             if (!bestGalleryImages.length) {
@@ -1421,18 +1435,37 @@
                 return;
             }
             document.getElementById('best-photos-modal').classList.remove('hidden');
+            galleryReturnFocus = document.activeElement;
             document.body.classList.add('best-gallery-open');
             document.body.style.overflow = 'hidden';
             setBestGallerySlide(0);
-            startBestGalleryAutoplay();
+            document.getElementById('best-photos-close-btn')?.focus();
         }
 
         function closeBestPhotosGallery() {
             document.getElementById('best-photos-modal').classList.add('hidden');
             document.body.classList.remove('best-gallery-open');
             document.body.style.overflow = 'auto';
-            stopBestGalleryAutoplay();
+            galleryReturnFocus?.focus?.();
         }
+
+        document.addEventListener('keydown', (event) => {
+            const modal = document.getElementById('best-photos-modal');
+            if (!modal || modal.classList.contains('hidden')) return;
+            if (event.key === 'Escape') closeBestPhotosGallery();
+            if (event.key === 'ArrowRight') changeBestGallerySlide(1);
+            if (event.key === 'ArrowLeft') changeBestGallerySlide(-1);
+        });
+        let galleryTouchStart = null;
+        document.getElementById('best-gallery-main-image')?.addEventListener('touchstart', (event) => {
+            galleryTouchStart = event.changedTouches[0]?.clientX ?? null;
+        }, { passive: true });
+        document.getElementById('best-gallery-main-image')?.addEventListener('touchend', (event) => {
+            if (galleryTouchStart === null) return;
+            const distance = (event.changedTouches[0]?.clientX ?? galleryTouchStart) - galleryTouchStart;
+            galleryTouchStart = null;
+            if (Math.abs(distance) > 45) changeBestGallerySlide(distance < 0 ? 1 : -1);
+        }, { passive: true });
 
         function collectSelectedDrinks() {
             return window.DrinkMenu ? DrinkMenu.getSelected() : [];
@@ -1634,6 +1667,11 @@
             });
 
             await initEntryFlow();
+
+            const entrySettings = { ...(EventConfig.getConfig?.() || {}), ...(dashboardState || {}) };
+            if (entrySettings.entryMode === 'direct') {
+                await openMainSite(null, { skipLoader: true });
+            }
 
             if (isPreviewMode) {
                 guestName = guestName || 'Aperçu';

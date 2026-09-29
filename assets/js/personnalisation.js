@@ -102,11 +102,13 @@ function getConfigDefaults() {
         mapLink: blocks.mapLink || cfg?.links?.map || "",
         mapImage: blocks.mapImage || "",
         title: cfg?.title || "Invitation",
+        mainText: cfg?.mainText || "Votre présence rendra cette journée inoubliable.",
         subtitle: cfg?.subtitle || "Votre événement",
         coupleLeft: cfg?.coupleLeft || "",
         coupleRight: cfg?.coupleRight || "",
         welcomeImage: cfg?.branding?.welcomeImage || "",
         heroImage: cfg?.branding?.heroImage || "",
+        heroTextPosition: cfg?.heroTextPosition || "center",
         heroOverlayOpacity: cfg?.heroOverlayOpacity ?? 0.58,
         heroTitleFont: cfg?.heroTitleFont || "Playfair Display",
         heroSubtitleFont: cfg?.heroSubtitleFont || "Montserrat",
@@ -116,6 +118,7 @@ function getConfigDefaults() {
         heroSubtitleColor: cfg?.heroSubtitleColor || "#ffffff",
         welcomeMessage: cfg?.welcomeMessage || "",
         gateHint: cfg?.gateHint || "",
+        entryMode: cfg?.entryMode || "envelope",
         inviteIntro: cfg?.inviteIntro || "C'est avec une grande joie que {couple} vous invitent à célébrer leur mariage.",
         inviteSecondary: cfg?.inviteSecondary || "Ils seraient honorés de vous compter parmi leurs invités pour célébrer cette union sacrée et partager le bonheur de leur engagement.",
         reserveText: cfg?.reserveText || "Confirmer ma présence",
@@ -159,11 +162,13 @@ const DEFAULT_STATE = {
     subtitle: "Votre événement",
     coupleLeft: "",
     coupleRight: "",
-    mainText: "La cérémonie, suivie d'une réception, se tiendra le jeudi 30 avril 2026 à partir de 19h30.",
+    mainText: "Votre présence rendra cette journée inoubliable.",
     welcomeImage: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
     heroImage: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=80",
     heroOverlayOpacity: 0.58,
+    heroTextPosition: "center",
     heroTitleFont: "Playfair Display",
+    entryMode: "envelope",
     heroSubtitleFont: "Montserrat",
     heroTitleSize: 48,
     heroTitleColor: "#ffffff",
@@ -360,6 +365,7 @@ function readFormState() {
         subtitle: document.getElementById("subtitle").value.trim(),
         mainText: document.getElementById("message").value.trim(),
         heroImage: document.getElementById("heroImage").value.trim(),
+        heroTextPosition: document.getElementById("heroTextPosition").value,
         heroOverlayOpacity: Number(document.getElementById("heroOverlayOpacity").value) / 100,
         heroTitleFont: document.getElementById("heroTitleFont").value,
         heroSubtitleFont: document.getElementById("heroSubtitleFont").value,
@@ -389,6 +395,7 @@ function readFormState() {
         inviteSecondary: document.getElementById("inviteSecondary").value.trim(),
         welcomeMessage: document.getElementById("welcomeMessage").value.trim(),
         gateHint: document.getElementById("gateHint").value.trim(),
+        entryMode: document.getElementById("entryMode").value,
         reserveText: document.getElementById("reserveText").value.trim(),
         rsvpDeadlineText: document.getElementById("rsvpDeadlineText").value.trim(),
         rsvpButtonColor: document.getElementById("rsvpButtonColor").value,
@@ -441,6 +448,7 @@ function toDashboardPayload(formState) {
         mainText: formState.mainText,
         welcomeImage: formState.welcomeImage,
         heroImage: formState.heroImage,
+        heroTextPosition: formState.heroTextPosition,
         heroOverlayOpacity: formState.heroOverlayOpacity,
         heroTitleFont: formState.heroTitleFont,
         heroSubtitleFont: formState.heroSubtitleFont,
@@ -479,6 +487,7 @@ function toDashboardPayload(formState) {
         inviteSecondary: formState.inviteSecondary,
         welcomeMessage: formState.welcomeMessage,
         gateHint: formState.gateHint,
+        entryMode: formState.entryMode,
         reserveText: formState.reserveText,
         rsvpDeadlineText: formState.rsvpDeadlineText,
         rsvpButtonColor: formState.rsvpButtonColor,
@@ -751,6 +760,7 @@ function hydrateForm(state) {
     document.getElementById("inviteSecondary").value = state.inviteSecondary || "";
     document.getElementById("welcomeMessage").value = state.welcomeMessage || "";
     document.getElementById("gateHint").value = state.gateHint || "";
+    document.getElementById("entryMode").value = state.entryMode === "direct" ? "direct" : "envelope";
     document.getElementById("reserveText").value = state.reserveText || "";
     document.getElementById("rsvpDeadlineText").value = state.rsvpDeadlineText || "";
     document.getElementById("rsvpButtonColor").value = state.rsvpButtonColor || "#ec4899";
@@ -780,6 +790,7 @@ function hydrateForm(state) {
     document.getElementById("primaryColor").value = state.primaryColor || "#4caf50";
     document.getElementById("accentColor").value = state.accentColor || "#ec4899";
     document.getElementById("heroImage").value = state.heroImage || "";
+    document.getElementById("heroTextPosition").value = ["top", "center", "bottom"].includes(state.heroTextPosition) ? state.heroTextPosition : "center";
     document.getElementById("heroOverlayOpacity").value = Math.round((state.heroOverlayOpacity ?? 0.58) * 100);
     document.getElementById("heroOverlayOpacity-value").textContent = `${document.getElementById("heroOverlayOpacity").value}%`;
     document.getElementById("heroTitleFont").value = state.heroTitleFont || "Playfair Display";

@@ -34,6 +34,32 @@ const EventCountdown = (() => {
         return end;
     }
 
+    function renderCalendar(date) {
+        const grid = document.getElementById("calendar-days");
+        if (!grid) return;
+        grid.innerHTML = "";
+        const firstWeekday = (new Date(date.getFullYear(), date.getMonth(), 1).getDay() + 6) % 7;
+        const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+        const fragment = document.createDocumentFragment();
+        for (let index = 0; index < firstWeekday; index++) {
+            const spacer = document.createElement("span");
+            spacer.setAttribute("aria-hidden", "true");
+            fragment.appendChild(spacer);
+        }
+        for (let day = 1; day <= daysInMonth; day++) {
+            const cell = document.createElement("span");
+            cell.className = "event-calendar-day";
+            cell.textContent = String(day);
+            if (day === date.getDate()) {
+                cell.id = "calendar-event-day";
+                cell.classList.add("event-calendar-day--event");
+                cell.setAttribute("aria-label", `Date de l'événement : ${date.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}`);
+            }
+            fragment.appendChild(cell);
+        }
+        grid.appendChild(fragment);
+    }
+
     function setEventEndTime(value) {
         eventEndTime = /^\d{2}:\d{2}$/.test(String(value || "")) ? String(value) : "";
     }
@@ -44,11 +70,26 @@ const EventCountdown = (() => {
         if (endTime !== undefined) setEventEndTime(endTime);
         const d = new Date(t);
         const dayEl = document.getElementById("event-day");
+        const weekdayEl = document.getElementById("event-weekday");
         const monthEl = document.getElementById("event-month-year");
         const timeEl = document.getElementById("event-time-range");
         const calLabel = document.getElementById("calendar-month-label");
+        const heroDate = document.getElementById("hero-date");
+        const cardDate = document.getElementById("invite-card-date");
+        const dateLabel = d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+
+        if (heroDate) {
+            const timeLabel = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }).replace(":", "h");
+            heroDate.textContent = `${dateLabel} · ${timeLabel}`;
+            heroDate.hidden = false;
+        }
+        if (cardDate) {
+            cardDate.textContent = dateLabel;
+            cardDate.hidden = false;
+        }
 
         if (dayEl) dayEl.textContent = String(d.getDate());
+        if (weekdayEl) weekdayEl.textContent = d.toLocaleDateString("fr-FR", { weekday: "long" });
         if (monthEl) {
             monthEl.textContent = d.toLocaleDateString("fr-FR", {
                 month: "long",
@@ -69,8 +110,7 @@ const EventCountdown = (() => {
                 year: "numeric"
             });
         }
-        const dayCell = document.getElementById("calendar-event-day");
-        if (dayCell) dayCell.textContent = String(d.getDate());
+        renderCalendar(d);
     }
 
     function setTarget(value) {

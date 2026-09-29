@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personnalisation — Invitation mariage</title>
     <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=57">
-    <link rel="stylesheet" href="../assets/css/app.css">
+    <link rel="stylesheet" href="../assets/css/app.css?v=77">
     <link rel="stylesheet" href="../assets/css/admin.css">
     <link rel="stylesheet" href="../assets/css/personnalisation.css">
 </head>
@@ -113,6 +113,13 @@
                 <section class="admin-card perso-section" id="sec-accueil">
                     <h2 class="admin-card-title">Porte d'entrée (enveloppe)</h2>
                     <p class="admin-card-desc">Textes affichés avant que l'invité entre sur l'invitation.</p>
+                    <label class="block mb-3">
+                        <span class="dash-field-label">Ouverture de l'invitation</span>
+                        <select id="entryMode" class="admin-select">
+                            <option value="envelope">Afficher la porte d'entrée</option>
+                            <option value="direct">Ouvrir directement l'invitation</option>
+                        </select>
+                    </label>
                     <label class="block">
                         <span class="dash-field-label">Message d'accueil</span>
                         <input id="welcomeMessage" class="admin-input" placeholder="Avec amour, nous vous ouvrons cette enveloppe de bonheur.">
@@ -265,6 +272,14 @@
                         </article>
                     </div>
                     <div class="admin-form-grid mt-3">
+                        <label class="admin-field">
+                            <span class="dash-field-label">Position du texte sur la photo</span>
+                            <select id="heroTextPosition" class="admin-select">
+                                <option value="top">En haut</option>
+                                <option value="center">Au milieu</option>
+                                <option value="bottom">En bas</option>
+                            </select>
+                        </label>
                         <label class="admin-field">
                             <span class="dash-field-label">Lumière du fond titre</span>
                             <input id="heroOverlayOpacity" type="range" min="0" max="90" step="5" class="admin-range">
@@ -527,12 +542,12 @@
     <script src="../assets/js/event-config.js?v=75"></script>
     <script src="../assets/js/auth.js?v=58"></script>
     <script src="../assets/js/content-blocks.js?v=38"></script>
-    <script src="../assets/js/countdown.js?v=35"></script>
+    <script src="../assets/js/countdown.js?v=36"></script>
     <script src="../assets/js/cloud-api.js?v=79"></script>
     <script src="../assets/js/dashboard-sync.js?v=55"></script>
     <script src="../assets/js/db.js?v=26"></script>
     <script src="../assets/js/drink-generic-images.js?v=26"></script>
     <script src="../assets/js/drink-menu.js?v=26"></script>
-    <script src="../assets/js/personnalisation.js?v=69"></script>
+    <script src="../assets/js/personnalisation.js?v=71"></script>
 </body>
 </html>

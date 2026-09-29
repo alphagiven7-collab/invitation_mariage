@@ -29,7 +29,7 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Great+Vibes&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@0.469.0"></script>
-    <link rel="stylesheet" href="../assets/css/app.css?v=73">
+    <link rel="stylesheet" href="../assets/css/app.css?v=77">
     <link rel="stylesheet" href="../assets/css/drink-menu.css?v=34">
     <script>
         if ("serviceWorker" in navigator) {
@@ -127,12 +127,13 @@
     <main id="main-view" class="max-w-md mx-auto bg-[#fafafa] min-h-screen relative shadow-2xl overflow-hidden pb-10 hidden opacity-0 transition-opacity duration-500">
         
         <!-- 1. En-tête -->
-        <header class="hero-bg">
+        <header class="hero-bg" data-text-position="center">
             <img id="hero-image" class="hero-bg-image" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Photo de l'événement" loading="eager" fetchpriority="high" decoding="async">
             <div class="hero-bg-content text-white px-4">
                 <h1 id="hero-title" class="font-serif text-2xl md:text-3xl mb-3 tracking-wide">Invitation</h1>
                 <i data-lucide="heart" class="w-6 h-6 text-pink-300 mx-auto mb-3 animate-pulse" fill="currentColor"></i>
                 <p id="hero-subtitle" class="text-sm font-light tracking-widest"></p>
+                <p id="hero-date" class="hero-date" hidden></p>
             </div>
         </header>
 
@@ -151,6 +152,8 @@
                         <span id="couple-name-right" class="invite-couple-name invite-couple-name--right"></span>
                     </div>
 
+                    <p id="invite-card-date" class="invite-card-date" hidden></p>
+
                     <p class="invite-greeting font-serif">
                         Cher/Chere <span id="display-guest-name" class="invite-guest-name">Invite(e)</span>,
                     </p>
@@ -162,7 +165,7 @@
                         Ils seraient honorés de vous compter parmi leurs invités pour célébrer cette union sacrée et partager le bonheur de leur engagement.
                     </p>
                     <p id="invite-main-text" class="invite-body-text invite-body-text--last">
-                        La cérémonie, suivie d'une réception, se tiendra le <strong class="invite-emphasis">jeudi 30 avril 2026 à partir de 19h30</strong> au <strong class="invite-emphasis">Sultani River</strong>. <span id="invitation-main-text">Votre présence à leurs côtés, dans ce cadre mémorable au bord du fleuve, témoignera de l'affection que vous leur portez et rendra cette journée inoubliable.</span>
+                        <span id="invitation-main-text">Votre présence rendra cette journée inoubliable.</span>
                     </p>
                 </div>
             </article>
@@ -193,7 +196,8 @@
             <div onclick="openBestPhotosGallery()" role="button" tabindex="0" data-keyboard-activate aria-controls="best-photos-modal" aria-label="Ouvrir la galerie des plus belles photos du couple" class="best-photos-shell p-4 text-white cursor-pointer">
                 <p class="text-[10px] tracking-[0.3em] uppercase text-pink-200 text-center">Moments d'exception</p>
                 <h3 id="best-photos-title" class="font-serif text-2xl text-center mb-3">Les plus belles photos du couple</h3>
-                <div class="grid grid-cols-2 gap-2 mb-3">
+                <p id="best-photos-count" class="best-photos-count" aria-live="polite"></p>
+                <div class="best-photos-preview grid grid-cols-2 gap-2 mb-3">
                     <img id="best-photo-1" src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=700&q=80" class="h-40 w-full object-cover rounded-xl" alt="Couple 1" loading="lazy" decoding="async">
                     <img id="best-photo-2" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=700&q=80" class="h-40 w-full object-cover rounded-xl" alt="Couple 2" loading="lazy" decoding="async">
                 </div>
@@ -207,7 +211,7 @@
                         <img id="best-marquee-6" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=500&q=80" alt="Souvenir 2b" loading="lazy" decoding="async">
                     </div>
                 </div>
-                <p class="text-[10px] text-indigo-100 text-center mt-3">Touchez ici pour ouvrir la galerie complète</p>
+                <p class="best-photos-open-hint">Voir toutes les photos <span aria-hidden="true">→</span></p>
             </div>
         </section>
 
@@ -263,11 +267,12 @@
 
         <!-- 5. Date & Programme -->
         <section class="px-4 mt-6" data-event-section="program">
-            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-50">
+            <div class="event-date-card bg-white rounded-2xl shadow-sm p-6 border border-gray-50">
                 
                 <!-- En-tête Date -->
                 <div class="flex items-center justify-between mb-6">
                     <div>
+                        <p id="event-weekday" class="event-date-kicker">Le grand jour</p>
                         <p id="event-day" class="text-3xl font-light text-gray-800">30</p>
                         <p id="event-month-year" class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Avril 2026</p>
                     </div>
@@ -278,7 +283,7 @@
                 </div>
 
                 <!-- Calendrier -->
-                <div class="mb-8 bg-gray-50 rounded-xl p-4 border border-gray-100">
+                <div class="event-calendar mb-8 bg-gray-50 rounded-xl p-4 border border-gray-100">
                     <div class="flex justify-between items-center mb-4">
                         <i data-lucide="chevron-left" class="w-4 h-4 text-gray-300"></i>
                         <span id="calendar-month-label" class="font-semibold text-[11px] text-gray-600 uppercase tracking-widest">Avril 2026</span>
@@ -287,18 +292,7 @@
                     <div class="grid grid-cols-7 gap-1 text-center text-[9px] text-gray-400 mb-2 font-semibold">
                         <div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div><div>D</div>
                     </div>
-                    <div class="grid grid-cols-7 gap-1 text-center text-[11px] text-gray-500">
-                        <div></div><div></div>
-                        <div class="py-1">1</div><div class="py-1">2</div><div class="py-1">3</div><div class="py-1">4</div><div class="py-1">5</div>
-                        <div class="py-1">6</div><div class="py-1">7</div><div class="py-1">8</div><div class="py-1">9</div><div class="py-1">10</div><div class="py-1">11</div><div class="py-1">12</div>
-                        <div class="py-1">13</div><div class="py-1">14</div><div class="py-1">15</div><div class="py-1">16</div><div class="py-1">17</div><div class="py-1">18</div><div class="py-1">19</div>
-                        <div class="py-1">20</div><div class="py-1">21</div><div class="py-1">22</div><div class="py-1">23</div><div class="py-1">24</div><div class="py-1">25</div><div class="py-1">26</div>
-                        <div class="py-1">27</div><div class="py-1">28</div><div class="py-1">29</div>
-                        <div id="calendar-event-day" class="py-1 bg-gray-800 text-white rounded font-bold shadow-sm relative">
-                            30
-                            <div class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-pink-500 rounded-full"></div>
-                        </div>
-                    </div>
+                    <div id="calendar-days" class="grid grid-cols-7 gap-1 text-center text-[11px] text-gray-500" aria-label="Calendrier du mois de l'événement"></div>
                 </div>
 
                 <button type="button" id="add-to-calendar-btn" class="btn-with-loader w-full mb-6 inline-flex justify-center items-center gap-2 py-3 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold transition">
@@ -600,7 +594,7 @@
             </div>
             <div class="mt-4 pointer-events-auto">
                 <p id="best-gallery-caption" class="text-center text-white text-xs mb-2"></p>
-                <div id="best-gallery-dots" class="flex justify-center gap-2 flex-wrap"></div>
+                <div id="best-gallery-dots" class="best-gallery-thumbnails" aria-label="Choisir une photo"></div>
             </div>
         </div>
     </div>
@@ -948,12 +942,12 @@
     <script src="../assets/js/content-blocks.js?v=38"></script>
     <script src="../assets/js/calendar-export.js?v=35"></script>
     <script src="../assets/js/background-music.js?v=35"></script>
-    <script src="../assets/js/countdown.js?v=35"></script>
+    <script src="../assets/js/countdown.js?v=36"></script>
     <script src="../assets/js/lucide-init.js?v=34"></script>
     <script src="../assets/js/i18n.js?v=34"></script>
     <script src="../assets/js/drink-generic-images.js?v=34"></script>
     <script src="../assets/js/drink-menu.js?v=34"></script>
-    <script src="../assets/js/app.js?v=67"></script>
+    <script src="../assets/js/app.js?v=71"></script>
     <script src="../assets/js/guest-experience.js?v=92"></script>
     <script>
         // Fallback robuste si app.js ne se charge pas complètement
