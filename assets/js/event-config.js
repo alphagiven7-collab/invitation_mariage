@@ -295,7 +295,8 @@ const EventConfig = (() => {
         document.documentElement.style.setProperty("--hero-title-color", config.heroTitleColor || "#ffffff");
         document.documentElement.style.setProperty("--hero-subtitle-size", `${config.heroSubtitleSize ?? 18}px`);
         document.documentElement.style.setProperty("--hero-subtitle-color", config.heroSubtitleColor || "#ffffff");
-        setText("venue-title", config.venue);
+        const legacyVenueTitle = typeof config.venue === "string" ? config.venue : config.venue?.title;
+        setText("venue-title", config.venueTitle || legacyVenueTitle);
         setText("couple-name-left", config.coupleLeft);
         setText("couple-name-right", config.coupleRight);
         [

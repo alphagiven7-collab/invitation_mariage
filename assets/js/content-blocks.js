@@ -254,14 +254,13 @@ const ContentBlocks = (() => {
     function getDefaultsFromConfig(cfg) {
         if (!cfg) return {};
         const out = {};
-        if (cfg.venue) {
-            out.venueTitle = typeof cfg.venue === "string" ? cfg.venue : cfg.venue.title;
-            out.venueAddress = cfg.venueDetails?.address || cfg.venueAddress || "";
-            out.mapLink = cfg.links?.map || cfg.venueDetails?.mapLink || "";
-            out.venueLat = cfg.venueDetails?.lat || "";
-            out.venueLng = cfg.venueDetails?.lng || "";
-            out.mapImage = cfg.venueDetails?.mapImage || "";
-        }
+        const legacyVenueTitle = typeof cfg.venue === "string" ? cfg.venue : cfg.venue?.title;
+        out.venueTitle = cfg.venueTitle || legacyVenueTitle || "";
+        out.venueAddress = cfg.venueAddress || cfg.venueDetails?.address || "";
+        out.mapLink = cfg.mapLink ?? cfg.links?.map ?? cfg.venueDetails?.mapLink ?? "";
+        out.venueLat = cfg.venueLat ?? cfg.venueDetails?.lat ?? "";
+        out.venueLng = cfg.venueLng ?? cfg.venueDetails?.lng ?? "";
+        out.mapImage = cfg.mapImage ?? cfg.venueDetails?.mapImage ?? "";
         if (cfg.program) out.program = cfg.program;
         if (cfg.practicalInfo) out.practicalInfo = cfg.practicalInfo;
         if (cfg.title) out.title = cfg.title;
