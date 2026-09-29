@@ -115,8 +115,9 @@ function getConfigDefaults() {
         subtitle: cfg?.subtitle || "Votre événement",
         coupleLeft: cfg?.coupleLeft || "",
         coupleRight: cfg?.coupleRight || "",
-        welcomeImage: cfg?.branding?.welcomeImage || "",
-        heroImage: cfg?.branding?.heroImage || "",
+        welcomeImage: cfg?.welcomeImage ?? cfg?.branding?.welcomeImage ?? "",
+        heroImage: cfg?.heroImage ?? cfg?.branding?.heroImage ?? "",
+        ...(Array.isArray(cfg?.bestPhotos) ? { bestPhotos: cfg.bestPhotos } : {}),
         heroTextPosition: cfg?.heroTextPosition || "center",
         heroOverlayOpacity: cfg?.heroOverlayOpacity ?? 0.58,
         heroTitleFont: cfg?.heroTitleFont || "Playfair Display",
@@ -139,7 +140,7 @@ function getConfigDefaults() {
         aboutTitle: cfg?.aboutTitle || "Notre Histoire",
         aboutStory1: cfg?.aboutStory1 || "",
         aboutStory2: cfg?.aboutStory2 || "",
-        aboutImage: cfg?.branding?.aboutImage || "",
+        aboutImage: cfg?.aboutImage ?? cfg?.branding?.aboutImage ?? "",
         donationLink: cfg?.links?.donation || "",
         whatsappDonationPhone: cfg?.links?.whatsappDonation || cfg?.whatsappDonationPhone || "",
         donationWhatsAppMessage: cfg?.links?.donationWhatsAppMessage || "",
@@ -325,6 +326,26 @@ function loadStateLocalOnly() {
     }
 }
 
+function recoverPublishedPhotos(state, cfg) {
+    if (!state || !cfg) return state;
+    const recovered = { ...state };
+    const isStockPhoto = (value) => typeof value === "string" && /^https:\/\/images\.unsplash\.com\//i.test(value);
+    ["welcomeImage", "heroImage", "aboutImage"].forEach((key) => {
+        const published = cfg[key] ?? cfg.branding?.[key];
+        if (published && (!recovered[key] || isStockPhoto(recovered[key]))) {
+            recovered[key] = published;
+        }
+    });
+    const publishedPhotos = cfg.bestPhotos;
+    const currentPhotos = recovered.bestPhotos;
+    if (Array.isArray(publishedPhotos) && publishedPhotos.length
+        && (!Array.isArray(currentPhotos) || !currentPhotos.length
+            || (currentPhotos.every(isStockPhoto) && publishedPhotos.some((photo) => !isStockPhoto(photo))))) {
+        recovered.bestPhotos = publishedPhotos;
+    }
+    return recovered;
+}
+
 async function loadStateFromSync() {
     const cfgDefaults = getConfigDefaults();
     const base = { ...DEFAULT_STATE, ...cfgDefaults };
@@ -332,21 +353,13 @@ async function loadStateFromSync() {
     const cfg = window.EventConfig && EventConfig.getConfig ? EventConfig.getConfig() : null;
 
     if (window.DashboardSync) {
-        let state = await DashboardSync.load(eventId, base, { preferCloud: true });
+        let state = recoverPublishedPhotos(await DashboardSync.load(eventId, base, { preferCloud: true }), cfg);
         if (DashboardSync.syncIdentityFromConfig && cfg) {
-            const sync = DashboardSync.syncIdentityFromConfig(state, cfg);
-            state = sync.state;
-            if (sync.changed) {
-                try {
-                    await DashboardSync.save(eventId, state);
-                } catch {
-                    /* ignore */
-                }
-            }
+            state = DashboardSync.syncIdentityFromConfig(state, cfg).state;
         }
         return state;
     }
-    return loadStateLocalOnly();
+    return recoverPublishedPhotos(loadStateLocalOnly(), cfg);
 }
 
 function readProgramFromEditor() {
