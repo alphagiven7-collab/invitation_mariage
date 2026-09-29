@@ -546,6 +546,19 @@
             }
         }
 
+        function getHeroImageLayoutState() {
+            const style = document.documentElement.style;
+            const readPosition = (axis) => {
+                const value = Number.parseFloat(style.getPropertyValue?.(`--hero-image-position-${axis}`) || '');
+                return Number.isFinite(value) ? value : 50;
+            };
+            return {
+                heroImageFit: document.querySelector('.hero-bg')?.dataset.imageFit === 'cover' ? 'cover' : 'contain',
+                heroImagePositionX: readPosition('x'),
+                heroImagePositionY: readPosition('y')
+            };
+        }
+
         function getCurrentCustomizationState() {
             let savedBlocks = {};
             try {
@@ -566,6 +579,7 @@
                 countdownDate: toDateTimeLocal(window.EventCountdown ? EventCountdown.getTarget() : Date.now()),
                 welcomeImage: getCssUrlVariable('--welcome-image-url'),
                 heroImage: getCssUrlVariable('--hero-image-url'),
+                ...getHeroImageLayoutState(),
                 aboutImage: document.getElementById('about-cover-image').src,
                 mapImage: document.getElementById('map-image').src,
                 aboutTitle: document.getElementById('about-story-title').textContent.trim(),
@@ -742,7 +756,13 @@
             if (state.subtitle) document.getElementById('hero-subtitle').textContent = state.subtitle;
             const hero = document.querySelector('.hero-bg');
             if (hero) hero.dataset.textPosition = ['top', 'center', 'bottom'].includes(state.heroTextPosition) ? state.heroTextPosition : 'center';
+            if (hero && state.heroImageFit != null) hero.dataset.imageFit = state.heroImageFit === 'cover' ? 'cover' : 'contain';
             const heroStyle = document.documentElement.style;
+            for (const axis of ['X', 'Y']) {
+                if (state[`heroImagePosition${axis}`] == null) continue;
+                const raw = Number(state[`heroImagePosition${axis}`]);
+                if (Number.isFinite(raw)) heroStyle.setProperty(`--hero-image-position-${axis.toLowerCase()}`, `${Math.max(0, Math.min(100, raw))}%`);
+            }
             if (['Playfair Display', 'Cormorant Garamond', 'Great Vibes', 'Cinzel'].includes(state.heroTitleFont)) {
                 heroStyle.setProperty('--hero-title-font', state.heroTitleFont);
             }
@@ -995,6 +1015,7 @@
                 countdownDate: document.getElementById('custom-countdown-date').value,
                 welcomeImage: document.getElementById('custom-welcome-image').value.trim(),
                 heroImage: document.getElementById('custom-hero-image').value.trim(),
+                ...getHeroImageLayoutState(),
                 aboutImage: document.getElementById('custom-about-image').value.trim(),
                 mapImage: document.getElementById('custom-map-image').value.trim(),
                 aboutTitle: document.getElementById('custom-about-title').value.trim(),
@@ -1581,13 +1602,6 @@
             document.getElementById('meta-og-image').content = fallbackImage;
             document.getElementById('meta-twitter-image').content = fallbackImage;
         }
-        document.addEventListener('keydown', (event) => {
-            const isBestGalleryOpen = !document.getElementById('best-photos-modal').classList.contains('hidden');
-            if (!isBestGalleryOpen) return;
-            if (event.key === 'Escape') closeBestPhotosGallery();
-            if (event.key === 'ArrowRight') changeBestGallerySlide(1);
-            if (event.key === 'ArrowLeft') changeBestGallerySlide(-1);
-        });
         // Retire le contenu de démonstration avant de charger les messages réels.
         renderGuestbookMessages([]);
 

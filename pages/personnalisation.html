@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personnalisation — Invitation mariage</title>
     <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=57">
-    <link rel="stylesheet" href="../assets/css/app.css?v=79">
+    <link rel="stylesheet" href="../assets/css/app.css?v=80">
     <link rel="stylesheet" href="../assets/css/admin.css">
     <link rel="stylesheet" href="../assets/css/personnalisation.css">
 </head>
@@ -273,12 +273,30 @@
                     </div>
                     <div class="admin-form-grid mt-3">
                         <label class="admin-field">
+                            <span class="dash-field-label">Affichage de la photo du titre</span>
+                            <select id="heroImageFit" class="admin-select">
+                                <option value="contain">Afficher la photo entière</option>
+                                <option value="cover">Remplir le cadre</option>
+                            </select>
+                            <span class="perso-gps-hint">Le mode photo entière conserve tous les bords, avec un fond doux assorti.</span>
+                        </label>
+                        <label class="admin-field">
                             <span class="dash-field-label">Position du texte sur la photo</span>
                             <select id="heroTextPosition" class="admin-select">
                                 <option value="top">En haut</option>
                                 <option value="center">Au milieu</option>
                                 <option value="bottom">En bas</option>
                             </select>
+                        </label>
+                        <label class="admin-field">
+                            <span class="dash-field-label">Cadrage horizontal</span>
+                            <input id="heroImagePositionX" type="range" min="0" max="100" step="1" class="admin-range" value="50">
+                            <span id="heroImagePositionX-value" class="perso-gps-hint">Centre · 50 %</span>
+                        </label>
+                        <label class="admin-field">
+                            <span class="dash-field-label">Cadrage vertical</span>
+                            <input id="heroImagePositionY" type="range" min="0" max="100" step="1" class="admin-range" value="50">
+                            <span id="heroImagePositionY-value" class="perso-gps-hint">Centre · 50 %</span>
                         </label>
                         <label class="admin-field">
                             <span class="dash-field-label">Lumière du fond titre</span>
@@ -539,7 +557,7 @@
     <script src="../assets/js/supabase-config.js?v=53"></script>
     <script src="../assets/js/django-api-config.js?v=53"></script>
     <script src="../assets/js/django-api.js?v=53"></script>
-    <script src="../assets/js/event-config.js?v=75"></script>
+    <script src="../assets/js/event-config.js?v=76"></script>
     <script src="../assets/js/auth.js?v=58"></script>
     <script src="../assets/js/content-blocks.js?v=38"></script>
     <script src="../assets/js/countdown.js?v=36"></script>
@@ -548,6 +566,6 @@
     <script src="../assets/js/db.js?v=26"></script>
     <script src="../assets/js/drink-generic-images.js?v=26"></script>
     <script src="../assets/js/drink-menu.js?v=26"></script>
-    <script src="../assets/js/personnalisation.js?v=71"></script>
+    <script src="../assets/js/personnalisation.js?v=72"></script>
 </body>
 </html>
