@@ -9,6 +9,15 @@ const PROGRAM_COLORS = [
     { value: "amber", label: "Ambre" }
 ];
 
+const DEFAULT_DRESS_CODE_COLORS = window.ContentBlocks?.DEFAULT_DRESS_CODE_COLORS || ["#f4e1e1", "#5a2a35", "#2d3748"];
+
+function resolveDressCodeColors(colors) {
+    return DEFAULT_DRESS_CODE_COLORS.map((fallback, index) => {
+        const selected = Array.isArray(colors) ? colors[index] : "";
+        return /^#[0-9a-f]{6}$/i.test(selected || "") ? selected : fallback;
+    });
+}
+
 const PRACTICAL_ICONS = [
     { value: "car", label: "Voiture / parking" },
     { value: "bed", label: "Hébergement" },
@@ -136,6 +145,7 @@ function getConfigDefaults() {
         donationWhatsAppMessage: cfg?.links?.donationWhatsAppMessage || "",
         giftMessage: cfg?.giftMessage || blocks.giftMessage || "",
         dressCodeTitle: cfg?.dressCodeTitle || "Tenue élégante",
+        dressCodeColors: resolveDressCodeColors(cfg?.dressCodeColors),
         dressCodeMen: cfg?.dressCodeMen || "",
         dressCodeWomen: cfg?.dressCodeWomen || "",
         dressPatternMen: cfg?.dressPatternMen || "",
@@ -200,6 +210,7 @@ const DEFAULT_STATE = {
     donationWhatsAppMessage: "Bonjour {couple}, je souhaite vous faire un don pour votre mariage. Merci de me communiquer les modalités.",
     giftMessage: "Votre présence est le plus beau des cadeaux. Pour toute attention particulière, contactez les organisateurs.",
     dressCodeTitle: "Tenue élégante",
+    dressCodeColors: [...DEFAULT_DRESS_CODE_COLORS],
     dressCodeMen: "",
     dressCodeWomen: "",
     dressPatternMen: "",
@@ -417,6 +428,7 @@ function readFormState() {
         donationWhatsAppMessage: document.getElementById("donationWhatsAppMessage").value.trim(),
         giftMessage: document.getElementById("giftMessage").value.trim(),
         dressCodeTitle: document.getElementById("dressCodeTitle").value.trim(),
+        dressCodeColors: [1, 2, 3].map((index) => document.getElementById(`dressCodeColor${index}`).value),
         dressCodeMen: document.getElementById("dressCodeMen").value.trim(),
         dressCodeWomen: document.getElementById("dressCodeWomen").value.trim(),
         dressPatternMen: document.getElementById("dressPatternMen").value.trim(),
@@ -503,6 +515,7 @@ function toDashboardPayload(formState) {
         donationWhatsAppMessage: formState.donationWhatsAppMessage,
         giftMessage: formState.giftMessage,
         dressCodeTitle: formState.dressCodeTitle,
+        dressCodeColors: formState.dressCodeColors,
         dressCodeMen: formState.dressCodeMen,
         dressCodeWomen: formState.dressCodeWomen,
         dressPatternMen: formState.dressPatternMen,
@@ -778,6 +791,9 @@ function hydrateForm(state) {
     document.getElementById("donationWhatsAppMessage").value = state.donationWhatsAppMessage || "";
     document.getElementById("giftMessage").value = state.giftMessage || "";
     document.getElementById("dressCodeTitle").value = state.dressCodeTitle || "Tenue élégante";
+    resolveDressCodeColors(state.dressCodeColors).forEach((color, index) => {
+        document.getElementById(`dressCodeColor${index + 1}`).value = color;
+    });
     document.getElementById("dressCodeMen").value = state.dressCodeMen || "";
     document.getElementById("dressCodeWomen").value = state.dressCodeWomen || "";
     document.getElementById("dressPatternMen").value = state.dressPatternMen || "";

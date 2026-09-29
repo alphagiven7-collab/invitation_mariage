@@ -1,6 +1,7 @@
         const DESIGNER_ACCESS_CODE = 'MICHELLINE-DESIGNER';
         const designerModeKey = 'wedding_designer_mode';
         const dashboardStateKey = 'wedding_dashboard_state';
+        const defaultDressCodeColors = ['#f4e1e1', '#5a2a35', '#2d3748'];
         let isDesignerMode = localStorage.getItem(designerModeKey) === '1';
         let guestName = '';
         let currentGuestProfile = null;
@@ -582,6 +583,9 @@
                 dressImages: Array.isArray(savedBlocks.dressImages) && savedBlocks.dressImages.length
                     ? savedBlocks.dressImages
                     : [],
+                dressCodeColors: Array.isArray(savedBlocks.dressCodeColors)
+                    ? savedBlocks.dressCodeColors
+                    : (EventConfig.getConfig()?.dressCodeColors || window.ContentBlocks?.DEFAULT_DRESS_CODE_COLORS || defaultDressCodeColors),
                 bestGridImages: [document.getElementById('best-photo-1').src, document.getElementById('best-photo-2').src],
                 bestMarqueeImages: Array.from({ length: 6 }, (_, i) => document.getElementById(`best-marquee-${i + 1}`).src),
                 guestbookCoverImage: document.getElementById('guestbook-cover-image').src,
@@ -620,6 +624,11 @@
             document.getElementById('custom-venue-title').value = state.venueTitle || '';
             document.getElementById('custom-venue-address').value = state.venueAddress || '';
             document.getElementById('custom-dress-images').value = (state.dressImages || []).join(', ');
+            [1, 2, 3].forEach((index) => {
+                const color = state.dressCodeColors?.[index - 1];
+                const fallback = window.ContentBlocks?.DEFAULT_DRESS_CODE_COLORS?.[index - 1] || defaultDressCodeColors[index - 1];
+                document.getElementById(`custom-dress-code-color-${index}`).value = /^#[0-9a-f]{6}$/i.test(color || '') ? color : fallback;
+            });
             document.getElementById('custom-best-grid-images').value = (state.bestGridImages || []).join(', ');
             document.getElementById('custom-best-marquee-images').value = (state.bestMarqueeImages || []).join(', ');
             document.getElementById('custom-guestbook-cover-image').value = state.guestbookCoverImage || '';
@@ -1003,6 +1012,7 @@
                 venueTitle: document.getElementById('custom-venue-title').value.trim(),
                 venueAddress: document.getElementById('custom-venue-address').value.trim(),
                 dressImages: parseImageList(document.getElementById('custom-dress-images').value),
+                dressCodeColors: [1, 2, 3].map((index) => document.getElementById(`custom-dress-code-color-${index}`).value),
                 bestGridImages: parseImageList(document.getElementById('custom-best-grid-images').value),
                 bestMarqueeImages: parseImageList(document.getElementById('custom-best-marquee-images').value),
                 guestbookCoverImage: document.getElementById('custom-guestbook-cover-image').value.trim(),

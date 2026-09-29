@@ -3,6 +3,7 @@
  */
 const ContentBlocks = (() => {
     const PROGRAM_COLORS = ["blue", "green", "pink", "purple", "indigo", "amber"];
+    const DEFAULT_DRESS_CODE_COLORS = ["#f4e1e1", "#5a2a35", "#2d3748"];
     const DEFAULT_PROGRAM = [
         { time: "19h30 - 20h00", title: "Arrivée des invités", color: "blue" },
         { time: "20h00 - 20h30", title: "Emplacements", color: "green" },
@@ -225,6 +226,15 @@ const ContentBlocks = (() => {
         });
     }
 
+    function applyDressCodeColors(colors) {
+        DEFAULT_DRESS_CODE_COLORS.forEach((fallback, index) => {
+            const swatch = document.querySelector(`[data-dress-code-color="${index}"]`);
+            if (!swatch) return;
+            const selected = Array.isArray(colors) ? colors[index] : "";
+            swatch.style.backgroundColor = /^#[0-9a-f]{6}$/i.test(selected || "") ? selected : fallback;
+        });
+    }
+
     function apply(state) {
         if (!state) return;
         if (state.programSectionTitle) {
@@ -238,6 +248,7 @@ const ContentBlocks = (() => {
         renderProgram(state.program || DEFAULT_PROGRAM);
         renderPracticalInfo(state.practicalInfo || DEFAULT_PRACTICAL);
         applyVenue(state);
+        applyDressCodeColors(state.dressCodeColors);
         applySectionVisibility(state.sections);
     }
 
@@ -287,6 +298,7 @@ const ContentBlocks = (() => {
         if (cfg.links?.donationWhatsAppMessage) out.donationWhatsAppMessage = cfg.links.donationWhatsAppMessage;
         if (cfg.giftMessage) out.giftMessage = cfg.giftMessage;
         if (cfg.dressCodeTitle) out.dressCodeTitle = cfg.dressCodeTitle;
+        if (Array.isArray(cfg.dressCodeColors)) out.dressCodeColors = cfg.dressCodeColors;
         if (cfg.dressImages) out.dressImages = cfg.dressImages;
         if (cfg.links?.supportEmail) out.supportEmail = cfg.links.supportEmail;
         if (cfg.metaDescription) out.metaDescription = cfg.metaDescription;
@@ -311,11 +323,13 @@ const ContentBlocks = (() => {
         buildMapEmbedUrl,
         sanitizeExternalUrl,
         applySectionVisibility,
+        applyDressCodeColors,
         formatRsvpDeadline,
         copyGpsToClipboard,
         getDefaultsFromConfig,
         DEFAULT_PROGRAM,
-        DEFAULT_PRACTICAL
+        DEFAULT_PRACTICAL,
+        DEFAULT_DRESS_CODE_COLORS
     };
 })();
 

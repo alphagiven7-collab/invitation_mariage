@@ -279,9 +279,9 @@
                 <p class="text-[10px] text-gray-400 mb-4 uppercase tracking-widest">Couleurs</p>
                 
                 <div class="flex justify-center space-x-4 mb-6">
-                    <div class="w-8 h-8 rounded-full bg-[#f4e1e1] shadow-inner border border-gray-100"></div>
-                    <div class="w-8 h-8 rounded-full bg-[#5a2a35] shadow-inner border border-gray-100"></div>
-                    <div class="w-8 h-8 rounded-full bg-[#2d3748] shadow-inner border border-gray-100"></div>
+                    <div data-dress-code-color="0" class="w-8 h-8 rounded-full bg-[#f4e1e1] shadow-inner border border-gray-100"></div>
+                    <div data-dress-code-color="1" class="w-8 h-8 rounded-full bg-[#5a2a35] shadow-inner border border-gray-100"></div>
+                    <div data-dress-code-color="2" class="w-8 h-8 rounded-full bg-[#2d3748] shadow-inner border border-gray-100"></div>
                 </div>
 
                 <div id="dress-code-details" class="hidden grid grid-cols-2 gap-2 mb-5 text-left">
@@ -832,6 +832,12 @@
                                 <input id="custom-accent-color" type="color" class="mt-1 w-full h-11 border border-gray-200 rounded-xl p-1">
                             </label>
                         </div>
+                        <h5 class="text-sm font-semibold text-gray-700 mt-4 mb-2">Palette du dress code</h5>
+                        <div class="grid grid-cols-3 gap-2">
+                            <label class="text-xs text-gray-600">Couleur 1<input id="custom-dress-code-color-1" type="color" class="mt-1 w-full h-11 border border-gray-200 rounded-xl p-1" value="#f4e1e1"></label>
+                            <label class="text-xs text-gray-600">Couleur 2<input id="custom-dress-code-color-2" type="color" class="mt-1 w-full h-11 border border-gray-200 rounded-xl p-1" value="#5a2a35"></label>
+                            <label class="text-xs text-gray-600">Couleur 3<input id="custom-dress-code-color-3" type="color" class="mt-1 w-full h-11 border border-gray-200 rounded-xl p-1" value="#2d3748"></label>
+                        </div>
                     </section>
 
                     <section class="border border-gray-100 rounded-2xl p-4 bg-gray-50">
@@ -940,7 +946,7 @@
     <script src="../assets/js/access-pass-export.js?v=53"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="../assets/js/invitation-pdf.js?v=10"></script>
-    <script src="../assets/js/content-blocks.js?v=40"></script>
+    <script src="../assets/js/content-blocks.js?v=41"></script>
     <script src="../assets/js/calendar-export.js?v=35"></script>
     <script src="../assets/js/background-music.js?v=35"></script>
     <script src="../assets/js/countdown.js?v=36"></script>
@@ -948,7 +954,7 @@
     <script src="../assets/js/i18n.js?v=34"></script>
     <script src="../assets/js/drink-generic-images.js?v=34"></script>
     <script src="../assets/js/drink-menu.js?v=34"></script>
-    <script src="../assets/js/app.js?v=75"></script>
+    <script src="../assets/js/app.js?v=76"></script>
     <script defer src="../assets/js/gallery-enhancement.js?v=1"></script>
     <script src="../assets/js/guest-experience.js?v=92"></script>
     <script>
