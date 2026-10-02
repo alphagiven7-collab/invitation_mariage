@@ -19,10 +19,9 @@ const CloudAPI = (() => {
     async function request(table, { method = "GET", query = "", body = null, prefer = "", throwOnError = false } = {}) {
         if (!isEnabled()) return null;
         const adminSession = window.AuthGuard && AuthGuard.getSession ? AuthGuard.getSession() : null;
-        const accessToken = adminSession?.accessToken || cfg().anonKey;
         const headers = {
             apikey: cfg().anonKey,
-            Authorization: `Bearer ${accessToken}`,
+            ...(adminSession?.accessToken ? { Authorization: `Bearer ${adminSession.accessToken}` } : {}),
             "Content-Type": "application/json"
         };
         if (prefer) headers.Prefer = prefer;
@@ -62,14 +61,13 @@ const CloudAPI = (() => {
         const expectsArray = options.expectArray === true;
         if (!isEnabled()) return expectsArray ? [] : null;
         const adminSession = window.AuthGuard && AuthGuard.getSession ? AuthGuard.getSession() : null;
-        const accessToken = adminSession?.accessToken || cfg().anonKey;
         let response;
         try {
             response = await fetch(`${cfg().url}/rest/v1/rpc/${functionName}`, {
                 method: "POST",
                 headers: {
                     apikey: cfg().anonKey,
-                    Authorization: `Bearer ${accessToken}`,
+                    ...(adminSession?.accessToken ? { Authorization: `Bearer ${adminSession.accessToken}` } : {}),
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify(body || {})
@@ -266,8 +264,8 @@ const CloudAPI = (() => {
 
     // --- Invités ---
     async function getGuests(eventId) {
-        const isEventAdmin = window.AuthGuard && AuthGuard.isEventAdmin
-            ? AuthGuard.isEventAdmin(eventId)
+        const isEventAdmin = window.AuthGuard && AuthGuard.isGuestManager
+            ? AuthGuard.isGuestManager(eventId)
             : false;
         if (isEnabled() && !isEventAdmin) {
             throw new Error("Connexion organisateur requise pour charger les invités Supabase.");
@@ -703,20 +701,45 @@ const CloudAPI = (() => {
         if (!isEnabled()) {
             throw new Error("Supabase n'est pas configuré : la liste des événements cloud est indisponible.");
         }
-        const events = await request("events", {
-            query: "?select=id,slug,type,title,config_json,created_at&order=created_at.desc"
-        });
+        const events = await requestAllRows("events",
+            "?select=id,slug,type,title,config_json,created_at&order=created_at.desc,id.asc");
         if (events === null) {
             throw new Error("Impossible de charger les événements. Vérifiez votre connexion et les droits du compte plateforme.");
         }
         return Array.isArray(events) ? events.map((event) => ({
+            ...(event.config_json || {}),
             id: event.id,
             slug: event.slug,
             type: event.type,
             title: event.title,
-            createdAt: event.created_at,
-            ...(event.config_json || {})
+            createdAt: event.created_at
         })) : [];
+    }
+
+    async function getEventsOverview() {
+        if (!window.AuthGuard?.isPlatformAdmin?.()) throw new Error("Connexion administrateur requise.");
+        const [events, settings, guests] = await Promise.all([
+            getEvents(),
+            requestAllRows("event_settings", "?select=event_id,dashboard_json&order=event_id.asc"),
+            requestAllRows("guests", "?select=event_id,status,adults,children&order=id.asc")
+        ]);
+        const settingsById = new Map(settings.map((row) => [row.event_id, row.dashboard_json || {}]));
+        const statsById = new Map();
+        guests.forEach((guest) => {
+            const stats = statsById.get(guest.event_id) || { guests: 0, confirmed: 0, pending: 0, declined: 0, attendees: 0 };
+            stats.guests++;
+            if (guest.status === "yes") {
+                stats.confirmed++;
+                stats.attendees += Math.max(0, Number(guest.adults) || 0) + Math.max(0, Number(guest.children) || 0);
+            } else if (guest.status === "no") stats.declined++;
+            else stats.pending++;
+            statsById.set(guest.event_id, stats);
+        });
+        return events.map((event) => ({
+            ...event, ...settingsById.get(event.id),
+            id: event.id, slug: event.slug, createdAt: event.createdAt,
+            stats: statsById.get(event.id) || { guests: 0, confirmed: 0, pending: 0, declined: 0, attendees: 0 }
+        }));
     }
 
     async function getGuestByInviteToken(token) {
@@ -805,7 +828,7 @@ const CloudAPI = (() => {
         if (!eventId || !Array.isArray(guests)) {
             throw new Error("Liste d'invités invalide.");
         }
-        if (!window.AuthGuard?.isEventAdmin?.(eventId)) {
+        if (!window.AuthGuard?.isGuestManager?.(eventId)) {
             throw new Error("Connexion organisateur requise pour remplacer la liste.");
         }
         const result = await requestRpc("replace_managed_guests", {
@@ -991,6 +1014,7 @@ const CloudAPI = (() => {
         deleteEventAssets,
         replaceGuestList,
         getEvents,
+        getEventsOverview,
         getEventSettings,
         getPublicEventConfig,
         getGuestByInviteToken,

@@ -36,7 +36,7 @@ async function resolveLoginRedirect(redirect) {
     URL,
     URLSearchParams,
     EventConfig: { init: async () => {}, getEventId: () => "demo" },
-    AuthGuard: { isEventAdmin: () => true },
+    AuthGuard: { isGuestManager: () => true, isPlatformAdmin: () => true },
     document: { getElementById: () => { throw new Error("Le formulaire ne doit pas être atteint"); } },
     window: {
       location,

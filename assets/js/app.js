@@ -8,8 +8,9 @@
         let defaultCustomizationState = null;
         let bestGalleryImages = [];
         let activeBestPhotos = null;
-        let galleryReturnFocus = null;
         let bestGalleryIndex = 0;
+        let galleryReturnFocus = null;
+        let gateOpeningPromise = null;
         let preparedHeroFont = '';
         let pendingHeroFont = null;
         let heroFontRequest = 0;
@@ -58,6 +59,7 @@
         }
 
         function enterExperience(ev) {
+            if (window.BackgroundMusic) BackgroundMusic.armAutoplay();
             const run = () => {
                 const input = document.getElementById('gate-guest-name-input').value.trim();
                 if (input.length < 2) {
@@ -75,6 +77,7 @@
         }
 
         function openMainSite(ev, options = {}) {
+            if (window.BackgroundMusic) BackgroundMusic.armAutoplay();
             const { skipLoader = false, instant = false } = options;
             const run = () => {
                 if (!guestName) {
@@ -90,6 +93,7 @@
                 const gate = document.getElementById('welcome-gate');
                 const main = document.getElementById('main-view');
                 if (!gate || !main || gate.classList.contains('hidden')) return Promise.resolve();
+                if (gateOpeningPromise) return gateOpeningPromise;
                 if (instant) {
                     main.classList.remove('hidden', 'opacity-0');
                     gate.classList.add('hidden');
@@ -97,17 +101,23 @@
                     if (window.BackgroundMusic) BackgroundMusic.onGuestEnter();
                     return Promise.resolve();
                 }
-                gate.classList.add('opacity-0', 'pointer-events-none');
-                return new Promise((resolve) => {
+                const animate = !!ev && !window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+                main.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    main.classList.remove('opacity-0');
+                    gate.classList.add('pointer-events-none');
+                    if (animate) gate.classList.add('gate-opening');
+                    else gate.classList.add('opacity-0');
+                });
+                gateOpeningPromise = new Promise((resolve) => {
                     setTimeout(() => {
                         gate.classList.add('hidden');
-                        main.classList.remove('hidden');
-                        requestAnimationFrame(() => main.classList.remove('opacity-0'));
                         document.body.style.overflow = 'auto';
                         if (window.BackgroundMusic) BackgroundMusic.onGuestEnter();
                         resolve();
-                    }, 450);
+                    }, animate ? 850 : 120);
                 });
+                return gateOpeningPromise;
             };
             const fallbackId = ev && ev.currentTarget && ev.currentTarget.id
                 ? ev.currentTarget.id
@@ -284,7 +294,11 @@
 
             const eventConfig = window.EventConfig?.getConfig?.() || {};
             const isOpenRsvp = eventConfig.rsvpMode === 'open' || eventConfig.type === 'open-rsvp';
-            if (isOpenRsvp) {
+            if (isOpenRsvp && eventConfig.type === 'wedding' && !eventConfig.gateHint) {
+                const hint = document.getElementById('welcome-gate-hint');
+                if (hint) hint.textContent = 'Saisissez votre nom pour découvrir l’invitation et confirmer votre présence.';
+            }
+            if (isOpenRsvp && eventConfig.type !== 'wedding') {
                 guestName = '';
                 openMainSite(null, { skipLoader: true });
                 return;
@@ -812,7 +826,8 @@
             window.__eventConfirmationMeta = {
                 couplePhotoLeft: state.confirmationCouplePhoto1 || state.aboutImage || '',
                 couplePhotoRight: state.confirmationCouplePhoto2 || state.heroImage || '',
-                drinkMenuOptions: drinkNames.length ? drinkNames : (state.drinkMenuOptions || [])
+                drinkMenuOptions: drinkNames.length ? drinkNames : (state.drinkMenuOptions || []),
+                drinkMenuEnabled: state.sections?.drinkMenu !== false
             };
             if (state.mainText) document.getElementById('invite-main-text').textContent = state.mainText;
             if (state.day) document.getElementById('event-day').textContent = state.day;
@@ -1445,7 +1460,9 @@
         }
 
         function collectBestGalleryImages() {
-            if (activeBestPhotos?.length) return activeBestPhotos;
+            if (activeBestPhotos?.length) {
+                return activeBestPhotos;
+            }
             const ids = [
                 'best-photo-1', 'best-photo-2',
                 'best-marquee-1', 'best-marquee-2', 'best-marquee-3', 'best-marquee-4', 'best-marquee-5', 'best-marquee-6',
@@ -1547,7 +1564,6 @@
         function openModal(id) {
             if (id === 'rsvp-modal') {
                 if (typeof prefillRsvpForm === 'function') prefillRsvpForm();
-                if (window.DrinkMenu) DrinkMenu.syncToRsvp();
             }
             const modal = document.getElementById(id);
             if (!modal) return;
@@ -1642,7 +1658,7 @@
             }
 
             if ('serviceWorker' in navigator && !isPreviewMode) {
-                navigator.serviceWorker.register('../sw.js?v=58').catch(() => {});
+                navigator.serviceWorker.register('../sw.js?v=60').catch(() => {});
             }
 
             defaultCustomizationState = getCurrentCustomizationState();
@@ -1724,6 +1740,7 @@
                 const merged = { ...defaults, ...(dashboardState || {}) };
                 BackgroundMusic.apply(merged);
                 BackgroundMusic.init();
+                BackgroundMusic.armAutoplay();
             }
 
             applySectionVisibility({

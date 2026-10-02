@@ -1,5 +1,4 @@
-@import "tailwindcss";
-
-@source "../../index.html";
-@source "../../pages/**/*.html";
-@source "../js/**/*.js";
+/* CSS RGB et transformations classiques pour Samsung Internet et Safari anciens. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

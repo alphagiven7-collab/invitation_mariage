@@ -494,10 +494,69 @@ function getActiveAdminTab() {
     return document.querySelector(".admin-tab.active")?.dataset.tab || "overview";
 }
 
+async function organizerAccessRequest(eventId, credentials = null) {
+    const session = window.AuthGuard?.getSession?.();
+    if (!session?.accessToken || !AuthGuard.isPlatformAdmin()) {
+        throw new Error("Administrateur plateforme requis.");
+    }
+    const response = await fetch(`/api/organizer?event=${encodeURIComponent(eventId)}`, {
+        method: credentials ? "PUT" : "GET",
+        headers: {
+            Authorization: `Bearer ${session.accessToken}`,
+            ...(credentials ? { "Content-Type": "application/json" } : {})
+        },
+        ...(credentials ? { body: JSON.stringify({ eventId, ...credentials }) } : {})
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || "Accès organisateur indisponible.");
+    return result;
+}
+
+async function setupOrganizerAccess(eventId) {
+    const panel = document.getElementById("organizer-access-panel");
+    if (!panel || !AuthGuard.isPlatformAdmin()) return;
+    panel.classList.remove("hidden");
+    const status = document.getElementById("organizer-access-status");
+    const phoneInput = document.getElementById("organizer-access-phone");
+    const loginUrl = new URL("login.html", window.location.href);
+    loginUrl.searchParams.set("event", eventId);
+    const loginLink = document.getElementById("organizer-login-link");
+    loginLink.href = loginUrl.toString();
+    loginLink.textContent = loginUrl.toString();
+    try {
+        const current = await organizerAccessRequest(eventId);
+        phoneInput.value = current.phone?.startsWith("+243") ? current.phone.slice(4) : (current.phone || "");
+        phoneInput.dispatchEvent(new Event("input"));
+    } catch (error) {
+        status.textContent = error.message;
+    }
+    document.getElementById("organizer-access-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const button = event.currentTarget.querySelector('button[type="submit"]');
+        button.disabled = true;
+        status.textContent = "Enregistrement…";
+        try {
+            const phone = phoneInput.value.trim();
+            const passwordInput = document.getElementById("organizer-access-password");
+            const result = await organizerAccessRequest(eventId, { phone, password: passwordInput.value });
+            phoneInput.value = result.phone.startsWith("+243") ? result.phone.slice(4) : result.phone;
+            phoneInput.dispatchEvent(new Event("input"));
+            passwordInput.value = "";
+            status.textContent = "Accès organisateur enregistré. Le numéro peut se connecter sur la page de connexion de cet événement.";
+        } catch (error) {
+            status.textContent = error.message;
+        } finally {
+            button.disabled = false;
+        }
+    });
+}
+
 function renderActiveAdminTab(tabName) {
     switch (tabName) {
         case "guests":
-            return Promise.all([renderGuestsTable(), renderAdminGuestbook()]);
+            return AuthGuard.isPlatformAdmin()
+                ? Promise.all([renderGuestsTable(), renderAdminGuestbook()])
+                : renderGuestsTable();
         case "relances":
             return renderRelances();
         case "rsvps":
@@ -588,9 +647,18 @@ async function populateEventSwitcher(currentEventId) {
     };
 }
 
+function updateNewEventRsvpFields() {
+    const type = document.getElementById("new-event-type")?.value;
+    const isOpenRsvp = type === "open-rsvp"
+        || (type === "wedding" && document.getElementById("new-event-rsvp-mode")?.value === "open");
+    document.getElementById("new-event-wedding-rsvp-mode")?.classList.toggle("hidden", type !== "wedding");
+    document.getElementById("new-event-open-rsvp-settings")?.classList.toggle("hidden", !isOpenRsvp);
+}
+
 function openCreateEventModal() {
     const modal = document.getElementById("create-event-modal");
     if (!modal) return;
+    updateNewEventRsvpFields();
     modal.classList.add("open");
     modal.setAttribute("aria-hidden", "false");
     const titleInput = document.getElementById("new-event-title");
@@ -607,7 +675,7 @@ function closeCreateEventModal() {
     modal.setAttribute("aria-hidden", "true");
 }
 
-function openEventCreatedModal(eventObj) {
+function openEventCreatedModal(eventObj, organizerStatus = "") {
     try {
         sessionStorage.setItem("wedding_recently_created_event", JSON.stringify(eventObj));
     } catch {}
@@ -618,6 +686,7 @@ function openEventCreatedModal(eventObj) {
     invUrl.searchParams.set("event", eventObj.slug);
     document.getElementById("event-created-link-invitation").textContent = invUrl.toString();
     document.getElementById("event-created-owner-email").textContent = eventObj.ownerEmail || "—";
+    document.getElementById("event-created-organizer-status").textContent = organizerStatus;
 
     document.getElementById("event-created-action-perso").href = `./personnalisation.html?event=${eventObj.slug}`;
     document.getElementById("event-created-action-admin").href = `./admin.html?event=${eventObj.slug}`;
@@ -663,16 +732,21 @@ window.addEventListener("DOMContentLoaded", async () => {
     await window.AuthGuard?.refreshSession?.();
     const requestedEvent = new URLSearchParams(window.location.search).get("event");
     const session = window.AuthGuard?.getSession?.();
-    if (!requestedEvent && session?.role === "event" && session.eventId) {
+    if (!requestedEvent && (session?.role === "event" || session?.role === "organizer") && session.eventId) {
         window.location.replace(`./admin.html?event=${encodeURIComponent(session.eventId)}`);
         return;
     }
     await EventConfig.init();
     const eventId = EventConfig.getEventId();
-    if (!AuthGuard.requireAdmin(eventId)) return;
+    if (!AuthGuard.requireGuestManager(eventId)) return;
     const platformAdmin = AuthGuard.isPlatformAdmin();
     document.getElementById("all-events-link")?.classList.toggle("hidden", !platformAdmin);
     document.getElementById("create-event-open-btn")?.classList.toggle("hidden", !platformAdmin);
+    document.getElementById("back-custom-link")?.classList.toggle("hidden", !platformAdmin);
+    document.querySelector('[data-tab="analytics"]')?.classList.toggle("hidden", !platformAdmin);
+    document.getElementById("admin-guestbook-section")?.classList.toggle("hidden", !platformAdmin);
+    document.getElementById("export-json-btn")?.classList.toggle("hidden", !platformAdmin);
+    void setupOrganizerAccess(eventId);
 
     const config = EventConfig.getConfig();
     if (config && config.title) {
@@ -1099,24 +1173,43 @@ window.addEventListener("DOMContentLoaded", async () => {
         const coupleLeft = document.getElementById("new-event-couple-left")?.value.trim() || "";
         const coupleRight = document.getElementById("new-event-couple-right")?.value.trim() || "";
         const type = document.getElementById("new-event-type")?.value || "wedding";
-        const isOpenRsvp = type === "open-rsvp";
+        const isOpenRsvp = type === "open-rsvp"
+            || (type === "wedding" && document.getElementById("new-event-rsvp-mode")?.value === "open");
         const maleContact = document.getElementById("new-event-contact-male")?.value.trim() || "";
         const femaleContact = document.getElementById("new-event-contact-female")?.value.trim() || "";
-        if (isOpenRsvp && (!maleContact || !femaleContact)) {
-            showToast("Ajoutez les contacts WhatsApp Homme et Femme.");
+        if (isOpenRsvp && [maleContact, femaleContact].some((phone) => phone.replace(/\D/g, "").length < 9)) {
+            updateNewEventRsvpFields();
+            const missingSide = maleContact.replace(/\D/g, "").length < 9 ? "male" : "female";
+            const input = document.getElementById(`new-event-contact-${missingSide}`);
+            const message = "Ajoutez deux numéros WhatsApp valides (9 chiffres minimum).";
+            if (errorBox) {
+                errorBox.textContent = message;
+                errorBox.hidden = false;
+            }
+            input?.scrollIntoView({ block: "center", behavior: "smooth" });
+            input?.focus({ preventScroll: true });
+            showToast(message);
             return;
         }
         const dateVal = document.getElementById("new-event-date")?.value;
         const venue = document.getElementById("new-event-venue")?.value.trim() || "Kinshasa";
-        const ownerEmail = newOwnerEmail?.value.trim().toLowerCase() || "";
+        const ownerEmail = newOwnerEmail?.value.trim().toLowerCase()
+            || AuthGuard.getSession()?.email?.toLowerCase() || "";
         if (!ownerEmail) {
-            showToast("L'e-mail du compte client est requis.");
+            showToast("L'e-mail du compte propriétaire est requis.");
+            return;
+        }
+        const organizerPhone = document.getElementById("new-event-organizer-phone")?.value.trim() || "";
+        const organizerPassword = document.getElementById("new-event-organizer-password")?.value || "";
+        if (!!organizerPhone !== !!organizerPassword || (organizerPassword && organizerPassword.length < 12)) {
+            showToast("Renseignez le numéro et un mot de passe organisateur de 12 caractères minimum.");
             return;
         }
         const welcomeImage = newWelcomeImage?.value.trim() || "";
 
         let created = null;
         let published = false;
+        let organizerStatus = "";
         if (submitButton) {
             submitButton.disabled = true;
             submitButton.textContent = "Création en cours…";
@@ -1149,6 +1242,15 @@ window.addEventListener("DOMContentLoaded", async () => {
                 }
             }
 
+            if (organizerPhone) {
+                try {
+                    await organizerAccessRequest(created.id, { phone: organizerPhone, password: organizerPassword });
+                    organizerStatus = `Accès invités : ${organizerPhone}`;
+                } catch (error) {
+                    organizerStatus = `Accès organisateur non enregistré : ${error.message} Ouvrez « Accès organisateur » sur cet événement pour réessayer.`;
+                }
+            }
+
             if (pendingWelcomeFile) {
                 const uploadedWelcomeImage = await MediaUpload.processFile(
                     pendingWelcomeFile,
@@ -1170,13 +1272,15 @@ window.addEventListener("DOMContentLoaded", async () => {
             pendingWelcomePreviewUrl = "";
             closeCreateEventModal();
             populateEventSwitcher(eventId);
-            openEventCreatedModal(created);
+            openEventCreatedModal(created, organizerStatus);
             showToast(`Événement ${title} créé avec succès !`);
         } catch (err) {
             if (created && published) {
                 closeCreateEventModal();
-                openEventCreatedModal(created);
-                showToast("Invitation créée. La photo n'a pas été enregistrée : ouvrez Personnaliser pour réessayer.");
+                openEventCreatedModal(created, organizerStatus || (organizerPhone
+                    ? "Accès organisateur non enregistré. Ouvrez « Accès organisateur » sur cet événement pour réessayer."
+                    : ""));
+                showToast(err.message || "Invitation créée avec une étape incomplète.");
                 return;
             }
             const message = err.message || "Erreur création événement";
@@ -1193,8 +1297,14 @@ window.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    document.getElementById("new-event-type")?.addEventListener("change", (event) => {
+    const revealNewEventRsvpFields = () => {
+        updateNewEventRsvpFields();
         const settings = document.getElementById("new-event-open-rsvp-settings");
-        settings?.classList.toggle("hidden", event.target.value !== "open-rsvp");
-    });
+        if (settings && !settings.classList.contains("hidden")) {
+            settings.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        }
+    };
+    document.getElementById("new-event-type")?.addEventListener("change", revealNewEventRsvpFields);
+    document.getElementById("new-event-rsvp-mode")?.addEventListener("change", revealNewEventRsvpFields);
+    updateNewEventRsvpFields();
 });

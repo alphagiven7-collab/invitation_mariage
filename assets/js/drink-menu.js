@@ -12,6 +12,7 @@ const DrinkMenu = (() => {
     let menuItems = [];
     let selected = new Set();
     let eventId = "demo";
+    let enabled = true;
 
     function getEventId() {
         if (window.EventConfig && EventConfig.isReady && EventConfig.isReady()) {
@@ -93,7 +94,7 @@ const DrinkMenu = (() => {
         } catch (e) {}
     }
 
-    function renderCards(container, { compact = false } = {}) {
+    function renderCards(container) {
         if (!container) return;
         if (!menuItems.length) {
             container.innerHTML = "";
@@ -106,7 +107,7 @@ const DrinkMenu = (() => {
                 ? DrinkGenericImages.fallbackUrl(index)
                 : item.imageUrl;
             return `
-                <label class="drink-card${selectedClass}${compact ? " drink-card--compact" : ""}" data-drink-name="${escapeHtml(item.name)}">
+                <label class="drink-card${selectedClass}" data-drink-name="${escapeHtml(item.name)}">
                     <input type="checkbox" class="drink-card-input" name="guest-drink" value="${escapeHtml(item.name)}" ${checked}>
                     <div class="drink-card-media">
                         <img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.name)}" loading="lazy" data-fallback="${escapeHtml(fallback)}" onerror="if(this.dataset.fallback&&this.src!==this.dataset.fallback){this.src=this.dataset.fallback;}">
@@ -140,16 +141,14 @@ const DrinkMenu = (() => {
 
     function apply(state) {
         eventId = getEventId();
+        enabled = state?.sections?.drinkMenu !== false;
         menuItems = normalizeMenu(state);
         loadSelection();
 
         const pageSection = document.getElementById("drink-menu-section");
         const pageGrid = document.getElementById("drink-menu-grid");
-        const rsvpSection = document.getElementById("rsvp-drinks-section");
-        const rsvpGrid = document.getElementById("rsvp-drink-options");
         const titleEl = document.getElementById("drink-menu-title");
         const subtitleEl = document.getElementById("drink-menu-subtitle");
-        const rsvpHint = document.getElementById("rsvp-drinks-hint");
 
         const title = state?.drinkMenuTitle || "Menu des boissons";
         const subtitle = state?.drinkMenuSubtitle
@@ -157,20 +156,16 @@ const DrinkMenu = (() => {
 
         if (titleEl) titleEl.textContent = title;
         if (subtitleEl) subtitleEl.textContent = subtitle;
-        if (rsvpHint) rsvpHint.textContent = subtitle;
-
-        if (!menuItems.length) {
+        if (!enabled || !menuItems.length) {
             pageSection?.classList.add("hidden");
-            rsvpSection?.classList.add("hidden");
+            pageSection?.setAttribute("aria-hidden", "true");
             if (pageGrid) pageGrid.innerHTML = "";
-            if (rsvpGrid) rsvpGrid.innerHTML = "";
             return;
         }
 
         pageSection?.classList.remove("hidden");
-        rsvpSection?.classList.remove("hidden");
-        renderCards(pageGrid, { compact: false });
-        renderCards(rsvpGrid, { compact: true });
+        pageSection?.setAttribute("aria-hidden", "false");
+        renderCards(pageGrid);
         syncAllContainers();
 
         if (window.lucide && typeof lucide.createIcons === "function") {
@@ -179,6 +174,7 @@ const DrinkMenu = (() => {
     }
 
     function getSelected() {
+        if (!enabled) return [];
         return Array.from(selected).filter(Boolean);
     }
 
@@ -188,17 +184,12 @@ const DrinkMenu = (() => {
         syncAllContainers();
     }
 
-    function syncToRsvp() {
-        syncAllContainers();
-    }
-
     return {
         getDefaultItems: getDefaults,
         normalizeMenu,
         apply,
         getSelected,
-        setSelected,
-        syncToRsvp
+        setSelected
     };
 })();
 

@@ -77,6 +77,16 @@ test('EventConfig.createEvent keeps open RSVP contacts separate from personal ev
   assert.equal(event.rsvpMode, 'open');
   assert.equal(event.confirmationContacts.male, '+243810000001');
   assert.equal(event.confirmationContacts.female, '+243810000002');
+
+  const wedding = sandbox.window.EventConfig.createEvent({
+    title: 'Mariage ouvert',
+    type: 'wedding',
+    rsvpMode: 'open',
+    confirmationContacts: { male: '+243810000001', female: '+243810000002' }
+  });
+  assert.equal(wedding.type, 'wedding');
+  assert.equal(wedding.rsvpMode, 'open');
+  assert.equal(wedding.confirmationContacts.male, '+243810000001');
 });
 
 test('EventConfig discards dedicated staff check-in data with a custom event', () => {
@@ -263,7 +273,7 @@ test('AuthGuard accepts a collaborator authorized for an event', async () => {
         return { ok: true, json: async () => ({ user: { id: 'user-42', email: 'collaborator@example.test' }, access_token: 'token', expires_in: 3600 }) };
       }
       if (url.includes('/profiles?')) return { ok: true, json: async () => [{ role: 'client' }] };
-      if (url.includes('/rpc/can_manage_event')) return { ok: true, json: async () => true };
+      if (url.includes('/rpc/can_manage_guests')) return { ok: true, json: async () => true };
       throw new Error(`Unexpected URL: ${url}`);
     }
   };
@@ -273,9 +283,10 @@ test('AuthGuard accepts a collaborator authorized for an event', async () => {
   vm.runInNewContext(source, sandbox, { filename: 'auth.js' });
 
   const result = await sandbox.window.AuthGuard.loginWithPassword('collaborator@example.test', 'secret', 'event-42');
-  assert.equal(result.role, 'event');
-  assert.equal(sandbox.window.AuthGuard.isEventAdmin('event-42'), true);
-  assert.ok(requestedUrls.some((url) => url.includes('/rpc/can_manage_event')));
+  assert.equal(result.role, 'organizer');
+  assert.equal(sandbox.window.AuthGuard.isGuestManager('event-42'), true);
+  assert.equal(sandbox.window.AuthGuard.isEventAdmin('event-42'), false);
+  assert.ok(requestedUrls.some((url) => url.includes('/rpc/can_manage_guests')));
 });
 
 test('CloudAPI never displays local guests when the Supabase admin session is unavailable', async () => {
@@ -285,7 +296,7 @@ test('CloudAPI never displays local guests when the Supabase admin session is un
       { id: 'guest-1', slug: 'sarah-martin', fullName: 'Sarah Martin', status: 'pending' }
     ])
   };
-  const authGuard = { isEventAdmin: () => false };
+  const authGuard = { isGuestManager: () => false };
   const sandbox = {
     console,
     URLSearchParams,
@@ -315,7 +326,7 @@ test('CloudAPI uses the Supabase guest list instead of stale local guest data', 
       { id: 'old-guest', slug: 'old-guest', fullName: 'Ancienne liste locale', status: 'pending' }
     ])
   };
-  const authGuard = { isEventAdmin: () => true, getSession: () => ({ accessToken: 'token' }) };
+  const authGuard = { isGuestManager: () => true, getSession: () => ({ accessToken: 'token' }) };
   const sandbox = {
     console,
     URLSearchParams,

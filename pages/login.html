@@ -3,29 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion administrateur</title>
-    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=57">
+    <title>Connexion organisateur</title>
+    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=58">
     <link rel="stylesheet" href="../assets/css/app.css">
+    <link rel="stylesheet" href="../assets/css/account-inputs.css?v=1">
     <script>
         if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("../sw.js?v=58").catch(() => {});
+            navigator.serviceWorker.register("../sw.js?v=60").catch(() => {});
         }
     </script>
 </head>
 <body class="pro-page bg-slate-100 text-slate-800 flex items-center justify-center min-h-screen">
     <div class="dash-card max-w-md w-full mx-4 shadow-2xl">
-        <p class="dash-overline">Administration</p>
+        <p class="dash-overline">Gestion des invités</p>
         <h1 class="text-xl font-semibold mb-2">Connexion organisateur</h1>
-        <p class="dash-tip mb-4">Connectez-vous avec votre compte organisateur.</p>
+        <p class="dash-tip mb-4">Connectez-vous avec votre numéro et votre mot de passe. Aucun code SMS n'est nécessaire.</p>
         <form id="login-form">
-            <label class="block mb-3">
-                <span class="dash-field-label">Adresse email</span>
-                <input id="login-email" type="email" class="dash-input w-full" placeholder="vous@exemple.com" required autofocus>
-            </label>
-            <label class="block mb-3">
-                <span class="dash-field-label">Mot de passe</span>
-                <input id="login-password" type="password" class="dash-input w-full" placeholder="Votre mot de passe" required>
-            </label>
+            <div class="block mb-3">
+                <label id="login-identifier-label" for="login-email" class="dash-field-label">Numéro de téléphone</label>
+                <div class="phone-field"><span class="phone-prefix" aria-hidden="true">+243</span><input id="login-email" type="tel" inputmode="tel" data-organizer-phone class="dash-input w-full" placeholder="812 345 678" autocomplete="username" aria-describedby="login-phone-help" required autofocus></div>
+                <p id="login-phone-help" class="dash-field-note">+243 par défaut. Les espaces et le préfixe complet sont acceptés.</p>
+            </div>
+            <div class="block mb-3">
+                <label for="login-password" class="dash-field-label">Mot de passe</label>
+                <div class="password-field"><input id="login-password" type="password" class="dash-input w-full" placeholder="Votre mot de passe" autocomplete="current-password" required><button type="button" class="password-toggle" data-password-toggle="login-password" aria-controls="login-password" aria-label="Afficher le mot de passe" aria-pressed="false"></button></div>
+            </div>
+            <button id="login-admin-mode" type="button" class="login-mode-link">Connexion administrateur par email</button>
             <button type="submit" class="dash-btn dash-btn-save w-full">Se connecter</button>
         </form>
         <p id="login-error" class="text-red-600 text-sm mt-3 hidden"></p>
@@ -33,9 +36,11 @@
     </div>
 
     <script src="../assets/js/supabase-config.js?v=54"></script>
-    <script src="../assets/js/cloud-api.js?v=79"></script>
+    <script src="../assets/js/cloud-api.js?v=80"></script>
     <script src="../assets/js/event-config.js?v=73"></script>
-    <script src="../assets/js/auth.js?v=58"></script>
+    <script src="../assets/js/organizer-identity.js?v=1"></script>
+    <script src="../assets/js/auth.js?v=61"></script>
+    <script src="../assets/js/account-inputs.js?v=1"></script>
     <script>
         window.addEventListener("DOMContentLoaded", async () => {
             await EventConfig.init();
@@ -56,21 +61,21 @@
                 }
             }
 
-            if (AuthGuard.isEventAdmin(eventId)) {
-                window.location.href = redirect;
+            if (AuthGuard.isGuestManager(eventId)) {
+                window.location.href = AuthGuard.isPlatformAdmin() ? redirect : defaultRedirect;
                 return;
             }
 
             document.getElementById("login-form").addEventListener("submit", async (e) => {
                 e.preventDefault();
-                const email = document.getElementById("login-email").value.trim();
+                const identifier = document.getElementById("login-email").value.trim();
                 const password = document.getElementById("login-password").value;
                 const err = document.getElementById("login-error");
                 const submit = e.currentTarget.querySelector('button[type="submit"]');
                 submit.disabled = true;
                 try {
-                    await AuthGuard.loginWithPassword(email, password, eventId);
-                    window.location.href = redirect;
+                    const result = await AuthGuard.loginWithPassword(identifier, password, eventId);
+                    window.location.href = result.role === "platform" ? redirect : defaultRedirect;
                 } catch (error) {
                     err.textContent = error.message || "Connexion impossible.";
                     err.classList.remove("hidden");

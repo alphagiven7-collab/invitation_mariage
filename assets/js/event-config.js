@@ -141,6 +141,8 @@ const EventConfig = (() => {
                 guestbook: true,
                 gallery: true,
                 countdown: true,
+                calendar: true,
+                drinkMenu: true,
                 dressCode: true
             },
             createdAt: new Date().toISOString()

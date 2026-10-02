@@ -16,7 +16,7 @@ Dans **SQL Editor**, exécutez les fichiers dans cet ordre précis :
 
 1. `docs/SUPABASE-SETUP.sql` — tables de base.
 2. `docs/SUPABASE-SEED.sql` — facultatif, seulement pour les données de démonstration.
-3. Créez les comptes des organisateurs dans **Authentication → Users**.
+3. Créez le compte administrateur plateforme par email dans **Authentication → Users**. Les comptes organisateurs sont créés depuis l'interface après la migration.
 4. `docs/SUPABASE-AUTH-FOUNDATION.sql` — profils et propriétaire d’événement.
 5. Désignez le compte plateforme avec l’instruction SQL à la fin de ce fichier.
 6. `docs/SUPABASE-GUEST-EXTRAS.sql` — table, boissons, photo et code QR invité.
@@ -24,6 +24,7 @@ Dans **SQL Editor**, exécutez les fichiers dans cet ordre précis :
 8. `docs/SUPABASE-PLATFORM-HARDENING.sql` — correctifs RSVP, livre d’or, règles RLS et confidentialité.
 9. `docs/SUPABASE-GUEST-IMPORT.sql` — contrainte de nom unique par événement.
 10. `docs/SUPABASE-STORAGE-RLS.sql` — droits Storage par propriétaire.
+11. `docs/SUPABASE-ORGANIZER-ACCESS.sql` — accès organisateur par numéro, limité aux invités.
 
 `SUPABASE-SETUP.sql` contient des politiques de démarrage historiques. Il ne
 doit jamais être la dernière étape d’une installation exposée. La migration
@@ -77,7 +78,61 @@ La clé `anon` peut être présente dans une application web seulement si les
 politiques RLS et les RPC de la procédure ci-dessus sont actives. Ne publiez
 jamais `service_role`, le mot de passe de base ou un jeton d’administrateur.
 
-## 6. Vérification avant production
+## 6. Accès organisateur par numéro
+
+Sur Vercel, configurez `SUPABASE_URL`, `SUPABASE_ANON_KEY` et
+`SUPABASE_SECRET_KEY` comme variables d'environnement serveur. La clé
+historique `SUPABASE_SERVICE_ROLE_KEY` reste acceptée si le projet utilise
+encore ce format. Les noms déjà présents `SUPABAS_SECRET_KEY` et
+`SUPABASE_SERVICE_ROLE_SECRET` sont également acceptés.
+La dernière clé reste secrète : seul `/api/organizer` l'utilise pour créer
+ou remplacer le compte. Activez **Email** dans **Authentication → Providers**
+de Supabase ; **Phone** et un fournisseur SMS ne sont pas nécessaires.
+Le préfixe `+243` est proposé par défaut : `812345678`, `0812 345 678`,
+`243812345678` et `+243 812 345 678` désignent le même compte. Un préfixe
+international explicite reste accepté pour les autres pays. Les lettres et
+les numéros incomplets sont refusés. Le mot de passe doit compter au moins
+12 caractères et peut être affiché temporairement avec le bouton œil.
+L'interface convertit le numéro en email
+interne (`243…@organizer.michelline-invitations.vercel.app`) pour la connexion
+Email / Password. Seul le numéro est montré à l'organisateur. Aucun email
+n'est envoyé lors de la création du compte ; le mot de passe se réinitialise
+depuis **Accès organisateur**, sans récupération par email.
+
+Pour une base existante, exécutez `docs/SUPABASE-ORGANIZER-ACCESS.sql` après
+les migrations de durcissement et de Storage. L'administrateur plateforme
+peut saisir le numéro et le mot de passe à la création de l'événement ou,
+plus tard, dans **Administration invités → Accès organisateur**. Changer le
+numéro retire les droits de l'ancien compte. Un numéro est réservé à un
+seul événement. Les anciens comptes client par email gardent la gestion des
+invités, sans accès à la personnalisation.
+
+## 7. Tableau de bord et suivi des paiements
+
+`pages/evenements.html` charge les événements réellement présents en base,
+leurs derniers réglages et les invités en paginant les réponses Supabase.
+La date de création provient de `events.created_at`. Les confirmations
+comptent les invités dont le statut est `yes` ; les personnes attendues
+additionnent adultes et enfants de ces réponses. Un événement est terminé
+à partir du jour suivant sa date, selon l'heure de Kinshasa.
+
+Les montants convenus et reçus sont enregistrés en cents de dollars USD,
+avec une note interne facultative. Le solde et le statut sont calculés à
+partir de ces montants : impayé, partiellement payé, payé (ou offert si les
+deux montants sont nuls). Une absence de saisie affiche « À renseigner ».
+
+`/api/event-billing` vérifie le jeton Supabase et `is_platform_admin()` avant
+chaque accès. Il utilise la même clé serveur que `/api/organizer`. Au premier
+enregistrement, il crée le bucket **privé** `platform-event-billing` dans
+Supabase Storage. Aucun script SQL supplémentaire n'est nécessaire.
+Ne rendez pas ce bucket public et n'ajoutez pas de politique permettant son
+accès aux visiteurs ou aux organisateurs. Les données financières ne sont
+jamais ajoutées à `config_json` ou `dashboard_json`, qui alimentent les
+invitations publiques. Une erreur de lecture est affichée, sans inventer de
+montant nul. L'enregistrement remplace le total courant de l'événement ; ce
+suivi ne constitue pas un journal de transactions ou un outil de facturation.
+
+## 8. Vérification avant production
 
 Exécutez dans SQL Editor :
 
@@ -111,7 +166,7 @@ Puis testez dans une fenêtre privée :
 5. Un import CSV contenant un nom déjà présent, une ligne vide, des accents et un champ `Couple Nom`.
 6. Le remplacement de liste : les réponses RSVP `oui` et `non`, avec ou sans téléphone, doivent rester présentes.
 
-## 7. Dépannage
+## 8. Dépannage
 
 | Problème | Action sûre |
 |---|---|

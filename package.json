@@ -5,12 +5,14 @@
     "test": "node --test tests/*.test.js",
     "build:css": "tailwindcss -i ./assets/css/tailwind.src.css -o ./assets/css/tailwind.min.css --minify",
     "watch:css": "tailwindcss -i ./assets/css/tailwind.src.css -o ./assets/css/tailwind.min.css --watch",
+    "build:qr": "esbuild node_modules/qrcode/lib/browser.js --bundle --platform=browser --format=iife --global-name=QRCode --minify --outfile=assets/js/vendor/qrcode-1.5.4.min.js",
     "lint": "eslint assets/js api tests sw.js",
     "build": "npm run build:css"
   },
   "devDependencies": {
-    "@tailwindcss/cli": "^4.1.18",
+    "esbuild": "0.25.12",
     "eslint": "^10.10.0",
-    "tailwindcss": "^4.1.18"
+    "qrcode": "1.5.4",
+    "tailwindcss": "3.4.19"
   }
 }

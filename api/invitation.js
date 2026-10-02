@@ -38,7 +38,7 @@ async function getEventConfig(eventId) {
         method: "POST",
         headers: {
             apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            ...(!SUPABASE_ANON_KEY.startsWith("sb_publishable_") ? { Authorization: `Bearer ${SUPABASE_ANON_KEY}` } : {}),
             "Content-Type": "application/json"
         },
         body: JSON.stringify({ p_event_id: eventId }),

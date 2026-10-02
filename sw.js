@@ -1,4 +1,4 @@
-const CACHE = "invitation-v58";
+const CACHE = "invitation-v60";
 
 self.addEventListener("install", (e) => {
     self.skipWaiting();
@@ -22,13 +22,18 @@ self.addEventListener("fetch", (e) => {
     // Supabase et les autres services distants ne doivent jamais être mis en cache.
     if (url.origin !== self.location.origin || url.pathname.startsWith("/api/")) return;
 
+    // Safari charge les médias par plages d’octets. Laisser le serveur répondre en 206.
+    if (e.request.headers.has('range') || ['audio', 'video'].includes(e.request.destination)
+        || /\.(?:mp3|m4a|aac|ogg|wav|mp4|webm)$/i.test(url.pathname)) return;
+
     const isPage = url.pathname.endsWith(".html")
         || url.pathname.endsWith("/")
         || !url.pathname.split("/").pop().includes(".");
 
     const refresh = () => fetch(e.request).then((response) => {
-        if (response && response.ok) {
-            caches.open(CACHE).then((cache) => cache.put(e.request, response.clone()));
+        if (response && response.status === 200) {
+            const copy = response.clone();
+            e.waitUntil(caches.open(CACHE).then((cache) => cache.put(e.request, copy)).catch(() => undefined));
         }
         return response;
     });
@@ -47,9 +52,9 @@ self.addEventListener("fetch", (e) => {
 
     // Les ressources versionnées sont immuables : servir le cache en priorité.
     e.respondWith(
-        caches.match(e.request).then((cached) => {
+        caches.match(e.request).catch(() => undefined).then((cached) => {
             if (cached) {
-                e.waitUntil(refresh().catch(() => undefined));
+                if (!url.searchParams.has('v')) e.waitUntil(refresh().catch(() => undefined));
                 return cached;
             }
             return refresh().catch(() => new Response("Ressource indisponible", { status: 503 }));

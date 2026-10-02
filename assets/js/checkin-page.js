@@ -173,8 +173,8 @@
             return;
         }
         const eventId = getEventId();
-        if (!AuthGuard.isEventAdmin(eventId)) {
-            AuthGuard.requireAdmin(eventId);
+        if (!AuthGuard.isGuestManager(eventId)) {
+            AuthGuard.requireGuestManager(eventId);
             return;
         }
 

@@ -12,8 +12,8 @@ window.initLucideIconsOnce = function initLucideIconsOnce() {
         } catch (e) {
             console.warn("Lucide:", e.message);
         }
+        window.__lucideIconsDone = true;
     }
-    window.__lucideIconsDone = true;
 };
 
 if (document.readyState === "loading") {

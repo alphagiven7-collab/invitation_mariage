@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administration invités</title>
-    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=57">
-    <link rel="stylesheet" href="../assets/css/app.css">
-    <link rel="stylesheet" href="../assets/css/admin.css?v=9">
+    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=58">
+    <link rel="stylesheet" href="../assets/css/app.css?v=76">
+    <link rel="stylesheet" href="../assets/css/admin.css?v=10">
+    <link rel="stylesheet" href="../assets/css/account-inputs.css?v=1">
 </head>
 <body class="admin-shell text-slate-800">
     <main class="dash-wrap">
@@ -19,8 +20,8 @@
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                     <select id="admin-event-switcher" class="admin-select" style="max-width:240px; font-weight:600;" aria-label="Changer d'événement"></select>
-                    <a id="all-events-link" href="./evenements.html" class="admin-head-btn">Tous les événements</a>
-                    <button type="button" id="create-event-open-btn" class="admin-head-btn primary">➕ Nouvelle invitation</button>
+                    <a id="all-events-link" href="./evenements.html" class="admin-head-btn hidden">Tous les événements</a>
+                    <button type="button" id="create-event-open-btn" class="admin-head-btn primary hidden">➕ Nouvelle invitation</button>
                 </div>
             </div>
             <span id="cloud-status" class="admin-cloud-pill offline">Chargement…</span>
@@ -28,10 +29,23 @@
                 <a id="checkin-link" href="./checkin.html" class="admin-head-btn primary">📱 Check-in jour J</a>
                 <button type="button" id="refresh-btn" class="admin-head-btn">↻ Actualiser</button>
                 <a id="back-invitation-link" href="./invitation.html" class="admin-head-btn">Voir invitation</a>
-                <a id="back-custom-link" href="./personnalisation.html" class="admin-head-btn">Personnaliser</a>
+                <a id="back-custom-link" href="./personnalisation.html" class="admin-head-btn hidden">Personnaliser</a>
                 <button type="button" id="logout-btn" class="admin-head-btn">Déconnexion</button>
             </div>
         </header>
+
+        <details id="organizer-access-panel" class="admin-card hidden">
+            <summary class="admin-card-title">Accès organisateur à la gestion des invités</summary>
+            <p class="admin-card-desc">Attribuez ou modifiez le numéro de cet événement. L’organisateur pourra gérer les invités, les confirmations et les entrées. Le mot de passe actuel n’est jamais affiché.</p>
+            <p class="admin-card-desc">La connexion utilise le numéro et le mot de passe, sans SMS. Pour un numéro attribué avant cette mise à jour, enregistrez-le une fois de plus ; le mot de passe peut rester vide.</p>
+            <p class="admin-card-desc">Lien de connexion à transmettre : <a id="organizer-login-link" href="#" target="_blank" rel="noopener"></a></p>
+            <form id="organizer-access-form" class="admin-form-grid mt-3">
+                <div class="admin-field"><label for="organizer-access-phone">Numéro de téléphone *</label><div class="phone-field"><span class="phone-prefix" aria-hidden="true">+243</span><input id="organizer-access-phone" type="tel" inputmode="tel" data-organizer-phone class="admin-input" placeholder="812 345 678" autocomplete="off" required></div><p class="admin-card-desc">+243 par défaut. Avec ou sans espaces.</p></div>
+                <div class="admin-field"><label for="organizer-access-password">Mot de passe</label><div class="password-field"><input id="organizer-access-password" type="password" class="admin-input" minlength="12" autocomplete="new-password" placeholder="12 caractères minimum"><button type="button" class="password-toggle" data-password-toggle="organizer-access-password" aria-controls="organizer-access-password" aria-label="Afficher le mot de passe" aria-pressed="false"></button></div><p class="admin-card-desc">Laissez vide pour garder le mot de passe actuel si le numéro ne change pas.</p></div>
+                <div class="admin-field"><button type="submit" class="admin-btn admin-btn-success">Enregistrer l’accès</button></div>
+            </form>
+            <p id="organizer-access-status" role="status" aria-live="polite"></p>
+        </details>
 
         <div class="admin-layout">
             <nav class="admin-sidebar">
@@ -41,7 +55,7 @@
                 <button type="button" class="admin-tab" data-tab="relances"><span class="admin-tab-icon">💬</span> Relances</button>
                 <button type="button" class="admin-tab" data-tab="rsvps"><span class="admin-tab-icon">✓</span> Confirmations</button>
                 <button type="button" class="admin-tab" data-tab="presence"><span class="admin-tab-icon">🚪</span> Présence jour J</button>
-                <button type="button" class="admin-tab" data-tab="analytics"><span class="admin-tab-icon">📈</span> Analytics</button>
+                <button type="button" class="admin-tab hidden" data-tab="analytics"><span class="admin-tab-icon">📈</span> Analytics</button>
                 <button type="button" class="admin-tab" data-tab="exports"><span class="admin-tab-icon">📥</span> Exports</button>
             </nav>
 
@@ -123,7 +137,7 @@
                         </div>
                     </section>
 
-                    <section class="admin-card">
+                    <section id="admin-guestbook-section" class="admin-card hidden">
                         <h2 class="admin-card-title">Messages du livre d'or</h2>
                         <p class="admin-card-desc">Les messages publiés en bas de l'invitation. Vous pouvez retirer un message à tout moment.</p>
                         <div id="admin-guestbook-list" class="admin-guestbook-list"></div>
@@ -199,7 +213,7 @@
                         <div class="flex flex-wrap gap-2 mt-2">
                             <button id="export-links-btn" type="button" class="admin-btn admin-btn-primary">Export liens CSV</button>
                             <button id="export-rsvp-btn" type="button" class="admin-btn admin-btn-success">Export rapport RSVP</button>
-                            <button id="export-json-btn" type="button" class="admin-btn admin-btn-ghost">Export JSON complet</button>
+                            <button id="export-json-btn" type="button" class="admin-btn admin-btn-ghost hidden">Export JSON complet</button>
                         </div>
                     </section>
                 </div>
@@ -368,16 +382,23 @@
                     </div>
                 </div>
 
+                <div id="new-event-wedding-rsvp-mode" class="admin-field">
+                    <label for="new-event-rsvp-mode">Confirmation des invités du mariage</label>
+                    <select id="new-event-rsvp-mode" class="admin-select">
+                        <option value="personal">Invitation personnelle avec liste et QR</option>
+                        <option value="open">RSVP ouvert sans liste, avec choix de famille et WhatsApp</option>
+                    </select>
+                </div>
                 <div id="new-event-open-rsvp-settings" class="hidden">
                     <p class="admin-modal-section-label">2 bis. Confirmation ouverte</p>
-                    <p class="perso-gps-hint mb-2">Les invités confirmeront sans lien personnel, puis choisiront le contact WhatsApp Homme ou Femme.</p>
+                    <p class="perso-gps-hint mb-2">Les invités confirmeront sans lien personnel. Le côté de famille choisi détermine le numéro WhatsApp ouvert après l'enregistrement.</p>
                     <div class="admin-form-grid admin-form-grid-compact">
                         <div class="admin-field">
-                            <label for="new-event-contact-male">WhatsApp confirmation Homme *</label>
+                            <label for="new-event-contact-male">Numéro WhatsApp de redirection — côté homme *</label>
                             <input id="new-event-contact-male" type="tel" class="admin-input" placeholder="243XXXXXXXXX">
                         </div>
                         <div class="admin-field">
-                            <label for="new-event-contact-female">WhatsApp confirmation Femme *</label>
+                            <label for="new-event-contact-female">Numéro WhatsApp de redirection — côté femme *</label>
                             <input id="new-event-contact-female" type="tel" class="admin-input" placeholder="243XXXXXXXXX">
                         </div>
                     </div>
@@ -399,13 +420,19 @@
                         <p class="perso-gps-hint mt-1">Sera utilisé dans le lien : ?event=slug</p>
                     </div>
                     <div class="admin-field">
-                        <label for="new-event-owner-email">E-mail du compte client *</label>
+                        <label for="new-event-owner-email">Compte propriétaire (email, prérempli)</label>
                         <input id="new-event-owner-email" class="admin-input" type="email" autocomplete="email" placeholder="client@exemple.com">
-                        <p class="perso-gps-hint mt-1">Le client doit d'abord avoir créé ce compte dans Supabase Auth.</p>
+                        <p class="perso-gps-hint mt-1">Le compte plateforme est utilisé par défaut. Un autre compte doit déjà exister dans Supabase Auth.</p>
                     </div>
                 </div>
 
-                <p class="admin-modal-section-label">3. Photo d'accueil</p>
+                <p class="admin-modal-section-label">3. Accès organisateur aux invités (facultatif)</p>
+                <div class="admin-form-grid admin-form-grid-compact">
+                    <div class="admin-field"><label for="new-event-organizer-phone">Numéro de téléphone</label><div class="phone-field"><span class="phone-prefix" aria-hidden="true">+243</span><input id="new-event-organizer-phone" type="tel" inputmode="tel" data-organizer-phone class="admin-input" placeholder="812 345 678" autocomplete="off"></div></div>
+                    <div class="admin-field"><label for="new-event-organizer-password">Mot de passe</label><div class="password-field"><input id="new-event-organizer-password" type="password" class="admin-input" minlength="12" autocomplete="new-password" placeholder="12 caractères minimum"><button type="button" class="password-toggle" data-password-toggle="new-event-organizer-password" aria-controls="new-event-organizer-password" aria-label="Afficher le mot de passe" aria-pressed="false"></button></div></div>
+                </div>
+
+                <p class="admin-modal-section-label">4. Photo d'accueil</p>
                 <div class="admin-form-grid admin-form-grid-compact">
                     <div class="admin-field admin-field-full">
                         <label for="new-event-welcome-image">Photo affichée à l'ouverture de cette invitation (facultatif)</label>
@@ -444,7 +471,8 @@
             <div class="admin-modal-body space-y-4">
                 <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-1">
                     <p><strong>Lien public invitation :</strong> <span id="event-created-link-invitation" class="font-mono text-indigo-600 break-all"></span></p>
-                    <p><strong>Compte client attribué :</strong> <span id="event-created-owner-email" class="font-mono font-bold text-slate-800"></span></p>
+                    <p><strong>Compte propriétaire :</strong> <span id="event-created-owner-email" class="font-mono font-bold text-slate-800"></span></p>
+                    <p id="event-created-organizer-status" role="status"></p>
                 </div>
                 <div class="grid grid-cols-1 gap-2 pt-2">
                     <a id="event-created-action-perso" href="#" class="admin-btn admin-btn-primary text-center">🎨 Personnaliser l'invitation (Textes, Couleurs, Photos)</a>
@@ -463,15 +491,17 @@
     <script src="../assets/js/django-api-config.js?v=53"></script>
     <script src="../assets/js/django-api.js?v=53"></script>
     <script src="../assets/js/event-config.js?v=73"></script>
-    <script src="../assets/js/cloud-api.js?v=79"></script>
+    <script src="../assets/js/cloud-api.js?v=80"></script>
     <script src="../assets/js/media-upload.js?v=55"></script>
-    <script src="../assets/js/auth.js?v=58"></script>
+    <script src="../assets/js/organizer-identity.js?v=1"></script>
+    <script src="../assets/js/auth.js?v=61"></script>
+    <script src="../assets/js/account-inputs.js?v=1"></script>
     <script src="../assets/js/guest-manager.js?v=72"></script>
     <script src="../assets/js/checkin-url.js?v=49"></script>
     <script src="../assets/js/checkin-api.js?v=50"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="../assets/js/envelope-export.js?v=51"></script>
     <script src="../assets/js/admin-presence.js?v=51"></script>
-    <script src="../assets/js/admin.js?v=87"></script>
+    <script src="../assets/js/admin.js?v=91"></script>
 </body>
 </html>

@@ -1,7 +1,6 @@
-/* Menu des boissons — cartes visuelles (invitation + modal RSVP) */
+/* Menu des boissons sur l'invitation */
 
-#drink-menu-section,
-#rsvp-drinks-section {
+#drink-menu-section {
     width: 100%;
 }
 
@@ -28,12 +27,8 @@
     width: 100%;
 }
 
-.drink-menu-grid--modal {
-    gap: 0.55rem;
-}
-
 @media (min-width: 640px) {
-    .drink-menu-grid:not(.drink-menu-grid--modal) {
+    .drink-menu-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
@@ -134,28 +129,10 @@ label.drink-card.is-selected .drink-card-check {
     line-height: 1.35;
 }
 
-label.drink-card.drink-card--compact .drink-card-body {
-    padding: 0.5rem 0.45rem 0.6rem;
-}
-
-label.drink-card.drink-card--compact .drink-card-title {
-    font-size: 0.72rem;
-}
-
-label.drink-card.drink-card--compact .drink-card-desc {
-    display: none;
-}
-
 .drink-menu-footnote {
     border-top: 1px dashed #e2e8f0;
     padding-top: 0.75rem;
     margin-top: 0.25rem;
-}
-
-#rsvp-modal .drink-menu-grid {
-    max-height: 220px;
-    overflow-y: auto;
-    padding-right: 2px;
 }
 
 /* Mode sombre */

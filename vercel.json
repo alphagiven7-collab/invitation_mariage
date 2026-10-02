@@ -5,6 +5,14 @@
     {
       "src": "/pages/invitation\\.html",
       "dest": "/api/invitation"
+    },
+    {
+      "src": "/api/organizer",
+      "dest": "/api/organizer"
+    },
+    {
+      "src": "/api/event-billing",
+      "dest": "/api/event-billing"
     }
   ],
   "functions": {

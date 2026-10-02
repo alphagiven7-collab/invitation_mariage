@@ -4,66 +4,88 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>Événements — Administration</title>
-    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=57">
-    <link rel="stylesheet" href="../assets/css/app.css">
-    <link rel="stylesheet" href="../assets/css/admin.css">
-    <link rel="stylesheet" href="../assets/css/evenements.css">
+    <title>Vos événements — Michelline</title>
+    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=58">
+    <link rel="stylesheet" href="../assets/css/app.css?v=76">
+    <link rel="stylesheet" href="../assets/css/admin.css?v=10">
+    <link rel="stylesheet" href="../assets/css/evenements.css?v=11">
 </head>
-<body class="admin-shell text-slate-800">
-    <main class="dash-wrap">
-        <header class="admin-header">
-            <p class="admin-overline">Administration plateforme</p>
-            <h1>Tous les événements</h1>
-            <p class="admin-subtitle">Créez, configurez et pilotez chaque invitation depuis un seul endroit.</p>
-            <div class="admin-head-actions">
-                <a href="./admin.html" class="admin-head-btn primary">➕ Créer une invitation</a>
-                <a href="./offres.html" class="admin-head-btn">Offres</a>
-                <a href="../index.html" class="admin-head-btn">Accueil</a>
-                <button type="button" id="events-logout-btn" class="admin-head-btn">Déconnexion</button>
-            </div>
+<body class="events-page">
+    <main class="events-workspace">
+        <nav class="events-topbar" aria-label="Navigation plateforme">
+            <a class="events-brand" href="../index.html">M<span>Michelline<small>Espace plateforme</small></span></a>
+            <div><a href="./offres.html">Offres</a><button type="button" id="events-logout-btn">Déconnexion</button></div>
+        </nav>
+        <header class="events-header">
+            <div><p class="events-eyebrow">Le sens du détail, à chaque événement</p><h1>Vos événements</h1><p>Les invités, les échéances et les paiements. Tout est ici.</p></div>
+            <a href="./admin.html" class="events-primary"><span aria-hidden="true">＋</span> Créer une invitation</a>
         </header>
-
-        <section class="admin-command-bar" aria-label="Accès rapide administration">
-            <a href="./admin.html" class="admin-command primary">
-                <strong>Nouvelle invitation</strong>
-                <span>Créer et attribuer un événement client</span>
-            </a>
-            <a href="./formulaires.html" class="admin-command">
-                <strong>Formulaires</strong>
-                <span>Configurer les demandes et contacts</span>
-            </a>
-            <a href="./partager.html" class="admin-command">
-                <strong>Partage</strong>
-                <span>Préparer vos publications et visuels</span>
-            </a>
+        <section class="events-kpis" aria-label="Vue d'ensemble">
+            <article><span>Tous les événements</span><strong id="events-count">—</strong><small>Votre activité sur la plateforme</small></article>
+            <article><span>À venir et aujourd'hui</span><strong id="events-upcoming">—</strong><small>Les prochaines célébrations</small></article>
+            <article><span>Invités inscrits</span><strong id="events-guests">—</strong><small id="events-confirmed">Chargement des confirmations</small></article>
+            <article><span>Événements terminés</span><strong id="events-completed">—</strong><small>Selon la date de l'événement</small></article>
         </section>
-
-        <section class="events-toolbar" aria-label="Résumé des événements">
-            <div>
-                <p class="events-count-label">Événements disponibles</p>
-                <strong id="events-count">0</strong>
+        <section class="events-finance" aria-label="Suivi financier en dollars américains">
+            <div class="finance-heading"><span class="finance-monogram" aria-hidden="true">$</span><div><p class="events-eyebrow">Suivi financier</p><h2>Chaque paiement, au clair.</h2><p id="finance-coverage">Chargement des paiements…</p></div></div>
+            <div class="finance-value"><span>Total reçu</span><strong id="finance-received">—</strong><small>USD · dollars américains</small></div>
+            <div class="finance-value"><span>Reste à encaisser</span><strong id="finance-balance">—</strong><small id="finance-status">—</small></div>
+        </section>
+        <section class="finance-goal" aria-labelledby="finance-goal-title">
+            <div class="finance-goal-heading"><div><p class="events-eyebrow">Votre ambition</p><h2 id="finance-goal-title">Objectif financier global</h2></div><button id="goal-edit" type="button" class="events-secondary" disabled>Fixer un objectif</button></div>
+            <div class="finance-goal-amounts"><strong id="goal-amount">—</strong><span id="goal-progress-label">Chargement de l’objectif…</span></div>
+            <progress id="goal-progress" max="100" value="0" aria-label="Progression de l’objectif financier"></progress>
+            <p id="goal-remaining" aria-live="polite"></p>
+            <small>Basé sur le total reçu pour tous les événements, quelle que soit leur date. Les filtres ci-dessous ne changent pas ce total.</small>
+        </section>
+        <section class="events-collection" aria-labelledby="collection-title">
+            <div class="collection-heading"><div><p class="events-eyebrow">Votre collection</p><h2 id="collection-title">Chaque événement compte.</h2></div><button id="events-refresh" class="events-secondary" type="button">Actualiser</button></div>
+            <div class="events-toolbar">
+                <label class="events-search"><span class="sr-only">Rechercher un événement</span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="events-search" type="search" placeholder="Rechercher un nom, un lieu…"></label>
+                <label><span class="sr-only">Filtrer par date</span><select id="events-date-filter"><option value="all">Toutes les dates</option><option value="upcoming">À venir</option><option value="today">Aujourd'hui</option><option value="completed">Terminés</option><option value="undated">Date à définir</option></select></label>
+                <label><span class="sr-only">Filtrer par paiement</span><select id="events-payment-filter"><option value="all">Tous les paiements</option><option value="unpaid">Impayés</option><option value="partial">Partiellement payés</option><option value="paid">Payés</option><option value="unset">À renseigner</option></select></label>
+                <label><span class="sr-only">Trier les événements</span><select id="events-sort"><option value="date">Prochaine date</option><option value="created">Création récente</option><option value="title">Nom A → Z</option></select></label>
             </div>
-            <label class="events-search-label">
-                <span>Rechercher</span>
-                <input id="events-search" type="search" class="admin-input" placeholder="Nom ou type d'événement">
-            </label>
+            <p id="events-feedback" class="events-feedback" role="status" aria-live="polite">Chargement de vos événements…</p>
+            <p id="billing-feedback" class="events-warning" role="status" hidden></p>
+            <section id="events-grid" class="events-grid" aria-label="Événements" aria-busy="true"></section>
+            <section id="events-empty" class="events-empty" hidden><span aria-hidden="true">✦</span><h3>Aucun événement à afficher</h3><p>Créez une invitation ou ajustez vos filtres pour retrouver un événement.</p></section>
         </section>
-
-        <p id="events-feedback" class="events-feedback" role="status"></p>
-        <section id="events-grid" class="events-grid" aria-live="polite"></section>
-        <section id="events-empty" class="admin-empty hidden">
-            <div class="admin-empty-icon">✦</div>
-            <p>Aucun événement ne correspond à votre recherche.</p>
-        </section>
+        <footer class="events-footer"><span>Michelline · Une attention à chaque détail.</span><span>Dates et échéances : heure de Kinshasa.</span></footer>
     </main>
-
-    <script src="../assets/js/supabase-config.js?v=53"></script>
-    <script src="../assets/js/django-api-config.js?v=53"></script>
-    <script src="../assets/js/django-api.js?v=53"></script>
+    <dialog id="payment-dialog" aria-labelledby="payment-title" class="payment-dialog">
+        <form id="payment-form">
+            <div class="payment-dialog-heading"><div><p class="events-eyebrow">Suivi du règlement · USD</p><h2 id="payment-title">Paiement de l'événement</h2></div><button type="button" id="payment-close" class="dialog-close" aria-label="Fermer">×</button></div>
+            <p id="payment-event-name" class="payment-event-name"></p>
+            <div class="payment-fields">
+                <label for="payment-total">Montant convenu (USD)<input id="payment-total" inputmode="decimal" type="text" placeholder="Ex. 150,00" required autocomplete="off"></label>
+                <label for="payment-received">Montant total reçu (USD)<input id="payment-received" inputmode="decimal" type="text" placeholder="Ex. 50,00" required autocomplete="off"></label>
+            </div>
+            <p class="payment-hint">Indiquez le total reçu à ce jour, en incluant les acomptes.</p>
+            <button id="payment-settle" type="button" class="payment-settle">Le montant convenu a été réglé en totalité</button>
+            <div id="payment-balance-preview" class="payment-balance-preview" aria-live="polite">Renseignez les montants pour calculer le solde.</div>
+            <label for="payment-note" class="payment-note-label">Note interne <span>facultatif</span><textarea id="payment-note" maxlength="500" rows="3" placeholder="Ex. Acompte reçu le 12 septembre par Mobile Money"></textarea></label>
+            <p id="payment-last-update" class="payment-hint"></p>
+            <p id="payment-error" class="payment-error" role="alert"></p>
+            <div class="payment-dialog-actions"><button type="button" id="payment-cancel" class="events-secondary">Annuler</button><button type="submit" id="payment-save" class="events-primary">Enregistrer le paiement</button></div>
+        </form>
+    </dialog>
+    <dialog id="goal-dialog" aria-labelledby="goal-dialog-title" class="payment-dialog">
+        <form id="goal-form">
+            <div class="payment-dialog-heading"><div><p class="events-eyebrow">Objectif de la plateforme · USD</p><h2 id="goal-dialog-title">Fixez votre prochain cap</h2></div><button type="button" id="goal-close" class="dialog-close" aria-label="Fermer">×</button></div>
+            <p class="payment-hint">Choisissez le montant total que vous souhaitez encaisser sur la plateforme.</p>
+            <label for="goal-target">Objectif à atteindre (USD)<input id="goal-target" type="text" inputmode="decimal" placeholder="Ex. 5 000,00" required autocomplete="off"></label>
+            <p class="payment-hint">Vous pourrez le modifier à tout moment. Les paiements déjà enregistrés sont inclus dans la progression.</p>
+            <p id="goal-error" class="payment-error" role="alert"></p>
+            <div class="payment-dialog-actions"><button type="button" id="goal-cancel" class="events-secondary">Annuler</button><button type="submit" id="goal-save" class="events-primary">Enregistrer l’objectif</button></div>
+        </form>
+    </dialog>
+    <script src="../assets/js/supabase-config.js?v=54"></script>
     <script src="../assets/js/event-config.js?v=73"></script>
-    <script src="../assets/js/cloud-api.js?v=79"></script>
-    <script src="../assets/js/auth.js?v=58"></script>
-    <script src="../assets/js/evenements-page.js?v=9"></script>
+    <script src="../assets/js/cloud-api.js?v=81"></script>
+    <script src="../assets/js/organizer-identity.js?v=1"></script>
+    <script src="../assets/js/auth.js?v=61"></script>
+    <script src="../assets/js/event-metrics.js?v=1"></script>
+    <script src="../assets/js/evenements-page.js?v=11"></script>
 </body>
 </html>

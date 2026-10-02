@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide d'exploitation - Michelline Event</title>
+    <style>
+        @page { size: A4; margin: 16mm; }
+        :root { --ink:#18343b; --muted:#5d6c70; --rose:#b74868; --gold:#b5883d; --mint:#e7f1ee; --paper:#fffdf9; --line:#d9e1df; }
+        * { box-sizing: border-box; }
+        body { margin:0; color:var(--ink); background:var(--paper); font:10.2pt/1.55 Georgia, "Times New Roman", serif; }
+        h1,h2,h3,h4 { font-family: Arial, sans-serif; letter-spacing:0; }
+        h1 { font-size:31pt; line-height:1.05; margin:0 0 12px; }
+        h2 { font-size:19pt; border-bottom:2px solid var(--gold); padding-bottom:6px; margin:28px 0 13px; break-after:avoid; }
+        h3 { font-size:13pt; color:var(--rose); margin:20px 0 8px; break-after:avoid; }
+        h4 { font-size:10.5pt; margin:14px 0 5px; }
+        p { margin:7px 0; }
+        a { color:#1d6470; overflow-wrap:anywhere; }
+        code { font:8.7pt "Courier New", monospace; color:#24434a; background:#f0f4f2; padding:1px 3px; overflow-wrap:anywhere; }
+        ul,ol { margin:7px 0 10px; padding-left:21px; }
+        li { margin:3px 0; }
+        table { width:100%; border-collapse:collapse; margin:10px 0 15px; font-family:Arial, sans-serif; font-size:8.6pt; }
+        th { text-align:left; color:#fff; background:var(--ink); font-weight:700; }
+        th,td { vertical-align:top; padding:7px; border:1px solid var(--line); }
+        tr:nth-child(even) td { background:#f6f9f8; }
+        .cover { min-height:260mm; display:flex; flex-direction:column; justify-content:center; border:1px solid var(--line); padding:28mm 20mm; position:relative; background:linear-gradient(145deg,#fffdf9 0%,#f9eee9 48%,#e6f0ed 100%); }
+        .cover:before { content:"MICHELLINE EVENT"; color:var(--gold); font:700 10pt Arial,sans-serif; letter-spacing:3px; }
+        .cover .subtitle { color:var(--rose); font:italic 17pt Georgia,serif; margin:4px 0 36px; }
+        .cover .meta { border-top:1px solid var(--gold); padding-top:16px; color:var(--muted); font-family:Arial,sans-serif; }
+        .badge { display:inline-block; background:var(--mint); color:#265a52; padding:4px 8px; border-radius:3px; font:700 8pt Arial,sans-serif; text-transform:uppercase; letter-spacing:.6px; }
+        .note, .warning, .success { padding:10px 12px; margin:12px 0; border-left:4px solid; page-break-inside:avoid; font-family:Arial,sans-serif; font-size:9pt; }
+        .note { background:#eef5f7; border-color:#427789; }
+        .warning { background:#fff1ec; border-color:var(--rose); }
+        .success { background:#edf7ef; border-color:#4c8465; }
+        .toc { columns:2; column-gap:30px; font-family:Arial,sans-serif; }
+        .toc li { break-inside:avoid; }
+        .flow { display:grid; grid-template-columns:repeat(5,1fr); gap:5px; margin:13px 0; font-family:Arial,sans-serif; font-size:8pt; text-align:center; }
+        .flow div { background:var(--mint); padding:8px 4px; border-top:3px solid var(--gold); }
+        .page-break { break-before:page; }
+        .no-break { break-inside:avoid; }
+        .small { color:var(--muted); font-size:8.5pt; }
+        .checklist li { list-style:"□  "; padding-left:4px; }
+        .footer { border-top:1px solid var(--line); margin-top:24px; padding-top:8px; color:var(--muted); font:8pt Arial,sans-serif; }
+        @media print { .page-break { break-before:page; } a { text-decoration:none; } }
+    </style>
+</head>
+<body>
+    <section class="cover">
+        <span class="badge">Document interne - exploitation</span>
+        <h1>Guide complet<br>de la plateforme</h1>
+        <p class="subtitle">Invitations numériques, RSVP, QR et check-in</p>
+        <div class="meta">
+            <p><strong>Plateforme :</strong> Michelline Event</p>
+            <p><strong>Site de production :</strong> <a href="https://michelline-invitations.vercel.app">https://michelline-invitations.vercel.app</a></p>
+            <p><strong>Version du guide :</strong> 14 septembre 2026</p>
+            <p><strong>Public :</strong> administrateur plateforme, organisateurs d'événements et équipe d'accueil.</p>
+        </div>
+    </section>
+
+    <section class="page-break">
+        <h2>Sommaire</h2>
+        <ol class="toc">
+            <li>Mission et principes</li>
+            <li>Liens de production et pages</li>
+            <li>Comptes, mots de passe et accès</li>
+            <li>Rôles et périmètres</li>
+            <li>Parcours de création d'un événement</li>
+            <li>Personnaliser une invitation</li>
+            <li>Gérer les invités et partager les liens</li>
+            <li>RSVP sécurisé et cartes QR</li>
+            <li>Check-in le jour J</li>
+            <li>Supabase, données et déploiement</li>
+            <li>Sécurité et sauvegardes</li>
+            <li>Dépannage et checklist opérationnelle</li>
+        </ol>
+
+        <h2>1. Mission et principes</h2>
+        <p>Michelline Event est une plateforme d'invitations numériques multi-événements. Elle centralise la présentation de l'événement, le programme, le lieu, les médias, la liste des invités, les confirmations RSVP et le contrôle d'accès par QR code.</p>
+        <div class="flow">
+            <div>Créer<br>l'événement</div><div>Personnaliser<br>l'invitation</div><div>Ajouter les<br>invités</div><div>Envoyer les<br>liens personnels</div><div>Scanner les QR<br>le jour J</div>
+        </div>
+        <p><strong>Principe d'isolation :</strong> toutes les données sont rattachées à un identifiant d'événement. Un organisateur ne gère que ses événements autorisés ; chaque invité reçoit un lien individuel ; un QR ne vaut que pour l'événement concerné.</p>
+        <div class="success"><strong>Règle RSVP active :</strong> une personne absente de la liste ne peut pas confirmer sa présence. Sans lien personnel tokenisé, l'écran lui demande de contacter l'organisateur pour être ajoutée. Le serveur Supabase vérifie ensemble l'événement et le token.</div>
+    </section>
+
+    <section class="page-break">
+        <h2>2. Liens de production et pages</h2>
+        <p>Base à utiliser pour les opérations réelles : <a href="https://michelline-invitations.vercel.app">https://michelline-invitations.vercel.app</a>. Les anciens liens GitHub Pages présents dans certaines anciennes notes ne sont pas la référence de production actuelle.</p>
+        <table>
+            <thead><tr><th>Page</th><th>URL de production</th><th>Usage</th><th>Accès</th></tr></thead>
+            <tbody>
+                <tr><td>Accueil</td><td><a href="https://michelline-invitations.vercel.app/">/</a></td><td>Entrée générale de la marque.</td><td>Public</td></tr>
+                <tr><td>Catalogue / offres</td><td><a href="https://michelline-invitations.vercel.app/pages/offres.html">/pages/offres.html</a></td><td>Modèles mariage, anniversaire, conférence et sur mesure ; contact commercial.</td><td>Public</td></tr>
+                <tr><td>Invitation</td><td><code>/pages/invitation.html?event=SLUG</code></td><td>Expérience invitée : enveloppe, programme, lieu, RSVP, QR, livre d'or selon la configuration.</td><td>Public, mais RSVP réservé au lien personnel</td></tr>
+                <tr><td>Connexion</td><td><code>/pages/login.html?event=SLUG</code></td><td>Connexion organisateur avec e-mail et mot de passe Supabase.</td><td>Compte autorisé</td></tr>
+                <tr><td>Administration invités</td><td><code>/pages/admin.html?event=SLUG</code></td><td>Invités, import CSV, messages WhatsApp, relances, RSVP, exports, présence et analytics.</td><td>Organisateur / plateforme</td></tr>
+                <tr><td>Personnalisation</td><td><code>/pages/personnalisation.html?event=SLUG</code></td><td>Textes, date, photos, musique, programme, lieu, couleurs, RSVP et liens.</td><td>Organisateur / plateforme</td></tr>
+                <tr><td>Liste événements</td><td><a href="https://michelline-invitations.vercel.app/pages/evenements.html">/pages/evenements.html</a></td><td>Vue et gestion des événements de l'espace autorisé.</td><td>Organisateur / plateforme</td></tr>
+                <tr><td>Check-in</td><td><code>/pages/checkin.html?event=SLUG</code></td><td>Scan ou saisie du QR code à l'entrée.</td><td>Équipe autorisée</td></tr>
+                <tr><td>Partage</td><td><a href="https://michelline-invitations.vercel.app/pages/partager.html">/pages/partager.html</a></td><td>Kit de partage et ressources promotionnelles.</td><td>Selon accès</td></tr>
+                <tr><td>Formulaires</td><td><a href="https://michelline-invitations.vercel.app/pages/formulaires.html">/pages/formulaires.html</a></td><td>Outils et formulaires complémentaires.</td><td>Selon accès</td></tr>
+                <tr><td>Objectifs</td><td><a href="https://michelline-invitations.vercel.app/pages/objectifs.html">/pages/objectifs.html</a></td><td>Suivi des objectifs de l'espace.</td><td>Selon accès</td></tr>
+                <tr><td>Centre</td><td><a href="https://michelline-invitations.vercel.app/pages/centre.html">/pages/centre.html</a></td><td>Centre d'accueil et d'orientation.</td><td>Selon accès</td></tr>
+                <tr><td>Configuration cloud</td><td><a href="https://michelline-invitations.vercel.app/pages/setup-supabase.html">/pages/setup-supabase.html</a></td><td>Assistant technique Supabase. Ne pas donner aux invités.</td><td>Administrateur technique</td></tr>
+            </tbody>
+        </table>
+        <p><strong>Exemple de lien invité personnel :</strong> <code>https://michelline-invitations.vercel.app/pages/invitation.html?event=mariage-de-herve-et-noella&t=TOKEN_PERSONNEL</code>. Ne jamais fabriquer ou modifier le token à la main : il est généré pour un invité précis.</p>
+    </section>
+
+    <section class="page-break">
+        <h2>3. Comptes, mots de passe et accès</h2>
+        <div class="warning"><strong>Ce PDF ne contient aucun mot de passe, token invité, clé privée ni clé Supabase <code>service_role</code>.</strong> Ces valeurs donnent accès à des données personnelles. Les écrire dans un PDF partagé, un message WhatsApp ou un dépôt Git constitue un risque de sécurité.</div>
+        <p>L'authentification active est gérée par <strong>Supabase Auth</strong>. Chaque organisateur utilise son adresse e-mail et son propre mot de passe sur la page de connexion. Les invités ne créent pas de compte : leur lien personnel fait foi.</p>
+        <table>
+            <thead><tr><th>Identifiant</th><th>Où le gérer</th><th>Règle</th></tr></thead>
+            <tbody>
+                <tr><td>Compte organisateur</td><td>Supabase Dashboard → Authentication → Users</td><td>Créer un compte e-mail distinct par organisateur ; attribuer son événement par <code>owner_id</code>.</td></tr>
+                <tr><td>Compte plateforme</td><td>Table <code>profiles</code></td><td>Rôle <code>platform</code> réservé au responsable de la plateforme.</td></tr>
+                <tr><td>Mot de passe Supabase</td><td>Gestionnaire de mots de passe de l'équipe</td><td>Unique, long, non partagé par WhatsApp. Réinitialiser via Supabase si nécessaire.</td></tr>
+                <tr><td>Token invité</td><td>Généré dans l'administration invités</td><td>Individuel, non réutilisable entre événements, à envoyer seulement à l'invité concerné.</td></tr>
+                <tr><td>Clé API publique <code>anon</code></td><td><code>assets/js/supabase-config.js</code></td><td>Visible côté navigateur ; protégée par RLS. Elle n'est pas un mot de passe.</td></tr>
+                <tr><td>Clé <code>service_role</code> et mot de passe base</td><td>Supabase Dashboard / coffre-fort</td><td>Strictement secrets ; jamais dans le site, le PDF ou Git.</td></tr>
+            </tbody>
+        </table>
+        <h3>Registre sécurisé à compléter hors de ce document</h3>
+        <table><thead><tr><th>Rôle / événement</th><th>E-mail du compte</th><th>Responsable</th><th>Emplacement dans le coffre-fort</th><th>Dernière rotation</th></tr></thead><tbody><tr><td>Plateforme</td><td>________________</td><td>________________</td><td>________________</td><td>________________</td></tr><tr><td>Organisateur</td><td>________________</td><td>________________</td><td>________________</td><td>________________</td></tr><tr><td>Staff jour J</td><td>________________</td><td>________________</td><td>________________</td><td>________________</td></tr></tbody></table>
+        <p class="small">Les anciens codes de démonstration ou codes « concepteur » figurant dans une documentation historique ne doivent pas remplacer les comptes e-mail/mot de passe Supabase en production. Les désactiver ou les remplacer s'ils sont encore actifs.</p>
+    </section>
+
+    <section class="page-break">
+        <h2>4. Rôles et périmètres</h2>
+        <table>
+            <thead><tr><th>Rôle</th><th>Ce qu'il peut faire</th><th>Ce qu'il ne doit pas faire</th></tr></thead>
+            <tbody>
+                <tr><td>Administrateur plateforme</td><td>Créer/supprimer les événements gérés, attribuer les propriétaires, superviser toutes les opérations, administrer Supabase.</td><td>Partager son compte, utiliser la clé <code>service_role</code> dans le navigateur, modifier les données d'un client sans demande validée.</td></tr>
+                <tr><td>Organisateur client</td><td>Personnaliser son événement, gérer ses invités, envoyer les liens, suivre RSVP et exports.</td><td>Accéder aux événements d'un autre client ou communiquer les liens personnels de toute la liste.</td></tr>
+                <tr><td>Staff check-in</td><td>Ouvrir le check-in de l'événement assigné, scanner les QR approuvés, suivre les entrées.</td><td>Utiliser le compte plateforme ou modifier les invités sans mandat.</td></tr>
+                <tr><td>Invité</td><td>Consulter son invitation, confirmer selon son lien individuel, afficher sa carte QR après confirmation.</td><td>Transmettre son lien, essayer de confirmer pour une autre personne ou modifier l'URL de l'événement.</td></tr>
+            </tbody>
+        </table>
+        <h2>5. Créer et ouvrir un événement</h2>
+        <ol>
+            <li>Créer d'abord le compte e-mail de l'organisateur dans Supabase Auth.</li>
+            <li>Se connecter avec le compte plateforme et ouvrir l'administration ou la liste des événements.</li>
+            <li>Créer la nouvelle invitation ; utiliser un identifiant court, unique et stable, par exemple <code>mariage-jean-marie-2027</code>.</li>
+            <li>Associer le nouvel événement au compte e-mail de l'organisateur. Cette association détermine l'accès aux données.</li>
+            <li>Ouvrir <code>/pages/personnalisation.html?event=SLUG</code>, compléter les informations, puis enregistrer.</li>
+            <li>Ouvrir l'invitation dans une fenêtre privée et vérifier l'affichage public.</li>
+            <li>Ajouter les invités seulement lorsque le contenu est validé.</li>
+        </ol>
+        <div class="note"><strong>Convention :</strong> le <code>SLUG</code> apparaît dans toutes les URLs. Ne le changez pas après avoir partagé des liens ; créez plutôt un nouvel événement si une erreur fondamentale est détectée.</div>
+    </section>
+
+    <section class="page-break">
+        <h2>6. Personnaliser une invitation</h2>
+        <p>Ouvrir <code>/pages/personnalisation.html?event=SLUG</code>. Les modifications sont enregistrées dans la configuration de l'événement et synchronisées avec le cloud.</p>
+        <table>
+            <thead><tr><th>Section</th><th>Paramètres importants</th><th>Contrôle avant partage</th></tr></thead>
+            <tbody>
+                <tr><td>Identité</td><td>Titre, sous-titre, prénoms, messages d'invitation.</td><td>Orthographe des noms, date et ton du message.</td></tr>
+                <tr><td>Porte d'entrée</td><td>Message de l'enveloppe et consigne d'accueil.</td><td>Tester sur téléphone ; le texte doit rester court.</td></tr>
+                <tr><td>RSVP</td><td>Texte du bouton, date limite, lien externe facultatif.</td><td>Le bouton ne doit pas promettre une confirmation aux personnes sans lien personnel.</td></tr>
+                <tr><td>Date et lieu</td><td>Date/heure, nom de salle, adresse, latitude/longitude, lien Google Maps, image de carte.</td><td>Cliquer le lien Maps et vérifier fuseau horaire / horaire affiché.</td></tr>
+                <tr><td>Programme</td><td>Étapes, horaires, intitulés et couleurs.</td><td>Ordre chronologique, horaires réalistes et lisibles.</td></tr>
+                <tr><td>Infos pratiques</td><td>Parking, transport, hébergement, consignes.</td><td>Retirer toute information provisoire avant l'envoi.</td></tr>
+                <tr><td>Photos</td><td>Image d'accueil, bannière, galerie, histoire du couple, code vestimentaire.</td><td>Vérifier cadrage mobile et autorisation d'usage des photos.</td></tr>
+                <tr><td>Musique et couleurs</td><td>Ambiance, fichier audio, palette RSVP.</td><td>Tester sans son et avec connexion mobile.</td></tr>
+                <tr><td>Liens et SEO</td><td>Image/texte de partage, liens publics.</td><td>Partager une URL de test WhatsApp pour vérifier l'aperçu.</td></tr>
+            </tbody>
+        </table>
+        <p><strong>WhatsApp :</strong> la prévisualisation est calculée côté serveur pour la page invitation. Après un changement d'image ou de titre, testez une URL avec un paramètre de test, par exemple <code>&amp;v=controle-1</code>. WhatsApp peut conserver son propre cache quelques heures.</p>
+    </section>
+
+    <section class="page-break">
+        <h2>7. Gérer les invités et partager les liens</h2>
+        <p>Ouvrir <code>/pages/admin.html?event=SLUG</code>, onglet <strong>Invités</strong>.</p>
+        <h3>Ajout et import</h3>
+        <ol>
+            <li>Pour quelques personnes, utilisez « Ajouter un invité » : nom complet obligatoire, puis téléphone, e-mail, groupe, table et photo si souhaitée.</li>
+            <li>Pour une liste importante, préparez un CSV au format <code>nom,telephone,groupe,email</code>. Le modèle est téléchargeable depuis l'admin.</li>
+            <li>Importez le fichier, contrôlez le résultat, puis recherchez les doublons par nom ou téléphone.</li>
+            <li>Complétez la table attribuée et les options jour J avant l'envoi lorsque ces données sont connues.</li>
+        </ol>
+        <h3>Envoi WhatsApp</h3>
+        <p>Le modèle de message accepte les variables <code>{nom}</code> et <code>{lien}</code>. Chaque lien est personnel. Envoyez-le individuellement au numéro vérifié de l'invité, sans diffuser le lien dans un groupe.</p>
+        <div class="warning"><strong>Ne partagez jamais le lien public de l'événement comme lien RSVP.</strong> Il permet de découvrir l'invitation, mais ne permet pas de confirmer. L'invité doit recevoir le lien généré depuis sa fiche, contenant son token personnel.</div>
+        <h3>Suivi administratif</h3>
+        <table><thead><tr><th>Onglet</th><th>Utilisation</th></tr></thead><tbody><tr><td>Vue d'ensemble</td><td>Nombre total d'invités, confirmés, en attente, adultes et enfants.</td></tr><tr><td>Relances</td><td>Relancer les personnes encore en attente.</td></tr><tr><td>Confirmations</td><td>Vérifier les RSVP synchronisés.</td></tr><tr><td>Présence jour J</td><td>Comparer confirmés, entrés et encore attendus.</td></tr><tr><td>Analytics</td><td>Consulter l'activité enregistrée.</td></tr><tr><td>Exports</td><td>Exporter liens CSV, rapport RSVP et JSON complet pour archive.</td></tr></tbody></table>
+    </section>
+
+    <section class="page-break">
+        <h2>8. RSVP sécurisé et cartes QR</h2>
+        <h3>Comportement attendu</h3>
+        <ol>
+            <li>L'invité ouvre son URL personnelle contenant <code>event=SLUG</code> et <code>t=TOKEN</code>.</li>
+            <li>Le site résout le profil associé au token.</li>
+            <li>Après confirmation, la réponse est enregistrée pour l'événement exact et le QR/code d'accès est préparé.</li>
+            <li>L'invité montre la carte QR à l'entrée ; le staff contrôle sa validité avec le check-in.</li>
+        </ol>
+        <h3>Protections en place</h3>
+        <ul>
+            <li>Sans token personnel ou si le profil ne correspond pas, le RSVP est bloqué avec le message de contact organisateur.</li>
+            <li>Le token doit appartenir au même événement que le paramètre <code>event</code>.</li>
+            <li>Une invitation déjà traitée ne peut pas être confirmée une seconde fois sans intervention de l'organisateur.</li>
+            <li>La fonction Supabase <code>submit_guest_rsvp</code> recherche l'invité par <code>event_id</code> et <code>token</code> avant tout enregistrement.</li>
+            <li>Le QR dépend de l'invité confirmé et de l'autorisation QR.</li>
+        </ul>
+        <h3>Test à réaliser avant l'envoi général</h3>
+        <ol class="checklist">
+            <li>Ajouter un invité test avec votre propre téléphone.</li>
+            <li>Envoyer son lien personnel sur WhatsApp et l'ouvrir dans une fenêtre privée.</li>
+            <li>Confirmer la présence et vérifier la carte QR obtenue.</li>
+            <li>Ouvrir ensuite l'URL publique sans <code>t=TOKEN</code> ; la confirmation doit être refusée.</li>
+            <li>Tester le QR dans la page check-in avec le bon événement.</li>
+        </ol>
+    </section>
+
+    <section class="page-break">
+        <h2>9. Check-in le jour J</h2>
+        <p>Adresse staff : <code>/pages/checkin.html?event=SLUG</code>. Préparer un téléphone chargé, connexion internet stable, batterie externe et une liste exportée de secours.</p>
+        <ol>
+            <li>Ouvrir la page avec le bon <code>SLUG</code> et vérifier le nom de l'événement affiché.</li>
+            <li>Autoriser l'accès caméra si le navigateur le demande.</li>
+            <li>Scanner la carte QR de l'invité.</li>
+            <li>Vérifier la réponse affichée : entrée acceptée, déjà scanné, QR non approuvé ou QR inconnu.</li>
+            <li>En cas de difficulté, rechercher l'invité dans l'administration au lieu de créer une nouvelle entrée sans contrôle.</li>
+            <li>Rafraîchir régulièrement l'onglet « Présence jour J » dans l'administration pour suivre les chiffres.</li>
+        </ol>
+        <table><thead><tr><th>Résultat</th><th>Action staff</th></tr></thead><tbody><tr><td>QR accepté</td><td>Accueillir l'invité. L'entrée est tracée avec heure et événement.</td></tr><tr><td>Déjà scanné</td><td>Contrôler l'identité et appeler le responsable avant de laisser entrer.</td></tr><tr><td>QR non approuvé / absent</td><td>Ne pas improviser. Chercher la fiche ; l'organisateur décide d'une autorisation manuelle.</td></tr><tr><td>Mauvais événement</td><td>Contrôler l'URL du check-in et utiliser l'événement correct.</td></tr><tr><td>Pas de réseau</td><td>Utiliser l'export de secours, noter heure et nom, puis régulariser dans le système dès retour de connexion.</td></tr></tbody></table>
+    </section>
+
+    <section class="page-break">
+        <h2>10. Supabase, données et déploiement</h2>
+        <p><strong>Projet Supabase :</strong> <a href="https://qotolnmwoceahrnldlbw.supabase.co">https://qotolnmwoceahrnldlbw.supabase.co</a>. Cette base héberge les événements, propriétaires, invités, RSVP, configurations, présence, livre d'or et analytics.</p>
+        <table><thead><tr><th>Composant</th><th>Responsabilité</th><th>Référence locale</th></tr></thead><tbody><tr><td>Événements</td><td>Identité, slug, propriétaire, publication et configuration.</td><td><code>events</code>, <code>event_settings</code></td></tr><tr><td>Invités</td><td>Fiche, token, statut, table, QR et données RSVP.</td><td><code>guests</code>, <code>rsvps</code></td></tr><tr><td>Check-in</td><td>Passages à l'entrée par événement et token.</td><td><code>check_ins</code></td></tr><tr><td>RLS / RPC</td><td>Isolation des propriétaires et actions invitées contrôlées.</td><td><code>docs/SUPABASE-RLS-CORE.sql</code></td></tr><tr><td>Médias</td><td>Images et musiques classées par événement dans Storage.</td><td>Bucket <code>event-assets</code></td></tr></tbody></table>
+        <h3>Scripts SQL dans l'ordre</h3>
+        <ol>
+            <li><code>docs/SUPABASE-SETUP.sql</code> : tables de base.</li>
+            <li><code>docs/SUPABASE-SEED.sql</code> : uniquement pour installer des données de démonstration.</li>
+            <li><code>docs/SUPABASE-AUTH-FOUNDATION.sql</code> : profils Auth et propriétaires.</li>
+            <li><code>docs/SUPABASE-RLS-CORE.sql</code> : politiques RLS, RPC RSVP événement + token, création et suppression contrôlées.</li>
+            <li><code>docs/SUPABASE-STORAGE-RLS.sql</code> : droits Storage par propriétaire.</li>
+            <li>Scripts spécialisés seulement si nécessaire : check-ins, options invités, QR, migration de personnalisation.</li>
+        </ol>
+        <div class="warning"><strong>Important :</strong> ne modifiez ni ne supprimez directement les tables internes de Storage. Utilisez l'API Storage. Ne lancez pas un script SQL en production sans sauvegarde/export préalable.</div>
+        <h3>Publication Vercel</h3>
+        <p>Le dépôt GitHub est <a href="https://github.com/alphagiven7-collab/invitation_mariage">github.com/alphagiven7-collab/invitation_mariage</a>. Après contrôle local, publier avec <code>git add</code>, <code>git commit</code>, <code>git push origin main</code>, puis déployer Vercel si nécessaire. Vérifier l'URL de production et l'invitation après chaque déploiement.</p>
+    </section>
+
+    <section class="page-break">
+        <h2>11. Sécurité, sauvegardes et dépannage</h2>
+        <h3>Règles non négociables</h3>
+        <ul>
+            <li>Ne jamais exposer les mots de passe, tokens invités, mot de passe de base, clé <code>service_role</code> ou sessions administrateur.</li>
+            <li>Vérifier que <code>SUPABASE-RLS-CORE.sql</code> est exécuté avant toute ouverture au public.</li>
+            <li>Créer un compte différent par organisateur et attribuer correctement <code>owner_id</code>.</li>
+            <li>Exporter les invités et RSVP avant toute opération de migration ou suppression d'événement.</li>
+            <li>Supprimer les accès staff temporaires après l'événement et changer les mots de passe en cas de doute.</li>
+            <li>Limiter les informations personnelles dans les photos, exports et captures d'écran partagées.</li>
+        </ul>
+        <h3>Dépannage courant</h3>
+        <table><thead><tr><th>Symptôme</th><th>Cause probable</th><th>Action</th></tr></thead><tbody><tr><td>Erreur 401 / 403</td><td>Compte non connecté, propriétaire incorrect ou politique RLS.</td><td>Se reconnecter ; vérifier <code>owner_id</code>, profil et scripts RLS.</td></tr><tr><td>Invitation non trouvée</td><td>Slug incorrect ou événement non publié.</td><td>Vérifier l'URL et la configuration de l'événement.</td></tr><tr><td>RSVP refusé</td><td>Pas de token, token d'un autre événement, lien déjà répondu.</td><td>Envoyer le lien généré depuis la fiche invité ou contacter l'organisateur.</td></tr><tr><td>Image non visible</td><td>Import non terminé, URL invalide ou droits Storage.</td><td>Tester l'URL de l'image et les règles Storage ; réimporter au besoin.</td></tr><tr><td>Aperçu WhatsApp ancien</td><td>Cache de WhatsApp.</td><td>Tester une URL avec <code>&amp;v=controle-2</code> et attendre le renouvellement du cache.</td></tr><tr><td>QR refusé à l'entrée</td><td>Mauvais événement, QR non approuvé ou déjà scanné.</td><td>Vérifier la fiche invité, le statut QR et l'écran check-in.</td></tr></tbody></table>
+        <h3>Checklist avant envoi</h3>
+        <ol class="checklist"><li>Contenu, date, adresse et GPS vérifiés.</li><li>Invitation testée sur téléphone iPhone et Android si possible.</li><li>Image de partage WhatsApp contrôlée.</li><li>Compte organisateur et propriété de l'événement validés.</li><li>Invités importés sans doublons ; numéros vérifiés.</li><li>Lien personnel, RSVP et QR testés avec un invité test.</li><li>Export invités/RSVP conservé dans un emplacement sécurisé.</li><li>Équipe check-in briefée, appareils chargés et procédure hors ligne prête.</li></ol>
+        <p class="footer">Michelline Event - Guide d'exploitation interne. Source : configuration et comportements de la plateforme au 14 septembre 2026. Les informations d'accès doivent être tenues à jour dans un coffre-fort de mots de passe, jamais dans ce PDF.</p>
+    </section>
+</body>
+</html>

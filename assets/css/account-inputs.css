@@ -1,0 +1,13 @@
+.phone-field,.password-field { display:flex; align-items:center; width:100%; position:relative; }
+.phone-field { background:#fff; border:1px solid #cbd5e1; border-radius:10px; overflow:hidden; }
+.phone-field:focus-within { outline:2px solid #8c4960; outline-offset:2px; }
+.phone-prefix { flex:none; padding:0 12px; color:#5c1830; font-weight:650; border-right:1px solid #e2e8f0; font-size:.88rem; }
+.phone-prefix[hidden] { display:none; }
+.phone-field input.admin-input,.phone-field input.dash-input { border:0; outline:none; box-shadow:none; flex:1; min-width:0; width:100%; border-radius:0; }
+.password-field input { width:100%; min-width:0; padding-right:48px!important; }
+.password-toggle { position:absolute; right:4px; top:50%; transform:translateY(-50%); display:grid; place-items:center; width:40px; height:40px; border:0; border-radius:8px; background:transparent; color:#64748b; cursor:pointer; }
+.password-toggle:hover { background:#f1f5f9; color:#5c1830; }
+.password-toggle:focus-visible { outline:2px solid #5c1830; }
+.password-toggle .eye-slash { display:none; }
+.password-toggle[aria-pressed="true"] .eye-slash { display:block; }
+.login-mode-link { border:0; background:none; padding:5px 0; margin:4px 0 16px; color:#5c1830; text-decoration:underline; text-underline-offset:4px; font-size:.8rem; cursor:pointer; }

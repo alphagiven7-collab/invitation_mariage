@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="color-scheme" content="light dark">
+    <meta name="color-scheme" content="light">
     <title>Invitation</title>
     <meta name="description" id="meta-description" content="Invitation à un événement.">
     <meta property="og:title" id="meta-og-title" content="Invitation">
@@ -21,21 +21,19 @@
     <meta name="twitter:image" id="meta-twitter-image" content="https://michelline-invitations.vercel.app/assets/images/previews/preview-demo.png">
     <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#4caf50">
-    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=57">
+    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=58">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
-    <link rel="preconnect" href="https://unpkg.com" crossorigin>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Great+Vibes&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@0.469.0"></script>
-    <link rel="stylesheet" href="../assets/css/app.css?v=82">
+    <script defer src="../assets/js/vendor/lucide-0.469.0.min.js?v=1"></script>
+    <link rel="stylesheet" href="../assets/css/app.css?v=83">
     <link rel="stylesheet" href="../assets/css/gallery-enhancement.css?v=1">
     <link rel="stylesheet" href="../assets/css/program-presentation.css?v=2">
-    <link rel="stylesheet" href="../assets/css/drink-menu.css?v=34">
+    <link rel="stylesheet" href="../assets/css/drink-menu.css?v=35">
     <script>
         if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("../sw.js?v=58").catch(() => {});
+            navigator.serviceWorker.register("../sw.js?v=60").catch(() => {});
         }
     </script>
     <style>
@@ -78,9 +76,11 @@
         </button>
     </div>
 
-    <audio id="background-music" loop preload="none" class="hidden"></audio>
+    <audio id="background-music" loop preload="auto" playsinline class="hidden"></audio>
 
     <div id="welcome-gate" class="fixed inset-0 z-[100] welcome-gate-bg backdrop-blur-sm flex items-center justify-center px-5 transition-opacity duration-500">
+        <div class="gate-door gate-door--left" aria-hidden="true"></div>
+        <div class="gate-door gate-door--right" aria-hidden="true"></div>
         <div class="w-full max-w-sm welcome-envelope-shell rounded-3xl p-6 text-center">
             <div class="relative z-10">
                 <div class="envelope-seal mx-auto mb-4">
@@ -159,6 +159,10 @@
                     <p class="invite-greeting font-serif">
                         Cher/Chere <span id="display-guest-name" class="invite-guest-name">Invite(e)</span>,
                     </p>
+                    <p id="invite-table-assignment" class="invite-table-assignment" hidden>
+                        <span>Votre table</span>
+                        <strong id="invite-table-number"></strong>
+                    </p>
 
                     <p id="invite-intro-paragraph" class="invite-body-text">
                         C'est avec une grande joie que <strong id="invite-couple-display" class="invite-emphasis">nos hôtes</strong> vous invitent à célébrer leur mariage.
@@ -197,7 +201,7 @@
                 </div>
 
                 <!-- Calendrier -->
-                <div class="event-calendar mb-8 bg-gray-50 rounded-xl p-4 border border-gray-100">
+                <div class="event-calendar mb-8 bg-gray-50 rounded-xl p-4 border border-gray-100" data-event-section="calendar">
                     <div class="flex justify-between items-center mb-4">
                         <i data-lucide="chevron-left" class="w-4 h-4 text-gray-300"></i>
                         <span id="calendar-month-label" class="font-semibold text-[11px] text-gray-600 uppercase tracking-widest">Avril 2026</span>
@@ -209,7 +213,7 @@
                     <div id="calendar-days" class="grid grid-cols-7 gap-1 text-center text-[11px] text-gray-500" aria-label="Calendrier du mois de l'événement"></div>
                 </div>
 
-                <button type="button" id="add-to-calendar-btn" class="btn-with-loader w-full mb-6 inline-flex justify-center items-center gap-2 py-3 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold transition">
+                <button type="button" id="add-to-calendar-btn" data-event-section="calendar" class="btn-with-loader w-full mb-6 inline-flex justify-center items-center gap-2 py-3 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold transition">
                     <i data-lucide="calendar-plus" class="w-4 h-4"></i>
                     <span>Ajouter au calendrier</span>
                 </button>
@@ -401,7 +405,7 @@
                     <p id="drink-menu-subtitle" class="text-[11px] text-gray-500 leading-relaxed max-w-sm mx-auto">Sélectionnez vos préférences pour le jour J (optionnel).</p>
                 </div>
                 <div id="drink-menu-grid" class="drink-menu-grid px-4 pb-4"></div>
-                <p class="drink-menu-footnote text-[10px] text-center text-gray-400 px-4 pb-4">Vos choix seront repris automatiquement lors de la confirmation RSVP.</p>
+                <p class="drink-menu-footnote text-[10px] text-center text-gray-400 px-4 pb-4">Choisissez vos boissons ici avant de confirmer votre présence.</p>
             </div>
         </section>
 
@@ -605,19 +609,16 @@
             <div class="w-full bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
                 <div class="bg-gradient-to-r from-rose-500 to-pink-600 p-4 text-white">
                     <div class="flex items-center justify-between">
-                        <h3 id="rsvp-modal-title" class="font-serif text-xl">Formulaire RSVP</h3>
+                        <h3 id="rsvp-modal-title" class="font-serif text-xl">Confirmer votre présence</h3>
                         <button type="button" onclick="closeModal('rsvp-modal')" class="text-xs bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full transition">Fermer</button>
                     </div>
                     <p id="rsvp-modal-deadline" class="text-[11px] text-white/90 mt-1">Merci de confirmer votre présence avant le 25 avril.</p>
                 </div>
                 <form id="rsvp-form" class="p-4 space-y-3">
+                    <p id="rsvp-form-help" class="text-xs leading-relaxed text-gray-600">Indiquez votre nom, choisissez votre réponse, puis confirmez.</p>
                     <div>
                         <label for="rsvp-name" class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Nom complet</label>
                         <input id="rsvp-name" type="text" required class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200" placeholder="Votre nom">
-                    </div>
-                    <div id="rsvp-phone-field">
-                        <label for="rsvp-phone" class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Téléphone</label>
-                        <input id="rsvp-phone" type="tel" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200" placeholder="+243 ...">
                     </div>
                     <div>
                         <span class="block text-[11px] uppercase tracking-wider text-gray-500 mb-2">Présence</span>
@@ -649,35 +650,39 @@
                             </label>
                         </div>
                     </div>
-                    <div id="rsvp-count-fields" class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label for="rsvp-adults" class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Adultes</label>
-                            <input id="rsvp-adults" type="number" min="1" max="10" value="1" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200">
-                        </div>
-                        <div>
-                            <label for="rsvp-children" class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Enfants</label>
-                            <input id="rsvp-children" type="number" min="0" max="10" value="0" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200">
-                        </div>
-                    </div>
                     <div id="rsvp-message-field">
                         <label for="rsvp-message" class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Message (facultatif)</label>
                         <textarea id="rsvp-message" rows="3" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200" placeholder="Votre message aux mariés..."></textarea>
                     </div>
-                    <div id="rsvp-photo-field">
-                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Photo sur votre carte (facultatif)</label>
-                        <label for="rsvp-profile-photo" class="rsvp-profile-upload-btn">
-                            Ajouter ma photo
-                            <input id="rsvp-profile-photo" type="file" accept="image/*" class="hidden">
-                        </label>
-                        <img id="rsvp-profile-preview" class="rsvp-profile-preview hidden" alt="Aperçu de votre photo" loading="lazy" decoding="async">
-                    </div>
-                    <div id="rsvp-drinks-section" class="hidden">
-                        <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-2">Menu des boissons</label>
-                        <p id="rsvp-drinks-hint" class="text-[11px] text-gray-400 mb-3">Optionnel — plusieurs choix possibles.</p>
-                        <div id="rsvp-drink-options" class="drink-menu-grid drink-menu-grid--modal"></div>
-                    </div>
+                    <details id="rsvp-extra-details" class="rsvp-extra-details">
+                        <summary>Ajouter des précisions (facultatif)</summary>
+                        <div class="mt-3 space-y-3">
+                            <div id="rsvp-phone-field">
+                                <label for="rsvp-phone" class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Téléphone</label>
+                                <input id="rsvp-phone" type="tel" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200" placeholder="+243 ...">
+                            </div>
+                            <div id="rsvp-count-fields" class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label for="rsvp-adults" class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Adultes</label>
+                                    <input id="rsvp-adults" type="number" min="1" max="10" value="1" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200">
+                                </div>
+                                <div>
+                                    <label for="rsvp-children" class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Enfants</label>
+                                    <input id="rsvp-children" type="number" min="0" max="10" value="0" class="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-pink-200">
+                                </div>
+                            </div>
+                            <div id="rsvp-photo-field">
+                                <label class="block text-[11px] uppercase tracking-wider text-gray-500 mb-1">Photo sur votre carte (facultatif)</label>
+                                <label for="rsvp-profile-photo" class="rsvp-profile-upload-btn">
+                                    Ajouter ma photo
+                                    <input id="rsvp-profile-photo" type="file" accept="image/*" class="hidden">
+                                </label>
+                                <img id="rsvp-profile-preview" class="rsvp-profile-preview hidden" alt="Aperçu de votre photo" loading="lazy" decoding="async">
+                            </div>
+                        </div>
+                    </details>
                     <button id="rsvp-submit-btn" type="submit" class="btn-rsvp btn-with-loader w-full rounded-xl py-3 text-sm font-semibold transition">
-                        Envoyer ma réponse RSVP
+                        Confirmer ma réponse
                     </button>
                 </form>
             </div>
@@ -900,7 +905,7 @@
                             <span class="confirm-info-label">Table réservée</span>
                             <strong id="confirm-table-line" class="confirm-info-value"></strong>
                         </div>
-                        <div class="confirm-info-item confirm-info-item--wide">
+                        <div class="confirm-info-item confirm-info-item--wide" data-event-section="drinkMenu">
                             <span class="confirm-info-label">Boissons choisies</span>
                             <strong id="confirm-drinks-line" class="confirm-info-value"></strong>
                         </div>
@@ -933,30 +938,30 @@
     </div>
 
     <!-- Scripts pour l'interactivité -->
-    <script src="../assets/js/button-loading.js?v=34"></script>
-    <script src="../assets/js/media-upload.js?v=36"></script>
-    <script src="../assets/js/supabase-config.js?v=53"></script>
-    <script src="../assets/js/django-api-config.js?v=53"></script>
-    <script src="../assets/js/django-api.js?v=53"></script>
-    <script src="../assets/js/event-config.js?v=78"></script>
-    <script src="../assets/js/cloud-api.js?v=79"></script>
-    <script src="../assets/js/dashboard-sync.js?v=55"></script>
-    <script src="../assets/js/guest-manager.js?v=72"></script>
-    <script src="../assets/js/checkin-url.js?v=50"></script>
-    <script src="../assets/js/access-pass-export.js?v=53"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-    <script src="../assets/js/invitation-pdf.js?v=10"></script>
-    <script src="../assets/js/content-blocks.js?v=41"></script>
-    <script src="../assets/js/calendar-export.js?v=35"></script>
-    <script src="../assets/js/background-music.js?v=35"></script>
-    <script src="../assets/js/countdown.js?v=36"></script>
-    <script src="../assets/js/lucide-init.js?v=34"></script>
-    <script src="../assets/js/i18n.js?v=34"></script>
-    <script src="../assets/js/drink-generic-images.js?v=34"></script>
-    <script src="../assets/js/drink-menu.js?v=34"></script>
-    <script src="../assets/js/app.js?v=76"></script>
+    <script defer src="../assets/js/button-loading.js?v=34"></script>
+    <script defer src="../assets/js/media-upload.js?v=36"></script>
+    <script defer src="../assets/js/supabase-config.js?v=53"></script>
+    <script defer src="../assets/js/django-api-config.js?v=53"></script>
+    <script defer src="../assets/js/django-api.js?v=53"></script>
+    <script defer src="../assets/js/event-config.js?v=79"></script>
+    <script defer src="../assets/js/cloud-api.js?v=80"></script>
+    <script defer src="../assets/js/dashboard-sync.js?v=55"></script>
+    <script defer src="../assets/js/guest-manager.js?v=72"></script>
+    <script defer src="../assets/js/checkin-url.js?v=50"></script>
+    <script defer src="../assets/js/access-pass-export.js?v=53"></script>
+    <script defer src="../assets/js/vendor/qrcode-1.5.4.min.js?v=1"></script>
+    <script defer src="../assets/js/invitation-pdf.js?v=10"></script>
+    <script defer src="../assets/js/content-blocks.js?v=41"></script>
+    <script defer src="../assets/js/calendar-export.js?v=35"></script>
+    <script defer src="../assets/js/background-music.js?v=39"></script>
+    <script defer src="../assets/js/countdown.js?v=36"></script>
+    <script defer src="../assets/js/lucide-init.js?v=35"></script>
+    <script defer src="../assets/js/i18n.js?v=34"></script>
+    <script defer src="../assets/js/drink-generic-images.js?v=34"></script>
+    <script defer src="../assets/js/drink-menu.js?v=36"></script>
+    <script defer src="../assets/js/app.js?v=78"></script>
     <script defer src="../assets/js/gallery-enhancement.js?v=1"></script>
-    <script src="../assets/js/guest-experience.js?v=92"></script>
+    <script defer src="../assets/js/guest-experience.js?v=95"></script>
     <script>
         // Fallback robuste si app.js ne se charge pas complètement
         (function () {
@@ -1326,7 +1331,7 @@
 
             ensureLucideIconsVisible();
             setTimeout(fallbackInitFromStorage, 1200);
-        })();
+        });
     </script>
 </body>
 </html>

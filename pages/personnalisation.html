@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personnalisation — Invitation mariage</title>
-    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=57">
+    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=58">
     <link rel="stylesheet" href="../assets/css/app.css?v=82">
     <link rel="stylesheet" href="../assets/css/admin.css">
     <link rel="stylesheet" href="../assets/css/personnalisation.css">
@@ -63,10 +63,12 @@
                         <label><input type="checkbox" data-module-toggle="program" checked> Programme</label>
                         <label><input type="checkbox" data-module-toggle="practical" checked> Informations pratiques</label>
                         <label><input type="checkbox" data-module-toggle="venue" checked> Lieu et carte</label>
+                        <label><input type="checkbox" data-module-toggle="calendar" checked> Calendrier</label>
                         <label><input type="checkbox" data-module-toggle="countdown" checked> Compte à rebours</label>
                         <label><input type="checkbox" data-module-toggle="dressCode" checked> Code vestimentaire</label>
                         <label><input type="checkbox" data-module-toggle="about" checked> Notre histoire</label>
                         <label><input type="checkbox" data-module-toggle="music" checked> Musique</label>
+                        <label><input type="checkbox" data-module-toggle="drinkMenu" checked> Menu des boissons</label>
                         <label><input type="checkbox" data-module-toggle="donation" checked> Cadeaux / dons</label>
                         <label><input type="checkbox" data-module-toggle="supportContact" checked> Contact Michelline Event</label>
                     </div>
@@ -133,6 +135,13 @@
                 <section class="admin-card perso-section" id="sec-rsvp">
                     <h2 class="admin-card-title">RSVP &amp; confirmation</h2>
                     <p class="admin-card-desc">Libellé du bouton rose « Confirmer ma présence » et rappel de date limite.</p>
+                    <label id="wedding-rsvp-mode-field" class="block mb-3 hidden">
+                        <span class="dash-field-label">Mode de confirmation du mariage</span>
+                        <select id="rsvpMode" class="admin-select">
+                            <option value="personal">Invitation personnelle avec liste et QR</option>
+                            <option value="open">RSVP ouvert sans liste, avec choix de famille et WhatsApp</option>
+                        </select>
+                    </label>
                     <label class="block">
                         <span class="dash-field-label">Texte du bouton RSVP</span>
                         <input id="reserveText" class="admin-input" placeholder="Confirmer ma présence">
@@ -146,14 +155,15 @@
                         <input id="rsvpLink" class="admin-input" placeholder="Google Form, WhatsApp…">
                     </label>
                     <div id="open-rsvp-settings" class="mt-4 space-y-3">
-                        <p class="dash-field-label">RSVP ouvert - WhatsApp</p>
+                        <p class="dash-field-label">RSVP ouvert — redirection WhatsApp</p>
+                        <p class="perso-gps-hint">Après l'enregistrement, le côté de famille choisi ouvre le numéro WhatsApp correspondant. Renseignez les deux numéros au format international.</p>
                         <div class="admin-form-grid">
                             <label class="block">
-                                <span class="dash-field-label">Numéro côté homme</span>
+                                <span class="dash-field-label">Numéro WhatsApp de redirection — côté homme</span>
                                 <input id="openRsvpMalePhone" type="tel" class="admin-input" placeholder="Ex. +243 810 000 001">
                             </label>
                             <label class="block">
-                                <span class="dash-field-label">Numéro côté femme</span>
+                                <span class="dash-field-label">Numéro WhatsApp de redirection — côté femme</span>
                                 <input id="openRsvpFemalePhone" type="tel" class="admin-input" placeholder="Ex. +243 810 000 002">
                             </label>
                         </div>
@@ -169,7 +179,7 @@
                         </div>
                         <label class="block">
                             <span class="dash-field-label">Texte du message WhatsApp</span>
-                            <textarea id="openRsvpWhatsAppMessage" rows="5" class="admin-input" style="min-height:118px;resize:vertical" placeholder="Bonjour,&#10;&#10;{nom} a répondu pour {evenement}.&#10;Réponse : {reponse}&#10;Côté : {cote}&#10;Boissons : {boissons}"></textarea>
+                            <textarea id="openRsvpWhatsAppMessage" rows="5" class="admin-input" style="min-height:118px;resize:vertical" placeholder="Bonjour,&#10;&#10;{nom} a répondu pour {evenement}.&#10;Réponse : {reponse}&#10;Côté : {cote}"></textarea>
                         </label>
                     </div>
                 </section>
@@ -428,12 +438,12 @@
                         <button type="button" id="stop-music-btn" class="perso-add-btn">■ Arrêter</button>
                     </div>
                     <audio id="perso-music-preview" class="hidden" preload="metadata"></audio>
-                    <p class="perso-gps-hint mt-2">MP3 direct, import local, ou lien YouTube (ex: https://youtu.be/…). Après entrée, touchez ♪ si la lecture ne démarre pas.</p>
+                    <p class="perso-gps-hint mt-2">Privilégiez un fichier MP3 pour une lecture rapide sur iPhone et Samsung. La musique peut commencer dès un toucher sur l’enveloppe ; le bouton ♪ reste disponible. Les liens YouTube dépendent aussi du chargement de YouTube.</p>
                 </section>
 
                 <section class="admin-card perso-section" id="sec-rsvp-card">
-                    <h2 class="admin-card-title">RSVP · boissons &amp; carte d'accès</h2>
-                    <p class="admin-card-desc">Menu visuel des boissons (section invitation + formulaire RSVP) et photos optionnelles sur la carte de confirmation (QR).</p>
+                    <h2 class="admin-card-title">Boissons sur l'invitation &amp; carte d'accès</h2>
+                    <p class="admin-card-desc">Menu visuel des boissons sur l'invitation et photos optionnelles sur la carte de confirmation (QR).</p>
                     <div class="dash-grid-2">
                         <label>
                             <span class="dash-field-label">Titre du menu boissons</span>
@@ -548,15 +558,16 @@
     <script src="../assets/js/supabase-config.js?v=53"></script>
     <script src="../assets/js/django-api-config.js?v=53"></script>
     <script src="../assets/js/django-api.js?v=53"></script>
-    <script src="../assets/js/event-config.js?v=78"></script>
-    <script src="../assets/js/auth.js?v=58"></script>
+    <script src="../assets/js/event-config.js?v=79"></script>
+    <script src="../assets/js/organizer-identity.js?v=1"></script>
+    <script src="../assets/js/auth.js?v=61"></script>
     <script src="../assets/js/content-blocks.js?v=41"></script>
     <script src="../assets/js/countdown.js?v=36"></script>
-    <script src="../assets/js/cloud-api.js?v=79"></script>
+    <script src="../assets/js/cloud-api.js?v=80"></script>
     <script src="../assets/js/dashboard-sync.js?v=55"></script>
     <script src="../assets/js/db.js?v=26"></script>
     <script src="../assets/js/drink-generic-images.js?v=26"></script>
-    <script src="../assets/js/drink-menu.js?v=26"></script>
-    <script src="../assets/js/personnalisation.js?v=75"></script>
+    <script src="../assets/js/drink-menu.js?v=36"></script>
+    <script src="../assets/js/personnalisation.js?v=77"></script>
 </body>
 </html>

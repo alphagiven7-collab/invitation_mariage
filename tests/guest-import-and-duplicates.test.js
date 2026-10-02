@@ -383,7 +383,7 @@ test('Cloud CSV corrections leave the visible data untouched when Supabase rejec
 
 function cloudSetup(fetch) {
   const config = { enabled: true, url: 'https://example.test', anonKey: 'test' };
-  const auth = { isEventAdmin: () => true, getSession: () => ({ accessToken: 'test' }) };
+  const auth = { isGuestManager: () => true, getSession: () => ({ accessToken: 'test' }) };
   const sandbox = { console, fetch, crypto: { randomUUID }, SUPABASE_CONFIG: config, AuthGuard: auth,
     window: { SUPABASE_CONFIG: config, AuthGuard: auth },
     localStorage: { getItem: () => null, setItem() {}, removeItem() {} } };

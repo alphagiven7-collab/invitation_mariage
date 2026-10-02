@@ -28,15 +28,16 @@ test('Invitation media is deferred before the browser starts downloading hidden 
   assert.match(hero, /fetchpriority="high"/);
   assert.ok(images.every((image) => /loading="(?:eager|lazy)"/.test(image)));
   assert.ok(images.filter((image) => image !== hero).every((image) => /loading="lazy"/.test(image)));
-  assert.match(source, /<audio id="background-music" loop preload="none"/);
+  assert.match(source, /<audio id="background-music" loop preload="auto"/);
   assert.match(source, /rel="preconnect" href="https:\/\/images\.unsplash\.com"/);
 });
 
-test('Background music waits for the guest action before assigning the audio source', async () => {
+test('Background music buffers during the gate and starts on the first guest action', async () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'background-music.js'), 'utf8');
   let sourceAttribute = null;
   let loadCount = 0;
   let playCount = 0;
+  const gateListeners = {};
   const audio = {
     paused: true,
     volume: 0,
@@ -60,6 +61,7 @@ test('Background music waits for the guest action before assigning the audio sou
     getElementById(id) {
       if (id === 'background-music') return audio;
       if (id === 'music-toggle-btn') return button;
+      if (id === 'welcome-gate') return { addEventListener(type, listener) { gateListeners[type] = listener; } };
       return null;
     },
     querySelector() { return null; },
@@ -74,15 +76,76 @@ test('Background music waits for the guest action before assigning the audio sou
     backgroundMusicUrl: 'https://cdn.example.test/music.mp3',
     backgroundMusicEnabled: true
   });
-  assert.equal(sourceAttribute, null);
-  assert.equal(loadCount, 0);
+  sandbox.window.BackgroundMusic.init();
+  assert.equal(sourceAttribute, 'https://cdn.example.test/music.mp3');
+  assert.equal(loadCount, 1);
+  assert.equal(playCount, 0);
 
-  await sandbox.window.BackgroundMusic.play();
+  gateListeners.pointerdown();
+  await new Promise((resolve) => setImmediate(resolve));
   assert.equal(sourceAttribute, 'https://cdn.example.test/music.mp3');
   assert.equal(loadCount, 1);
   assert.equal(playCount, 1);
   assert.match(source, /youtubePlayer && youtubeVideoId !== ytId\) destroyYouTubePlayer\(\);/);
-  assert.match(source, /wantAutoplay && !userPaused && shouldAutoplayNow\(\)\) void play\(\);/);
+});
+
+test('YouTube music is ready at the gate before the guest starts playback', async () => {
+  let player = null;
+  let playCount = 0;
+  const gateListeners = {};
+  const YT = {
+    PlayerState: { PLAYING: 1 },
+    Player: class {
+      constructor(id, options) {
+        player = this;
+        queueMicrotask(() => options.events.onReady({ target: this }));
+      }
+      setVolume() {}
+      getPlayerState() { return playCount ? 1 : 0; }
+      playVideo() { playCount += 1; }
+      destroy() {}
+    }
+  };
+  const host = { innerHTML: '', appendChild() {} };
+  const button = {
+    classList: { add() {}, remove() {} },
+    setAttribute() {},
+    querySelector() { return { textContent: '' }; },
+    addEventListener() {}
+  };
+  const document = {
+    getElementById(id) {
+      if (id === 'background-music') return { getAttribute() { return null; }, addEventListener() {} };
+      if (id === 'youtube-music-host') return host;
+      if (id === 'music-toggle-btn') return button;
+      if (id === 'welcome-gate') return { addEventListener(type, listener) { gateListeners[type] = listener; } };
+      return null;
+    },
+    createElement() { return {}; },
+    addEventListener() {},
+    body: { appendChild() {} }
+  };
+  const window = { document, YT };
+  const sandbox = {
+    window, document, YT,
+    sessionStorage: { getItem() { return null; }, setItem() {} }
+  };
+  vm.runInNewContext(
+    fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'background-music.js'), 'utf8'),
+    sandbox,
+    { filename: 'background-music.js' }
+  );
+
+  window.BackgroundMusic.apply({ backgroundMusicUrl: 'https://youtu.be/ABCDEFGHIJK' });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.ok(player);
+  assert.equal(playCount, 0);
+
+  window.BackgroundMusic.init();
+  gateListeners.pointerdown();
+  assert.equal(playCount, 1, 'A ready YouTube player must start synchronously in the user gesture');
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(playCount, 1);
 });
 
 test('Invitation browsers skip the server-side Supabase metadata lookup', { concurrency: false }, async () => {

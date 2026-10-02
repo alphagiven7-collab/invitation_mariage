@@ -99,7 +99,12 @@ function getConfigDefaults() {
     const cfg = window.EventConfig && EventConfig.getConfig ? EventConfig.getConfig() : null;
     const blocks = window.ContentBlocks ? ContentBlocks.getDefaultsFromConfig(cfg) : {};
     return {
-        sections: { rsvp: true, program: true, practical: true, venue: true, about: true, music: true, messages: true, supportContact: true, gallery: true, countdown: true, dressCode: true, donation: true },
+        sections: {
+            rsvp: true, program: true, practical: true, venue: true, about: true,
+            music: true, messages: true, supportContact: true, gallery: true,
+            countdown: true, calendar: true, drinkMenu: true, dressCode: true, donation: true,
+            ...(cfg?.sections || {})
+        },
         program: blocks.program || ContentBlocks?.DEFAULT_PROGRAM || [],
         practicalInfo: blocks.practicalInfo || ContentBlocks?.DEFAULT_PRACTICAL || [],
         programSectionTitle: cfg?.programSectionTitle || "Programme de la journée",
@@ -134,6 +139,7 @@ function getConfigDefaults() {
         reserveText: cfg?.reserveText || "Confirmer ma présence",
         rsvpDeadlineText: cfg?.rsvpDeadlineText || (cfg?.rsvpDeadline ? `Merci de confirmer avant le ${cfg.rsvpDeadline}` : ""),
         rsvpButtonColor: cfg?.rsvpButtonColor || cfg?.branding?.accentColor || "#ec4899",
+        rsvpMode: cfg?.rsvpMode || (cfg?.type === "open-rsvp" ? "open" : "personal"),
         confirmationContacts: cfg?.confirmationContacts || { male: "", female: "" },
         confirmationFamilies: cfg?.confirmationFamilies || { male: "", female: "" },
         openRsvpWhatsAppMessage: cfg?.openRsvpWhatsAppMessage || "",
@@ -156,9 +162,9 @@ function getConfigDefaults() {
         supportEmail: cfg?.links?.supportEmail || "",
         rsvpLink: cfg?.links?.rsvp || "",
         metaDescription: cfg?.metaDescription || cfg?.title || "",
-        backgroundMusicUrl: cfg?.ambiance?.musicUrl || cfg?.backgroundMusicUrl || "",
-        backgroundMusicVolume: cfg?.ambiance?.volume ?? 0.35,
-        backgroundMusicEnabled: cfg?.ambiance?.enabled !== false,
+        backgroundMusicUrl: cfg?.backgroundMusicUrl ?? cfg?.ambiance?.musicUrl ?? "",
+        backgroundMusicVolume: cfg?.backgroundMusicVolume ?? cfg?.ambiance?.volume ?? 0.35,
+        backgroundMusicEnabled: cfg?.backgroundMusicEnabled ?? cfg?.ambiance?.enabled ?? true,
         drinkMenuTitle: cfg?.drinkMenuTitle || "Menu des boissons",
         drinkMenuSubtitle: cfg?.drinkMenuSubtitle || "Sélectionnez vos préférences pour le jour J (optionnel, plusieurs choix possibles).",
         drinkMenu: normalizeDrinkMenuState(cfg),
@@ -199,6 +205,7 @@ const DEFAULT_STATE = {
     reserveText: "Confirmer ma présence",
     rsvpDeadlineText: "Merci de confirmer avant le 25 avril 2026",
     rsvpButtonColor: "#ec4899",
+    rsvpMode: "personal",
     confirmationContacts: { male: "", female: "" },
     confirmationFamilies: { male: "", female: "" },
     openRsvpWhatsAppMessage: "",
@@ -423,6 +430,7 @@ function readFormState() {
         reserveText: document.getElementById("reserveText").value.trim(),
         rsvpDeadlineText: document.getElementById("rsvpDeadlineText").value.trim(),
         rsvpButtonColor: document.getElementById("rsvpButtonColor").value,
+        rsvpMode: document.getElementById("rsvpMode").value,
         confirmationContacts: {
             male: document.getElementById("openRsvpMalePhone").value.trim(),
             female: document.getElementById("openRsvpFemalePhone").value.trim()
@@ -516,6 +524,7 @@ function toDashboardPayload(formState) {
         reserveText: formState.reserveText,
         rsvpDeadlineText: formState.rsvpDeadlineText,
         rsvpButtonColor: formState.rsvpButtonColor,
+        rsvpMode: formState.rsvpMode,
         confirmationContacts: formState.confirmationContacts,
         confirmationFamilies: formState.confirmationFamilies,
         openRsvpWhatsAppMessage: formState.openRsvpWhatsAppMessage,
@@ -790,6 +799,10 @@ function hydrateForm(state) {
     document.getElementById("reserveText").value = state.reserveText || "";
     document.getElementById("rsvpDeadlineText").value = state.rsvpDeadlineText || "";
     document.getElementById("rsvpButtonColor").value = state.rsvpButtonColor || "#ec4899";
+    const eventType = window.EventConfig?.getConfig?.()?.type;
+    document.getElementById("rsvpMode").value = eventType === "open-rsvp" ? "open" : (state.rsvpMode || "personal");
+    document.getElementById("wedding-rsvp-mode-field")?.classList.toggle("hidden", eventType !== "wedding");
+    document.getElementById("open-rsvp-settings")?.classList.toggle("hidden", document.getElementById("rsvpMode").value !== "open");
     document.getElementById("openRsvpMalePhone").value = state.confirmationContacts?.male || "";
     document.getElementById("openRsvpFemalePhone").value = state.confirmationContacts?.female || "";
     document.getElementById("openRsvpMaleFamily").value = state.confirmationFamilies?.male || "";
@@ -876,6 +889,18 @@ function wireMusicControls() {
     const volLabel = document.getElementById("music-volume-label");
     const preview = document.getElementById("perso-music-preview");
     const urlField = document.getElementById("backgroundMusicUrl");
+    const moduleToggle = document.querySelector('[data-module-toggle="music"]');
+    const musicEnabled = document.getElementById("backgroundMusicEnabled");
+
+    const stopDisabledPreview = () => {
+        if (moduleToggle?.checked !== false && musicEnabled?.checked !== false) return;
+        if (preview) {
+            preview.pause();
+            preview.currentTime = 0;
+        }
+    };
+    moduleToggle?.addEventListener("change", stopDisabledPreview);
+    musicEnabled?.addEventListener("change", stopDisabledPreview);
 
     if (vol && volLabel) {
         vol.addEventListener("input", () => {
@@ -885,6 +910,10 @@ function wireMusicControls() {
     }
 
     document.getElementById("test-music-btn")?.addEventListener("click", async () => {
+        if (moduleToggle?.checked === false || musicEnabled?.checked === false) {
+            showToast("Activez le module Musique pour tester la piste.");
+            return;
+        }
         const src = urlField?.value.trim();
         if (!src) {
             showToast("Ajoutez une URL ou importez un fichier audio.");
@@ -1024,6 +1053,22 @@ async function wireUploader(inputId, targetFieldId, previewId, multiple = false,
 }
 
 async function persistDashboard(payload, { cloudMessage = true } = {}) {
+    if (payload?.rsvpMode === "open" && ["male", "female"].some(
+        (side) => String(payload.confirmationContacts?.[side] || "").replace(/\D/g, "").length < 9
+    )) {
+        const settings = document.getElementById("open-rsvp-settings");
+        settings?.classList.remove("hidden");
+        if (cloudMessage) {
+            const missingSide = ["male", "female"].find(
+                (side) => String(payload.confirmationContacts?.[side] || "").replace(/\D/g, "").length < 9
+            );
+            const input = document.getElementById(missingSide === "male" ? "openRsvpMalePhone" : "openRsvpFemalePhone");
+            input?.scrollIntoView({ block: "center", behavior: "smooth" });
+            input?.focus({ preventScroll: true });
+        }
+        showToast("Le RSVP ouvert nécessite deux numéros WhatsApp valides (9 chiffres minimum).");
+        return { saved: false, localOk: false, cloud: false };
+    }
     const eventId = getEventId();
     if (window.DashboardSync) {
         const result = await DashboardSync.save(eventId, payload);
@@ -1122,7 +1167,8 @@ function applyPreview() {
     const btn = document.getElementById("apply-preview-btn");
     const run = () => {
         const payload = toDashboardPayload(readFormState());
-        return persistDashboard(payload, { cloudMessage: false }).then(() => {
+        return persistDashboard(payload, { cloudMessage: false }).then((result) => {
+            if (!result.saved) return;
             refreshLivePreview();
             showToast("Aperçu appliqué.");
         });
@@ -1140,9 +1186,8 @@ async function saveSettings(e) {
     const run = async () => {
         const state = readFormState();
         const payload = toDashboardPayload(state);
-        await persistDashboard(payload);
-
-        refreshLivePreview(true);
+        const result = await persistDashboard(payload);
+        if (result.saved) refreshLivePreview(true);
     };
 
     if (window.ButtonLoading && saveBtn) {
@@ -1242,6 +1287,13 @@ window.addEventListener("DOMContentLoaded", async () => {
         state.countdownDate = toDateTimeLocalValue(cfg.eventDate);
     }
     hydrateForm(state);
+
+    document.getElementById("rsvpMode")?.addEventListener("change", (event) => {
+        const settings = document.getElementById("open-rsvp-settings");
+        const isOpen = event.target.value === "open";
+        settings?.classList.toggle("hidden", !isOpen);
+        if (isOpen) settings?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    });
 
     document.getElementById("settings-form").addEventListener("submit", saveSettings);
     document.getElementById("apply-preview-btn").addEventListener("click", applyPreview);

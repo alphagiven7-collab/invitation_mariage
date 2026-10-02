@@ -42,7 +42,7 @@ function loadAuth(session, fetch) {
   return { auth: window.AuthGuard, localStorage };
 }
 
-test("expired organizer session is refreshed before admin access is checked", async () => {
+test("expired organizer session is refreshed for guest management only", async () => {
   const calls = [];
   const previous = {
     role: "event", eventId: "mariage-test", userId: "user-1", email: "owner@example.test",
@@ -57,7 +57,7 @@ test("expired organizer session is refreshed before admin access is checked", as
       });
     }
     if (url.includes("/profiles?")) return jsonResponse([{ role: "event" }]);
-    if (url.includes("/rpc/can_manage_event")) return jsonResponse(true);
+    if (url.includes("/rpc/can_manage_guests")) return jsonResponse(true);
     throw new Error(`unexpected request ${url}`);
   });
 
@@ -65,7 +65,8 @@ test("expired organizer session is refreshed before admin access is checked", as
 
   assert.equal(refreshed.accessToken, "new-access");
   assert.equal(refreshed.refreshToken, "new-refresh");
-  assert.equal(auth.isEventAdmin("mariage-test"), true);
+  assert.equal(auth.isGuestManager("mariage-test"), true);
+  assert.equal(auth.isEventAdmin("mariage-test"), false);
   assert.equal(JSON.parse(localStorage.getItem(SESSION_KEY)).accessToken, "new-access");
   assert.equal(calls.length, 3);
 });
@@ -82,6 +83,26 @@ test("a rejected refresh clears the expired session", async () => {
   assert.equal(await auth.refreshSession(), null);
   assert.equal(auth.getSession(), null);
   assert.equal(localStorage.getItem(SESSION_KEY), null);
+});
+
+test("existing email owners can still log in while the guest migration is pending", async () => {
+  const calls = [];
+  const { auth } = loadAuth(null, async (url) => {
+    calls.push(url);
+    if (url.includes("/auth/v1/token?")) return jsonResponse({
+      user: { id: "owner-1", email: "owner@example.test" },
+      access_token: "owner-jwt", expires_in: 3600
+    });
+    if (url.includes("/profiles?")) return jsonResponse([{ role: "client" }]);
+    if (url.includes("/rpc/can_manage_guests")) return jsonResponse({ code: "PGRST202" }, 404);
+    if (url.includes("/rpc/can_manage_event")) return jsonResponse(true);
+    throw new Error(`unexpected request ${url}`);
+  });
+
+  const result = await auth.loginWithPassword("owner@example.test", "secret", "mariage-test");
+  assert.equal(result.role, "organizer");
+  assert.equal(auth.isGuestManager("mariage-test"), true);
+  assert.ok(calls.some((url) => url.includes("/rpc/can_manage_event")));
 });
 
 test("a fresh session does not make an unnecessary refresh request", async () => {
@@ -103,10 +124,16 @@ test("a fresh session does not make an unnecessary refresh request", async () =>
 test("admin pages refresh a stored session before testing its role", () => {
   for (const file of ["assets/js/admin.js", "assets/js/personnalisation.js", "assets/js/checkin-page.js", "assets/js/evenements-page.js"]) {
     const source = fs.readFileSync(file, "utf8");
-    const refreshAt = source.indexOf("refreshSession");
-    const authorizationAt = source.indexOf("requireAdmin") >= 0
-      ? source.indexOf("requireAdmin")
-      : source.indexOf("isPlatformAdmin");
+    const startAt = source.indexOf('async function init()') >= 0
+      ? source.indexOf('async function init()')
+      : source.indexOf('window.addEventListener("DOMContentLoaded"');
+    const startup = source.slice(startAt);
+    const refreshAt = startup.indexOf("refreshSession");
+    const authorizationAt = startup.indexOf("requireGuestManager") >= 0
+      ? startup.indexOf("requireGuestManager")
+      : startup.indexOf("requireAdmin") >= 0
+        ? startup.indexOf("requireAdmin")
+        : startup.indexOf("isPlatformAdmin");
     assert.ok(refreshAt >= 0, `${file} must refresh its session`);
     assert.ok(refreshAt < authorizationAt, `${file} must refresh before authorization`);
   }

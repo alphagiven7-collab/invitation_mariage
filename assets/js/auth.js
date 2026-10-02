@@ -54,9 +54,13 @@ const AuthGuard = (() => {
 
     function isEventAdmin(eventId) {
         const s = getSession();
-        if (!s) return false;
-        if (s.role === "platform") return true;
-        return s.role === "event" && s.eventId === eventId && !!s.accessToken;
+        return !!(s?.role === "platform" && s.accessToken && eventId);
+    }
+
+    function isGuestManager(eventId) {
+        const s = getSession();
+        return !!(s?.accessToken && (s.role === "platform"
+            || ((s.role === "organizer" || s.role === "event") && s.eventId === eventId)));
     }
 
     async function requestAuth(path, body, accessToken = "") {
@@ -65,13 +69,17 @@ const AuthGuard = (() => {
             method: "POST",
             headers: {
                 apikey: config.anonKey,
-                Authorization: `Bearer ${accessToken || config.anonKey}`,
+                ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
                 "Content-Type": "application/json"
             },
             body: JSON.stringify(body)
         });
         const data = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(data.error_description || data.msg || "Connexion Supabase impossible.");
+        if (!response.ok) {
+            const error = new Error(data.error_description || data.msg || "Connexion Supabase impossible.");
+            error.code = data.error_code;
+            throw error;
+        }
         return data;
     }
 
@@ -91,43 +99,62 @@ const AuthGuard = (() => {
         return Array.isArray(rows) ? rows[0] || null : null;
     }
 
-    async function canManageEvent(accessToken, eventId) {
+    async function canManageGuests(accessToken, eventId) {
         if (!eventId) return false;
         const config = getSupabaseConfig();
-        const response = await fetch(
-            `${config.url}/rest/v1/rpc/can_manage_event`,
-            {
-                method: "POST",
-                headers: {
-                    apikey: config.anonKey,
-                    Authorization: `Bearer ${accessToken}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ p_event_id: eventId })
-            }
-        );
-        if (!response.ok) return false;
-        return (await response.json().catch(() => false)) === true;
+        const headers = {
+            apikey: config.anonKey,
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json"
+        };
+        const body = JSON.stringify({ p_event_id: eventId });
+        const response = await fetch(`${config.url}/rest/v1/rpc/can_manage_guests`, {
+            method: "POST",
+            headers,
+            body
+        });
+        if (response.status === 404) {
+            // Une base pas encore migree conserve l'acces des comptes email existants.
+            const legacy = await fetch(`${config.url}/rest/v1/rpc/can_manage_event`, {
+                method: "POST", headers, body
+            });
+            return legacy.ok && (await legacy.json().catch(() => false)) === true;
+        }
+        return response.ok && (await response.json().catch(() => false)) === true;
     }
 
-    async function loginWithPassword(email, password, eventId) {
+    async function loginWithPassword(identifier, password, eventId) {
         if (!isSupabaseEnabled()) throw new Error("Supabase Auth n'est pas configuré.");
-        const auth = await requestAuth("token?grant_type=password", { email, password });
+        const isEmail = identifier.includes("@");
+        const phone = isEmail ? "" : window.OrganizerIdentity.normalizePhone(identifier);
+        const credential = { email: isEmail ? identifier.trim() : window.OrganizerIdentity.emailFromPhone(identifier) };
+        let auth;
+        try {
+            auth = await requestAuth("token?grant_type=password", { ...credential, password });
+        } catch (error) {
+            if (error.code === "invalid_credentials") {
+                throw new Error(isEmail
+                    ? "Email ou mot de passe incorrect."
+                    : "Numéro ou mot de passe incorrect. Pour un ancien compte, faites réenregistrer l'accès par l'administrateur.");
+            }
+            throw error;
+        }
         const user = auth.user;
         if (!user?.id || !auth.access_token) throw new Error("Session Supabase invalide.");
 
         const profile = await getProfile(auth.access_token, user.id);
         const platformAdmin = profile?.role === "platform";
-        const eventAdmin = !platformAdmin && await canManageEvent(auth.access_token, eventId);
-        if (!platformAdmin && !eventAdmin) {
+        const guestManager = !platformAdmin && await canManageGuests(auth.access_token, eventId);
+        if (!platformAdmin && !guestManager) {
             throw new Error("Ce compte n'est pas autorisé pour cet événement.");
         }
 
         const session = {
-            role: platformAdmin ? "platform" : "event",
+            role: platformAdmin ? "platform" : "organizer",
             eventId: platformAdmin ? null : eventId,
             userId: user.id,
-            email: user.email || email,
+            email: user.email || (isEmail ? identifier : ""),
+            phone: isEmail ? (user.phone || "") : phone,
             accessToken: auth.access_token,
             refreshToken: auth.refresh_token || "",
             expiresAt: auth.expires_in ? Date.now() + auth.expires_in * 1000 : 0,
@@ -155,14 +182,12 @@ const AuthGuard = (() => {
 
             const userId = user.id || previous.userId;
             const profile = await getProfile(auth.access_token, userId);
-            const platformAdmin = profile
-                ? profile.role === "platform"
-                : previous.role === "platform";
+            const platformAdmin = profile?.role === "platform";
             const eventId = platformAdmin ? null : previous.eventId;
-            const eventAdmin = !platformAdmin && eventId
-                ? await canManageEvent(auth.access_token, eventId)
+            const guestManager = !platformAdmin && eventId
+                ? await canManageGuests(auth.access_token, eventId)
                 : false;
-            if (!platformAdmin && !eventAdmin) {
+            if (!platformAdmin && !guestManager) {
                 throw new Error("Ce compte n'est plus autorisé pour cet événement.");
             }
 
@@ -171,10 +196,11 @@ const AuthGuard = (() => {
                 : Date.now() + (Number(auth.expires_in) || 3600) * 1000;
             const refreshed = {
                 ...previous,
-                role: platformAdmin ? "platform" : "event",
+                role: platformAdmin ? "platform" : "organizer",
                 eventId,
                 userId,
                 email: user.email || previous.email || "",
+                phone: user.phone || previous.phone || "",
                 accessToken: auth.access_token,
                 refreshToken: auth.refresh_token || previous.refreshToken,
                 expiresAt,
@@ -196,6 +222,13 @@ const AuthGuard = (() => {
         return false;
     }
 
+    function requireGuestManager(eventId) {
+        if (isGuestManager(eventId)) return true;
+        const params = new URLSearchParams(window.location.search);
+        window.location.href = `./login.html?event=${encodeURIComponent(eventId || params.get("event") || "demo")}&redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+        return false;
+    }
+
     function logout() {
         const session = getSession();
         clearSession();
@@ -212,7 +245,9 @@ const AuthGuard = (() => {
         getSession,
         isPlatformAdmin,
         isEventAdmin,
+        isGuestManager,
         requireAdmin,
+        requireGuestManager,
         isSupabaseEnabled
     };
 })();

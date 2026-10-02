@@ -262,6 +262,13 @@ const GuestExperience = (() => {
 
         const display = document.getElementById("display-guest-name");
         if (display) display.textContent = guest.fullName;
+        const tableNumber = String(guest.tableNumber || guest.table || "").trim();
+        const tableAssignment = document.getElementById("invite-table-assignment");
+        const tableValue = document.getElementById("invite-table-number");
+        if (tableAssignment && tableValue) {
+            tableValue.textContent = tableNumber;
+            tableAssignment.hidden = !tableNumber;
+        }
 
         const setField = (id, val) => {
             const el = document.getElementById(id);
@@ -574,15 +581,25 @@ const GuestExperience = (() => {
         // disponible dans les deux parcours de confirmation.
         document.getElementById("rsvp-message-field")?.classList.remove("hidden");
         document.getElementById("rsvp-photo-field")?.classList.toggle("hidden", isOpenRsvp);
-        document.getElementById("rsvp-drinks-section")?.classList.remove("hidden");
+        const extraDetails = document.getElementById("rsvp-extra-details");
+        extraDetails?.classList.toggle("hidden", isOpenRsvp);
+        if (extraDetails) extraDetails.open = !isOpenRsvp && (
+            eventConfig.type !== "wedding"
+            || Number(profile?.adults || 1) > 1
+            || Number(profile?.children || 0) > 0
+        );
         document.getElementById("open-rsvp-side-field")?.classList.toggle("hidden", !isOpenRsvp);
         document.querySelectorAll('input[name="open-rsvp-side"]').forEach((field) => {
             field.required = isOpenRsvp;
         });
         const submitButton = document.getElementById("rsvp-submit-btn");
         if (submitButton) submitButton.textContent = isOpenRsvp
-            ? "Envoyer ma réponse et ouvrir WhatsApp"
-            : "Envoyer ma réponse RSVP";
+            ? "Enregistrer et ouvrir WhatsApp"
+            : "Confirmer ma réponse";
+        const help = document.getElementById("rsvp-form-help");
+        if (help) help.textContent = isOpenRsvp
+            ? "Indiquez votre nom, votre présence et votre famille. Après l'enregistrement, envoyez le message qui s'ouvrira dans WhatsApp."
+            : "Choisissez votre réponse. Un message et les autres précisions sont facultatifs.";
         ["rsvp-phone", "rsvp-adults", "rsvp-children", "rsvp-message"].forEach((id) => {
             const field = document.getElementById(id);
             if (!field) return;
@@ -674,11 +691,11 @@ const GuestExperience = (() => {
                 return;
             }
         }
-        applyRsvpModeForm();
         const eventConfig = window.EventConfig?.getConfig?.() || {};
         const isOpenRsvp = isOpenRsvpEvent(eventConfig);
         await resolvePersonalInviteIfNeeded(isOpenRsvp);
         prefillRsvp();
+        applyRsvpModeForm();
         const hasPersonalInvite = hasPersonalInviteToken(profile) && !!profile?.id;
         if (!isOpenRsvp && !hasPersonalInvite) {
             showInvitationRequiredModal();
@@ -836,6 +853,7 @@ const GuestExperience = (() => {
         const cfg = window.EventConfig && EventConfig.getConfig && EventConfig.getConfig();
         const eventTitle = (cfg && cfg.title) ? cfg.title : (document.title || "Invitation");
         const meta = getConfirmationMeta();
+        const drinkMenuEnabled = meta.drinkMenuEnabled !== false;
         const accessCode = buildAccessCode(resolvedGuest) || code;
         const tableLabel = getGuestTableLabel(resolvedGuest);
         const drinks = payload.drinkChoices || resolvedGuest?.drinkChoices || [];
@@ -931,7 +949,9 @@ const GuestExperience = (() => {
             if (qrWrap) qrWrap.classList.remove("hidden");
             if (pendingWrap) pendingWrap.classList.add("hidden");
             if (qrHint) {
-                qrHint.textContent = "Présentez ce QR à l'entrée — le staff confirme votre accès, table et boissons.";
+                qrHint.textContent = drinkMenuEnabled
+                    ? "Présentez ce QR à l'entrée — le staff confirme votre accès, table et boissons."
+                    : "Présentez ce QR à l'entrée — le staff confirme votre accès et votre table.";
                 qrHint.classList.remove("hidden");
             }
             if (privateWarning) privateWarning.classList.remove("hidden");
@@ -1044,7 +1064,7 @@ const GuestExperience = (() => {
             `${payload.name} a répondu pour ${eventConfig.title || "l'événement"}.`,
             `Réponse : ${response}`,
             `Côté : ${contactLabel}`,
-            `Boissons : ${drinks}`,
+            ...(payload.drinkChoices.length ? [`Boissons : ${drinks}`] : []),
             "",
             "Merci de prendre cette confirmation en compte."
         ].join("\n");
@@ -1091,10 +1111,10 @@ const GuestExperience = (() => {
 
             const payload = {
                 name: (document.getElementById("rsvp-name")?.value || "").trim(),
-                phone: (document.getElementById("rsvp-phone")?.value || "").trim(),
+                phone: isOpenRsvp ? "" : (document.getElementById("rsvp-phone")?.value || "").trim(),
                 status: document.querySelector('input[name="rsvp-status"]:checked')?.value || "yes",
-                adults: document.getElementById("rsvp-adults")?.value || "1",
-                children: document.getElementById("rsvp-children")?.value || "0",
+                adults: isOpenRsvp ? "1" : (document.getElementById("rsvp-adults")?.value || "1"),
+                children: isOpenRsvp ? "0" : (document.getElementById("rsvp-children")?.value || "0"),
                 message: (document.getElementById("rsvp-message")?.value || "").trim(),
                 drinkChoices: typeof window.collectSelectedDrinks === "function"
                     ? window.collectSelectedDrinks()
