@@ -85,7 +85,10 @@ test('An assigned table appears on the invitation before the guest confirms', ()
 
   window.GuestExperience.applyProfile({ fullName: 'Marie', status: 'pending', tableNumber: '12' });
   assert.equal(fields.get('invite-table-assignment').hidden, false);
-  assert.equal(fields.get('invite-table-number').textContent, '12');
+  assert.equal(fields.get('invite-table-number').textContent, 'Table 12');
+
+  window.GuestExperience.applyProfile({ fullName: 'Marie', status: 'pending', tableNumber: 'Table Rose' });
+  assert.equal(fields.get('invite-table-number').textContent, 'Table Rose');
 
   window.GuestExperience.applyProfile({ fullName: 'Paul', status: 'pending' });
   assert.equal(fields.get('invite-table-assignment').hidden, true);

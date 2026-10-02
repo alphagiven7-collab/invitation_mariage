@@ -266,7 +266,9 @@ const GuestExperience = (() => {
         const tableAssignment = document.getElementById("invite-table-assignment");
         const tableValue = document.getElementById("invite-table-number");
         if (tableAssignment && tableValue) {
-            tableValue.textContent = tableNumber;
+            tableValue.textContent = /^table\b/i.test(tableNumber)
+                ? tableNumber.replace(/^table/i, "Table")
+                : `Table ${tableNumber}`;
             tableAssignment.hidden = !tableNumber;
         }
 

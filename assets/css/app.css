@@ -323,18 +323,38 @@
         .invite-table-assignment {
             width: fit-content;
             max-width: 100%;
-            margin: 0 auto 0.9rem;
-            padding: 0.55rem 0.9rem;
-            border: 1px solid #d8b97b;
-            border-radius: 0.75rem;
-            background: #fff8e9;
-            color: #704b16;
-            font-size: 0.75rem;
-            line-height: 1.4;
+            margin: -0.1rem auto 1rem;
+            padding: 0.3rem 0.8rem 0.35rem;
+            border-top: 1px solid rgba(132, 57, 83, 0.28);
+            border-bottom: 1px solid rgba(132, 57, 83, 0.28);
+            background: linear-gradient(90deg, transparent, rgba(236, 72, 153, 0.055), transparent);
+            color: #843953;
+            font-family: "Cormorant Garamond", Georgia, serif;
+            font-size: clamp(1.25rem, 5.5vw, 1.55rem);
+            line-height: 1.2;
         }
 
-        .invite-table-assignment span { display: block; font-weight: 600; }
-        .invite-table-assignment strong { display: block; font-size: 1rem; color: #3f2b0d; }
+        .invite-table-assignment:not([hidden]) {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.65rem;
+        }
+        .invite-table-assignment[hidden] { display: none; }
+        .invite-table-assignment::before,
+        .invite-table-assignment::after {
+            content: "✦";
+            color: #bb8195;
+            font-family: Georgia, serif;
+            font-size: 0.65rem;
+            flex: none;
+        }
+        .invite-table-assignment strong {
+            color: inherit;
+            font: inherit;
+            font-weight: 600;
+            overflow-wrap: anywhere;
+        }
 
         .invite-body-text {
             font-size: clamp(0.8125rem, 3.45vw, 0.9375rem);
@@ -622,11 +642,12 @@
         body.dark-mode .invite-greeting,
         body.dark-mode .invite-body-text { color: #cbd5e1 !important; }
         body.dark-mode .invite-table-assignment {
-            background: #3b2d1c;
-            border-color: #9c7740;
-            color: #f4dba8;
+            background: linear-gradient(90deg, transparent, rgba(249, 168, 212, 0.08), transparent);
+            border-color: rgba(249, 168, 212, 0.4);
+            color: #f9c7de;
         }
-        body.dark-mode .invite-table-assignment strong { color: #fff1ce; }
+        body.dark-mode .invite-table-assignment::before,
+        body.dark-mode .invite-table-assignment::after { color: #f0a7c7; }
         body.dark-mode .invite-couple-name--left { color: #f9a8d4 !important; }
         body.dark-mode .invite-couple-name--right { color: #93c5fd !important; }
         body.dark-mode .text-pink-600 { color: #f9a8d4 !important; }
