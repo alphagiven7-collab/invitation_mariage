@@ -288,7 +288,7 @@ test('service worker lets Safari range requests through and reuses versioned ass
     vm.runInNewContext(source('sw.js'), {
         URL, Response,
         self: { location: { origin: 'https://invitation.test' }, addEventListener(name, fn) { handlers[name] = fn; } },
-        caches: { match: async () => cached },
+        caches: { open: async () => ({ match: async () => cached }) },
         fetch: async () => { fetches++; return { status: 500 }; }
     });
     let response;

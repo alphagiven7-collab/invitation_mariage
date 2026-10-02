@@ -45,6 +45,11 @@ const EventConfig = (() => {
         }
     }
 
+    function forgetPublicConfig(slug) {
+        try { localStorage.removeItem(publicConfigCacheKey(slug)); } catch { /* stockage indisponible */ }
+        window.InvitationOffline?.forgetEvent(slug);
+    }
+
     function deepMerge(base, patch) {
         const out = { ...base };
         Object.keys(patch || {}).forEach((key) => {
@@ -201,8 +206,12 @@ const EventConfig = (() => {
             && CloudAPI.isEnabled()
             ? CloudAPI.getPublicEventConfig(slug)
                 .then((config) => ({ config, reachable: true }))
-                .catch(() => ({ config: null, reachable: false }))
-            : Promise.resolve({ config: null, reachable: false });
+                .catch((error) => ({
+                    config: null, reachable: false, status: Number(error.status) || 0,
+                    canUseCopy: error.code === "NETWORK_ERROR" || (Number(error.status) >= 500 && Number(error.status) < 600)
+                        || (!error.code && !error.status)
+                }))
+            : Promise.resolve({ config: null, reachable: false, canUseCopy: true });
         const [fileConfig, cloudResult] = await Promise.all([fileConfigPromise, cloudConfigPromise]);
         const cloudSettings = cloudResult.config;
         if (cloudSettings && cloudSettings.title) {
@@ -211,13 +220,19 @@ const EventConfig = (() => {
             return resolved;
         }
 
+        if (cloudResult.reachable || [401, 403, 404].includes(cloudResult.status)) {
+            forgetPublicConfig(slug);
+        }
         if (fileConfig) return fileConfig;
 
         // Une copie publique n'est utilisée qu'après un échec réseau/RPC. Une
         // réponse valide mais vide (événement dépublié) ne réactive donc pas un
         // ancien lien par erreur.
         const cached = readCachedPublicConfig(slug);
-        if (!cloudResult.reachable && cached) return cached;
+        if (cloudResult.canUseCopy && cached) {
+            window.InvitationOffline?.markOffline({ eventId: slug, source: "config" });
+            return cached;
+        }
 
         throw new Error(`Événement introuvable : ${slug}`);
     }

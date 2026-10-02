@@ -11,6 +11,10 @@
       "dest": "/api/organizer"
     },
     {
+      "src": "/api/pwa-manifest",
+      "dest": "/api/pwa-manifest"
+    },
+    {
       "src": "/api/event-billing",
       "dest": "/api/event-billing"
     }

@@ -762,7 +762,11 @@ function closeGuestQrModal() {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
-    await window.AuthGuard?.refreshSession?.();
+    await window.AuthGuard?.refreshSession?.({ force: true });
+    if (navigator.onLine === false || window.AuthGuard?.getSessionStatus?.() === 'offline') {
+        window.PwaRuntime?.blockOrganizer();
+        return;
+    }
     const requestedEvent = new URLSearchParams(window.location.search).get("event");
     const session = window.AuthGuard?.getSession?.();
     if (!requestedEvent && (session?.role === "event" || session?.role === "organizer") && session.eventId) {
@@ -772,6 +776,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     await EventConfig.init();
     const eventId = EventConfig.getEventId();
     if (!AuthGuard.requireGuestManager(eventId)) return;
+    window.PwaRuntime?.enableOrganizer(eventId);
     const platformAdmin = AuthGuard.isPlatformAdmin();
     document.getElementById("all-events-link")?.classList.toggle("hidden", !platformAdmin);
     document.getElementById("create-event-open-btn")?.classList.toggle("hidden", !platformAdmin);

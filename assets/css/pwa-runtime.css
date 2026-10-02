@@ -1,0 +1,8 @@
+.pwa-offline-status { position: sticky; top: 0; z-index: 150; margin: 0; padding: .65rem 1rem; background: #fff5e6; color: #613c16; text-align: center; font: 500 12px/1.5 system-ui, sans-serif; }
+.pwa-session-pending > .dash-wrap { display: none; }
+.pwa-session-gate { max-width: 28rem; margin: 18vh auto; padding: 2rem; text-align: center; background: #fff; border: 1px solid #e8dfe4; border-radius: 1.5rem; color: #402532; font-family: system-ui, sans-serif; }
+.pwa-session-gate h1 { font-size: 1.35rem; margin-bottom: .75rem; }
+.pwa-session-gate button { margin-top: 1.25rem; padding: .8rem 1.5rem; border-radius: 1rem; background: #5c1830; color: white; cursor: pointer; }
+.pwa-session-gate[hidden], [data-pwa-install][hidden] { display: none !important; }
+.confirm-guest-photo-wrap.hidden { display: none; }
+@media (max-width: 480px) { .pwa-session-gate { margin: 18vh 1rem 2rem; } }

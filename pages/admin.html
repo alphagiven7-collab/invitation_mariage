@@ -8,8 +8,18 @@
     <link rel="stylesheet" href="../assets/css/app.css?v=76">
     <link rel="stylesheet" href="../assets/css/admin.css?v=11">
     <link rel="stylesheet" href="../assets/css/account-inputs.css?v=1">
+    <link rel="stylesheet" href="../assets/css/pwa-install.css?v=1">
+    <link rel="stylesheet" href="../assets/css/pwa-runtime.css?v=1">
+    <link rel="apple-touch-icon" href="../assets/images/pwa-icon-180.png">
+    <meta name="theme-color" content="#5c1830">
+    <script src="../assets/js/pwa-install.js?v=1"></script>
 </head>
-<body class="admin-shell text-slate-800">
+<body class="admin-shell text-slate-800 pwa-session-pending">
+    <section id="pwa-session-gate" class="pwa-session-gate" role="status" aria-live="polite">
+        <h1>Votre espace organisateur</h1>
+        <p data-session-message>Reprise de votre session…</p>
+        <button id="pwa-session-retry" type="button">Réessayer</button>
+    </section>
     <main class="dash-wrap">
         <header class="admin-header">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
@@ -31,8 +41,10 @@
                 <a id="back-invitation-link" href="./invitation.html" class="admin-head-btn">Voir invitation</a>
                 <a id="back-custom-link" href="./personnalisation.html" class="admin-head-btn hidden">Personnaliser</a>
                 <button type="button" id="logout-btn" class="admin-head-btn">Déconnexion</button>
+                <button type="button" data-pwa-install-trigger class="admin-head-btn" hidden>Installer l’application</button>
             </div>
         </header>
+        <div data-pwa-install="organizer" hidden></div>
 
         <details id="organizer-access-panel" class="admin-card hidden">
             <summary class="admin-card-title">Accès organisateur à la gestion des invités</summary>
@@ -523,11 +535,11 @@
     <script src="../assets/js/supabase-config.js?v=53"></script>
     <script src="../assets/js/django-api-config.js?v=53"></script>
     <script src="../assets/js/django-api.js?v=53"></script>
-    <script src="../assets/js/event-config.js?v=73"></script>
-    <script src="../assets/js/cloud-api.js?v=82"></script>
+    <script src="../assets/js/event-config.js?v=80"></script>
+    <script src="../assets/js/cloud-api.js?v=83"></script>
     <script src="../assets/js/media-upload.js?v=55"></script>
     <script src="../assets/js/organizer-identity.js?v=1"></script>
-    <script src="../assets/js/auth.js?v=61"></script>
+    <script src="../assets/js/auth.js?v=62"></script>
     <script src="../assets/js/account-inputs.js?v=1"></script>
     <script src="../assets/js/guest-manager.js?v=73"></script>
     <script src="../assets/js/table-manager.js?v=1"></script>
@@ -537,6 +549,7 @@
     <script src="../assets/js/envelope-export.js?v=51"></script>
     <script src="../assets/js/admin-presence.js?v=51"></script>
     <script src="../assets/js/admin-tables.js?v=1"></script>
-    <script src="../assets/js/admin.js?v=92"></script>
+    <script src="../assets/js/pwa-runtime.js?v=1"></script>
+    <script src="../assets/js/admin.js?v=93"></script>
 </body>
 </html>

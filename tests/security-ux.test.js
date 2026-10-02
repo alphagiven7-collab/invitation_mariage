@@ -36,8 +36,12 @@ async function resolveLoginRedirect(redirect) {
     URL,
     URLSearchParams,
     EventConfig: { init: async () => {}, getEventId: () => "demo" },
-    AuthGuard: { isGuestManager: () => true, isPlatformAdmin: () => true },
-    document: { getElementById: () => { throw new Error("Le formulaire ne doit pas être atteint"); } },
+    AuthGuard: { refreshSession: async () => {}, getSession: () => ({ role: 'platform' }),
+      getSessionStatus: () => 'authenticated', isGuestManager: () => true, isPlatformAdmin: () => true },
+    document: { getElementById: (id) => {
+      if (id === 'login-session-status' || id === 'login-session-retry') return { addEventListener() {} };
+      throw new Error("Le formulaire ne doit pas être atteint");
+    } },
     window: {
       location,
       addEventListener: (type, listener) => { if (type === "DOMContentLoaded") onDomReady = listener; }

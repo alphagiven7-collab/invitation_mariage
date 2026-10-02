@@ -7,9 +7,11 @@
     <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=59">
     <link rel="stylesheet" href="../assets/css/app.css">
     <link rel="stylesheet" href="../assets/css/account-inputs.css?v=1">
+    <link rel="apple-touch-icon" href="../assets/images/pwa-icon-180.png">
+    <meta name="theme-color" content="#5c1830">
     <script>
         if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("../sw.js?v=60").catch(() => {});
+            navigator.serviceWorker.register("../sw.js?v=63").catch(() => {});
         }
     </script>
 </head>
@@ -17,7 +19,9 @@
     <div class="dash-card max-w-md w-full mx-4 shadow-2xl">
         <p class="dash-overline">Gestion des invités</p>
         <h1 class="text-xl font-semibold mb-2">Connexion organisateur</h1>
-        <p class="dash-tip mb-4">Connectez-vous avec votre numéro et votre mot de passe. Aucun code SMS n'est nécessaire.</p>
+        <p class="dash-tip mb-4">Connectez-vous avec votre numéro et votre mot de passe. Votre session sera mémorisée sur cet appareil.</p>
+        <p id="login-session-status" class="dash-tip" role="status" aria-live="polite">Vérification de votre session…</p>
+        <button id="login-session-retry" type="button" class="dash-btn" hidden>Réessayer la connexion</button>
         <form id="login-form">
             <div class="block mb-3">
                 <label id="login-identifier-label" for="login-email" class="dash-field-label">Numéro de téléphone</label>
@@ -36,16 +40,32 @@
     </div>
 
     <script src="../assets/js/supabase-config.js?v=54"></script>
-    <script src="../assets/js/cloud-api.js?v=82"></script>
-    <script src="../assets/js/event-config.js?v=73"></script>
+    <script src="../assets/js/cloud-api.js?v=83"></script>
+    <script src="../assets/js/event-config.js?v=80"></script>
     <script src="../assets/js/organizer-identity.js?v=1"></script>
-    <script src="../assets/js/auth.js?v=61"></script>
+    <script src="../assets/js/auth.js?v=62"></script>
     <script src="../assets/js/account-inputs.js?v=1"></script>
     <script>
         window.addEventListener("DOMContentLoaded", async () => {
-            await EventConfig.init();
+            await AuthGuard.refreshSession({ force: true });
             const params = new URLSearchParams(window.location.search);
-            const eventId = params.get("event") || EventConfig.getEventId();
+            const session = AuthGuard.getSession();
+            const status = document.getElementById('login-session-status');
+            const retry = document.getElementById('login-session-retry');
+            retry.addEventListener('click', () => window.location.reload());
+            if (AuthGuard.getSessionStatus() === 'offline') {
+                status.textContent = 'Votre session est mémorisée. Retrouvez Internet pour vérifier votre accès, sans ressaisir vos identifiants.';
+                document.getElementById('login-form').hidden = true;
+                retry.hidden = false;
+                window.addEventListener('online', () => window.location.reload(), { once: true });
+                return;
+            }
+            status.hidden = true;
+            if (!params.get('event') && session) {
+                window.location.replace(AuthGuard.getResumeUrl(session));
+                return;
+            }
+            const eventId = params.get("event") || session?.eventId || EventConfig.getEventId();
             const defaultRedirect = `./admin.html?event=${encodeURIComponent(eventId)}`;
             const requestedRedirect = params.get("redirect");
             let redirect = defaultRedirect;

@@ -1,0 +1,45 @@
+[data-pwa-install][hidden],
+[data-pwa-install-trigger][hidden],
+.pwa-install-help[hidden] { display: none !important; }
+
+.pwa-install-card {
+    display: flex;
+    align-items: flex-start;
+    gap: .85rem;
+    margin-block: 1rem;
+    padding: 1.15rem;
+    border: 1px solid #e6d4da;
+    border-radius: 1.1rem;
+    background: linear-gradient(135deg, #fffaf7, #fff1f5);
+    color: #452634;
+    text-align: left;
+    box-shadow: 0 5px 20px #5c183009;
+}
+.pwa-install-icon { width: 46px; height: 46px; flex: 0 0 46px; border-radius: 12px; }
+.pwa-install-content { min-width: 0; flex: 1; }
+.pwa-install-title { margin: 0; color: inherit; font-size: .94rem; font-weight: 700; line-height: 1.4; }
+.pwa-install-description { margin: .4rem 0 0; font-size: .82rem; line-height: 1.65; }
+.pwa-install-note { margin: .45rem 0 0; color: #735764; font-size: .74rem; line-height: 1.6; }
+.pwa-install-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .6rem; margin-top: .85rem; }
+.pwa-install-primary, .pwa-install-later { min-height: 44px; padding: .62rem .9rem; border-radius: .7rem; font: inherit; font-size: .78rem; font-weight: 600; line-height: 1.4; cursor: pointer; }
+.pwa-install-primary { border: 1px solid #5c1830; background: #5c1830; color: #fff; }
+.pwa-install-primary:hover { background: #761f3e; }
+.pwa-install-primary:disabled { cursor: wait; opacity: .65; }
+.pwa-install-later { border: 1px solid transparent; background: transparent; color: #62404e; }
+.pwa-install-later:hover { background: #f4e3e9; }
+.pwa-install-primary:focus-visible, .pwa-install-later:focus-visible { outline: 3px solid #c67d98; outline-offset: 3px; }
+.pwa-install-help { margin-top: .85rem; padding-top: .85rem; border-top: 1px solid #e5cdd6; font-size: .8rem; line-height: 1.65; }
+.pwa-install-help-title { margin: 0 0 .35rem; font: inherit; font-weight: 700; }
+.pwa-install-help p { margin: .3rem 0; }
+.pwa-install-help-note { color: #735764; font-size: .74rem; }
+.dark-mode .pwa-install-card { background: linear-gradient(135deg, #30232b, #382430); border-color: #624452; color: #f9eaf0; }
+.dark-mode .pwa-install-note, .dark-mode .pwa-install-help-note { color: #d7bec9; }
+.dark-mode .pwa-install-later { color: #edd4de; }
+.dark-mode .pwa-install-later:hover { background: #503441; }
+.dark-mode .pwa-install-help { border-color: #624452; }
+@media (max-width: 400px) {
+    .pwa-install-card { gap: .65rem; padding: .9rem; }
+    .pwa-install-icon { width: 36px; height: 36px; flex-basis: 36px; border-radius: 9px; }
+    .pwa-install-actions { gap: .2rem; }
+    .pwa-install-primary, .pwa-install-later { padding-inline: .7rem; }
+}

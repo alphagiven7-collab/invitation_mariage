@@ -4,6 +4,16 @@
  */
 const AuthGuard = (() => {
     const SESSION_KEY = "wedding_admin_session";
+    const LOGOUT_KEY = "wedding_admin_signed_out_at";
+    const VERIFY_TTL = 60_000;
+    let memorySession = null;
+    let verifiedSessionKey = "";
+    let verifiedAt = 0;
+    let sessionState = "unverified";
+    let sessionRevision = 0;
+    let pendingRefresh = null;
+    let pendingRefreshForced = false;
+    let locallySignedOut = false;
 
     function getSupabaseConfig() {
         return window.SUPABASE_CONFIG || { enabled: false, url: "", anonKey: "" };
@@ -14,37 +24,109 @@ const AuthGuard = (() => {
         return !!(config.enabled && config.url && config.anonKey);
     }
 
-    function getSessionStorage() {
-        if (window.localStorage) return window.localStorage;
-        if (typeof localStorage !== "undefined") return localStorage;
-        if (window.sessionStorage) return window.sessionStorage;
-        return sessionStorage;
+    function getStorageAdapters() {
+        const adapters = [];
+        for (const key of ["localStorage", "sessionStorage"]) {
+            try {
+                const storage = window[key] || (key === "localStorage"
+                    ? (typeof localStorage !== "undefined" ? localStorage : null)
+                    : (typeof sessionStorage !== "undefined" ? sessionStorage : null));
+                if (storage && !adapters.includes(storage)) adapters.push(storage);
+            } catch { /* Certains modes privés bloquent l'accès au stockage. */ }
+        }
+        return adapters;
+    }
+
+    function getLogoutTime() {
+        let timestamp = 0;
+        for (const storage of getStorageAdapters()) {
+            try { timestamp = Math.max(timestamp, Number(storage.getItem(LOGOUT_KEY)) || 0); } catch {}
+        }
+        return timestamp;
     }
 
     function getStoredSession() {
-        try {
-            const storage = getSessionStorage();
-            const sessionStorageValue = typeof sessionStorage !== "undefined"
-                ? sessionStorage.getItem(SESSION_KEY)
-                : null;
-            return JSON.parse(storage.getItem(SESSION_KEY) || sessionStorageValue || "null");
-        } catch {
-            return null;
+        if (locallySignedOut) return null;
+        const candidates = memorySession ? [memorySession] : [];
+        const logoutAt = getLogoutTime();
+        for (const storage of getStorageAdapters()) {
+            try {
+                const session = JSON.parse(storage.getItem(SESSION_KEY) || "null");
+                if (session) candidates.push(session);
+            } catch { /* Une autre copie, ou la mémoire, peut rester utilisable. */ }
         }
+        return candidates.filter((session) => session && typeof session.accessToken === "string"
+            && session.accessToken && (!logoutAt || Number(session.at) > logoutAt))
+            .sort((left, right) => (Number(right.at) || 0) - (Number(left.at) || 0))[0] || null;
+    }
+
+    function sessionKey(session) {
+        return session ? JSON.stringify([session.accessToken, session.refreshToken, session.userId, session.role, session.eventId]) : "";
     }
 
     function getSession() {
         const session = getStoredSession();
-        return session?.expiresAt && Date.now() >= session.expiresAt ? null : session;
+        if (!session || sessionState !== "authenticated" || sessionKey(session) !== verifiedSessionKey) return null;
+        return !session.expiresAt || Date.now() >= session.expiresAt ? null : session;
     }
 
     function setSession(data) {
-        getSessionStorage().setItem(SESSION_KEY, JSON.stringify(data));
+        locallySignedOut = false;
+        const stored = { ...data, at: Math.max(Date.now(), getLogoutTime() + 1) };
+        const adapters = getStorageAdapters();
+        for (const storage of adapters) {
+            try {
+                storage.setItem(SESSION_KEY, JSON.stringify(stored));
+                // Supprimer la copie historique pour ne pas restaurer un ancien token.
+                for (const other of adapters) {
+                    if (other !== storage) { try { other.removeItem(SESSION_KEY); } catch {} }
+                }
+                memorySession = null;
+                return stored;
+            } catch { /* Repli sessionStorage puis mémoire, sans stocker le mot de passe. */ }
+        }
+        memorySession = stored;
+        return stored;
     }
 
     function clearSession() {
-        getSessionStorage().removeItem(SESSION_KEY);
-        if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(SESSION_KEY);
+        const logoutAt = Math.max(Date.now(), (Number(getStoredSession()?.at) || 0) + 1);
+        sessionRevision += 1;
+        locallySignedOut = true;
+        memorySession = null;
+        verifiedSessionKey = "";
+        verifiedAt = 0;
+        sessionState = "signed-out";
+        for (const storage of getStorageAdapters()) {
+            try { storage.setItem(LOGOUT_KEY, String(logoutAt)); } catch {}
+            try { storage.removeItem(SESSION_KEY); } catch {}
+        }
+        emitSignedOut();
+    }
+
+    function emitSignedOut() {
+        if (window.dispatchEvent && typeof CustomEvent !== "undefined") {
+            window.dispatchEvent(new CustomEvent("auth:signed-out"));
+        }
+    }
+
+    function markVerified(session) {
+        verifiedSessionKey = sessionKey(session);
+        verifiedAt = Date.now();
+        sessionState = "authenticated";
+        return session;
+    }
+
+    function getSessionStatus() {
+        if (getSession()) return "authenticated";
+        if (!getStoredSession()) return "signed-out";
+        return sessionState === "offline" ? "offline" : "unverified";
+    }
+
+    function getResumeUrl(session = getSession()) {
+        if (!session || sessionKey(session) !== sessionKey(getSession())) return "/pages/login.html";
+        return session.role === "platform" ? "/pages/evenements.html"
+            : `/pages/admin.html?event=${encodeURIComponent(session.eventId)}`;
     }
 
     function isPlatformAdmin() {
@@ -63,21 +145,38 @@ const AuthGuard = (() => {
             || ((s.role === "organizer" || s.role === "event") && s.eventId === eventId)));
     }
 
+    function responseError(data, response) {
+        const error = new Error(data.error_description || data.msg || data.message || "Vérification de connexion impossible.");
+        error.code = data.error_code || data.code;
+        error.status = response.status;
+        error.sessionInvalid = [401, 403].includes(response.status);
+        return error;
+    }
+
+    async function fetchAuth(url, options) {
+        if (typeof AbortController === "undefined" || typeof setTimeout === "undefined") return fetch(url, options);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 12000);
+        try { return await fetch(url, { ...options, signal: controller.signal }); }
+        finally { clearTimeout(timeout); }
+    }
+
     async function requestAuth(path, body, accessToken = "") {
         const config = getSupabaseConfig();
-        const response = await fetch(`${config.url}/auth/v1/${path}`, {
+        const response = await fetchAuth(`${config.url}/auth/v1/${path}`, {
             method: "POST",
             headers: {
                 apikey: config.anonKey,
                 ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(body)
+            body: JSON.stringify(body),
+            ...(path === "logout" ? { keepalive: true } : {})
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-            const error = new Error(data.error_description || data.msg || "Connexion Supabase impossible.");
-            error.code = data.error_code;
+            const error = responseError(data, response);
+            if (path.includes("grant_type=refresh_token") && response.status === 400) error.sessionInvalid = true;
             throw error;
         }
         return data;
@@ -85,7 +184,7 @@ const AuthGuard = (() => {
 
     async function getProfile(accessToken, userId) {
         const config = getSupabaseConfig();
-        const response = await fetch(
+        const response = await fetchAuth(
             `${config.url}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}&select=role`,
             {
                 headers: {
@@ -94,9 +193,21 @@ const AuthGuard = (() => {
                 }
             }
         );
-        if (!response.ok) return null;
-        const rows = await response.json().catch(() => []);
+        if (!response.ok) throw responseError(await response.json().catch(() => ({})), response);
+        const rows = await response.json();
+        if (!Array.isArray(rows)) throw new Error("Profil Supabase illisible.");
         return Array.isArray(rows) ? rows[0] || null : null;
+    }
+
+    async function getCurrentUser(accessToken) {
+        const config = getSupabaseConfig();
+        const response = await fetchAuth(`${config.url}/auth/v1/user`, {
+            headers: { apikey: config.anonKey, Authorization: `Bearer ${accessToken}` }
+        });
+        const user = await response.json().catch(() => ({}));
+        if (!response.ok) throw responseError(user, response);
+        if (!user.id) throw new Error("Session Supabase illisible.");
+        return user;
     }
 
     async function canManageGuests(accessToken, eventId) {
@@ -108,23 +219,42 @@ const AuthGuard = (() => {
             "Content-Type": "application/json"
         };
         const body = JSON.stringify({ p_event_id: eventId });
-        const response = await fetch(`${config.url}/rest/v1/rpc/can_manage_guests`, {
+        const response = await fetchAuth(`${config.url}/rest/v1/rpc/can_manage_guests`, {
             method: "POST",
             headers,
             body
         });
         if (response.status === 404) {
             // Une base pas encore migree conserve l'acces des comptes email existants.
-            const legacy = await fetch(`${config.url}/rest/v1/rpc/can_manage_event`, {
+            const legacy = await fetchAuth(`${config.url}/rest/v1/rpc/can_manage_event`, {
                 method: "POST", headers, body
             });
-            return legacy.ok && (await legacy.json().catch(() => false)) === true;
+            if (!legacy.ok) throw responseError(await legacy.json().catch(() => ({})), legacy);
+            return (await legacy.json()) === true;
         }
-        return response.ok && (await response.json().catch(() => false)) === true;
+        if (!response.ok) throw responseError(await response.json().catch(() => ({})), response);
+        return (await response.json()) === true;
+    }
+
+    async function authorizeSession(session, user) {
+        if (session.userId && user.id !== session.userId) {
+            throw Object.assign(new Error("L'identité de la session a changé."), { sessionInvalid: true });
+        }
+        const profile = await getProfile(session.accessToken, user.id);
+        const platformAdmin = profile?.role === "platform";
+        const eventId = platformAdmin ? null : session.eventId;
+        if (!platformAdmin && !await canManageGuests(session.accessToken, eventId)) {
+            throw Object.assign(new Error("Ce compte n'est plus autorisé pour cet événement."), { sessionInvalid: true });
+        }
+        return { ...session, role: platformAdmin ? "platform" : "organizer", eventId, userId: user.id,
+            email: user.email || session.email || "", phone: user.phone || session.phone || "" };
     }
 
     async function loginWithPassword(identifier, password, eventId) {
         if (!isSupabaseEnabled()) throw new Error("Supabase Auth n'est pas configuré.");
+        const revision = ++sessionRevision;
+        verifiedSessionKey = "";
+        sessionState = "unverified";
         const isEmail = identifier.includes("@");
         const phone = isEmail ? "" : window.OrganizerIdentity.normalizePhone(identifier);
         const credential = { email: isEmail ? identifier.trim() : window.OrganizerIdentity.emailFromPhone(identifier) };
@@ -157,62 +287,83 @@ const AuthGuard = (() => {
             phone: isEmail ? (user.phone || "") : phone,
             accessToken: auth.access_token,
             refreshToken: auth.refresh_token || "",
-            expiresAt: auth.expires_in ? Date.now() + auth.expires_in * 1000 : 0,
+            expiresAt: auth.expires_at ? Number(auth.expires_at) * 1000 : Date.now() + (Number(auth.expires_in) || 3600) * 1000,
             at: Date.now()
         };
-        setSession(session);
-        return { ok: true, role: session.role, session };
+        if (revision !== sessionRevision) throw new Error("Connexion interrompue. Réessayez.");
+        const stored = setSession(session);
+        markVerified(stored);
+        return { ok: true, role: stored.role, session: stored };
     }
 
-    async function refreshSession() {
-        const previous = getStoredSession();
-        if (!previous || !previous.refreshToken || !isSupabaseEnabled()) return getSession();
-
-        // A session still valid for more than one minute does not need a network call.
-        if (previous.expiresAt && Date.now() < previous.expiresAt - 60_000) return previous;
-
+    async function verifyStoredSession({ force = false, requestedToken } = {}) {
+        let previous = getStoredSession();
+        if (!previous || !isSupabaseEnabled()) return null;
+        const revision = sessionRevision;
+        let expectedKey = sessionKey(previous);
+        const isCurrent = () => revision === sessionRevision && expectedKey === sessionKey(getStoredSession());
         try {
-            const auth = await requestAuth("token?grant_type=refresh_token", {
-                refresh_token: previous.refreshToken
-            });
-            const user = auth.user || {};
-            if (!auth.access_token || !(user.id || previous.userId)) {
-                throw new Error("Session Supabase invalide.");
+            let user;
+            const needsRefresh = !previous.expiresAt || Date.now() >= previous.expiresAt - 60_000
+                || (force && previous.refreshToken && previous.refreshToken === requestedToken);
+            if (!needsRefresh) {
+                try { user = await getCurrentUser(previous.accessToken); }
+                catch (error) {
+                    if (!error.sessionInvalid || !previous.refreshToken) throw error;
+                }
             }
-
-            const userId = user.id || previous.userId;
-            const profile = await getProfile(auth.access_token, userId);
-            const platformAdmin = profile?.role === "platform";
-            const eventId = platformAdmin ? null : previous.eventId;
-            const guestManager = !platformAdmin && eventId
-                ? await canManageGuests(auth.access_token, eventId)
-                : false;
-            if (!platformAdmin && !guestManager) {
-                throw new Error("Ce compte n'est plus autorisé pour cet événement.");
+            if (!user) {
+                if (!previous.refreshToken) throw Object.assign(new Error("Session expirée."), { sessionInvalid: true });
+                const auth = await requestAuth("token?grant_type=refresh_token", { refresh_token: previous.refreshToken });
+                if (!isCurrent()) return null;
+                if (!auth.access_token) throw new Error("Session Supabase illisible.");
+                user = auth.user?.id ? auth.user : await getCurrentUser(auth.access_token);
+                if (!isCurrent()) return null;
+                // Conserver le nouveau refresh token même si la vérification des
+                // droits échoue ensuite à cause d'une panne temporaire.
+                previous = setSession({ ...previous, accessToken: auth.access_token,
+                    refreshToken: auth.refresh_token || previous.refreshToken,
+                    expiresAt: auth.expires_at ? Number(auth.expires_at) * 1000
+                        : Date.now() + (Number(auth.expires_in) || 3600) * 1000 });
+                expectedKey = sessionKey(previous);
             }
-
-            const expiresAt = auth.expires_at
-                ? Number(auth.expires_at) * 1000
-                : Date.now() + (Number(auth.expires_in) || 3600) * 1000;
-            const refreshed = {
-                ...previous,
-                role: platformAdmin ? "platform" : "organizer",
-                eventId,
-                userId,
-                email: user.email || previous.email || "",
-                phone: user.phone || previous.phone || "",
-                accessToken: auth.access_token,
-                refreshToken: auth.refresh_token || previous.refreshToken,
-                expiresAt,
-                at: Date.now()
-            };
-            setSession(refreshed);
-            return refreshed;
+            const authorized = await authorizeSession(previous, user);
+            if (!isCurrent()) return null;
+            const stored = sessionKey(authorized) === sessionKey(previous) ? authorized : setSession(authorized);
+            return markVerified(stored);
         } catch (error) {
-            console.warn("AuthGuard: renouvellement de session impossible", error);
-            clearSession();
+            if (!isCurrent()) return null;
+            if (error.sessionInvalid) clearSession();
+            else {
+                verifiedSessionKey = "";
+                sessionState = "offline";
+            }
             return null;
         }
+    }
+
+    function refreshSession(options = {}) {
+        if (pendingRefresh) {
+            if (options.force && !pendingRefreshForced) return pendingRefresh.then(() => refreshSession(options));
+            return pendingRefresh;
+        }
+        const current = getSession();
+        if (!options.force && current && Date.now() < verifiedAt + VERIFY_TTL
+            && Date.now() < current.expiresAt - 60_000) return Promise.resolve(current);
+        const requestedToken = getStoredSession()?.refreshToken;
+        const run = () => verifyStoredSession({ force: options.force === true, requestedToken });
+        const locks = window.navigator?.locks;
+        const task = locks?.request ? locks.request(`${SESSION_KEY}:refresh`, run) : run();
+        const pending = Promise.resolve(task).catch(() => {
+            verifiedSessionKey = "";
+            sessionState = "offline";
+            return null;
+        }).finally(() => {
+            if (pendingRefresh === pending) { pendingRefresh = null; pendingRefreshForced = false; }
+        });
+        pendingRefreshForced = options.force === true;
+        pendingRefresh = pending;
+        return pending;
     }
 
     function requireAdmin(eventId) {
@@ -230,7 +381,7 @@ const AuthGuard = (() => {
     }
 
     function logout() {
-        const session = getSession();
+        const session = getStoredSession();
         clearSession();
         if (session?.accessToken && isSupabaseEnabled()) {
             requestAuth("logout", {}, session.accessToken).catch(() => {});
@@ -238,11 +389,30 @@ const AuthGuard = (() => {
         window.location.href = "./login.html";
     }
 
+    window.addEventListener?.("storage", (event) => {
+        if (event.key !== SESSION_KEY && event.key !== LOGOUT_KEY) return;
+        sessionRevision += 1;
+        locallySignedOut = false;
+        verifiedSessionKey = "";
+        memorySession = null;
+        sessionState = "unverified";
+        if (!getStoredSession()) {
+            sessionState = "signed-out";
+            emitSignedOut();
+        } else {
+            // Revalider le token remplacé dans un autre onglet, sans le renouveler.
+            if (pendingRefresh) void pendingRefresh.then(() => refreshSession());
+            else void refreshSession();
+        }
+    });
+
     return {
         loginWithPassword,
         refreshSession,
         logout,
         getSession,
+        getSessionStatus,
+        getResumeUrl,
         isPlatformAdmin,
         isEventAdmin,
         isGuestManager,

@@ -7,6 +7,9 @@ const GuestExperience = (() => {
     let initDone = false;
     let initPromise = null;
     let rsvpProfilePhotoUrl = "";
+    let invitationRevoked = false;
+    let confirmationRestoreTimer = null;
+    let lastConfirmationExport = null;
 
     function unwrapGuest(g) {
         if (!g) return null;
@@ -39,6 +42,45 @@ const GuestExperience = (() => {
 
     function eventStorageKey(suffix) {
         return `wedding_event_${getEventId()}_${suffix}`;
+    }
+
+    function revokeInvitation(detail = {}) {
+        const eventId = String(getEventId()).trim().toLowerCase();
+        const token = (getParams().get("t") || "").trim();
+        if (detail.eventId !== eventId) return false;
+        if (detail.scope !== "event"
+            && (detail.scope !== "guest" || !token || detail.token !== token)) return false;
+        invitationRevoked = true;
+        profile = null;
+        lastConfirmationExport = null;
+        rsvpProfilePhotoUrl = "";
+        if (confirmationRestoreTimer !== null) {
+            clearTimeout(confirmationRestoreTimer);
+            confirmationRestoreTimer = null;
+        }
+        window.currentGuestProfile = null;
+        window.guestName = "";
+        try { localStorage.removeItem(eventStorageKey("guest_name")); } catch {}
+        for (const id of ["rsvp-confirmation-modal", "rsvp-modal"]) {
+            const modal = document.getElementById(id);
+            modal?.classList.add("hidden");
+            modal?.setAttribute("aria-hidden", "true");
+        }
+        if (document.body) document.body.style.overflow = "auto";
+        const table = document.getElementById("invite-table-assignment");
+        if (table) table.hidden = true;
+        const name = document.getElementById("display-guest-name");
+        if (name) name.textContent = "Invité(e)";
+        for (const id of ["rsvp-qr-image", "rsvp-profile-preview", "confirm-guest-photo"]) {
+            const image = document.getElementById(id);
+            image?.removeAttribute("src");
+            image?.classList.add("hidden");
+        }
+        for (const id of ["rsvp-name", "rsvp-phone"]) {
+            const input = document.getElementById(id);
+            if (input) input.value = "";
+        }
+        return true;
     }
 
     function getCoupleLabel() {
@@ -253,7 +295,7 @@ const GuestExperience = (() => {
     document.addEventListener("keydown", handleKeyboardActivation);
 
     function applyProfile(guest) {
-        if (!guest || !guest.fullName) return;
+        if (invitationRevoked || !guest || !guest.fullName) return;
         profile = guest;
         window.currentGuestProfile = guest;
         window.guestName = guest.fullName;
@@ -308,6 +350,7 @@ const GuestExperience = (() => {
     }
 
     async function handleRsvpPhotoUpload(event) {
+        if (invitationRevoked) return;
         const file = event.target?.files?.[0];
         if (!file) return;
         if (!window.MediaUpload) {
@@ -316,6 +359,7 @@ const GuestExperience = (() => {
         }
         try {
             const url = await MediaUpload.processFile(file, getEventId(), "guest-profile");
+            if (invitationRevoked) return;
             rsvpProfilePhotoUrl = url;
             const preview = document.getElementById("rsvp-profile-preview");
             if (preview) {
@@ -401,6 +445,7 @@ const GuestExperience = (() => {
                     return { ...byToken, phone: byToken.phone || (urlGuest && urlGuest.phone) || "" };
                 }
             } catch (e) {}
+            return null;
         }
 
         if (window.GuestManager && urlGuest) {
@@ -427,6 +472,8 @@ const GuestExperience = (() => {
     }
 
     function initSync() {
+        if (invitationRevoked) return false;
+        if (getParams().get('t')) return false;
         const guest = guestFromUrlParams();
         if (!guest) return false;
         applyProfile(guest);
@@ -435,7 +482,7 @@ const GuestExperience = (() => {
     }
 
     async function tryRestoreConfirmation(resolvedGuest = null) {
-        if (!window.GuestManager) return;
+        if (invitationRevoked || !window.GuestManager) return;
         const token = (getParams().get("t") || "").trim();
         // Une fiche obtenue via le token vient déjà de la RPC protégée. La
         // réutiliser évite une seconde requête identique au démarrage.
@@ -457,12 +504,12 @@ const GuestExperience = (() => {
             }
         }
 
-        if (!guest || guest.status !== "yes") return;
+        if (invitationRevoked || !guest || guest.status !== "yes") return;
         if (saved) {
             try {
                 const data = JSON.parse(saved);
                 if (canShowQrCode(guest, data.payload)) {
-                    setTimeout(() => showAlreadyConfirmed(guest), 800);
+                    confirmationRestoreTimer = setTimeout(() => showAlreadyConfirmed(guest), 800);
                 }
                 return;
             } catch (e) {}
@@ -478,11 +525,12 @@ const GuestExperience = (() => {
             drinkChoices: guest.drinkChoices || []
         };
         if (canShowQrCode(guest, payload)) {
-            setTimeout(() => showAlreadyConfirmed(guest), 800);
+            confirmationRestoreTimer = setTimeout(() => showAlreadyConfirmed(guest), 800);
         }
     }
 
     function initAsync() {
+        if (invitationRevoked) return Promise.resolve(false);
         if (initPromise) return initPromise;
         initPromise = (async () => {
             if (initDone) return !!profile;
@@ -505,12 +553,16 @@ const GuestExperience = (() => {
                         empty.textContent = "Les messages RSVP sont momentanément indisponibles. Réessayez plus tard.";
                         empty.classList.remove("hidden");
                     }
+                    return false;
                 }
             }
 
+            if (invitationRevoked) return false;
             const guest = await resolveGuestFromUrl();
+            if (invitationRevoked) return false;
             if (guest) {
                 applyProfile(guest);
+                if (guest.status === 'yes') void window.PwaRuntime?.offerInvitation(guest);
                 lockPersonalDetails();
                 showPersonalWelcome(guest);
                 if ((guest.status === "yes" || isPrintRequested())
@@ -518,6 +570,7 @@ const GuestExperience = (() => {
                     && typeof window.openMainSite === "function") {
                     await window.openMainSite(null, { skipLoader: true });
                 }
+                if (invitationRevoked) return false;
                 if (isPrintRequested()) window.dispatchEvent(new CustomEvent("personalinvitation:ready"));
                 const token = getParams().get("t");
                 if (token && window.CloudAPI && CloudAPI.isEnabled()) {
@@ -535,6 +588,7 @@ const GuestExperience = (() => {
     }
 
     async function resolvePersonalInviteIfNeeded(isOpenRsvp) {
+        if (invitationRevoked) return null;
         const token = (getParams().get("t") || "").trim();
         if (isOpenRsvp || !token) return profile;
         // initSync peut préremplir l'écran depuis ?guest=… avant que la fiche
@@ -687,6 +741,7 @@ const GuestExperience = (() => {
     }
 
     async function openRsvp() {
+        if (invitationRevoked) return;
         if (window.EventConfig?.init && !window.EventConfig.isReady?.()) {
             try { await EventConfig.init(); } catch (error) {
                 showToast("Impossible de charger la configuration de cette invitation.");
@@ -696,6 +751,7 @@ const GuestExperience = (() => {
         const eventConfig = window.EventConfig?.getConfig?.() || {};
         const isOpenRsvp = isOpenRsvpEvent(eventConfig);
         await resolvePersonalInviteIfNeeded(isOpenRsvp);
+        if (invitationRevoked) return;
         prefillRsvp();
         applyRsvpModeForm();
         const hasPersonalInvite = hasPersonalInviteToken(profile) && !!profile?.id;
@@ -779,9 +835,8 @@ const GuestExperience = (() => {
         });
     }
 
-    let lastConfirmationExport = null;
-
     function hasPersonalInviteToken(guest) {
+        if (invitationRevoked) return false;
         const token = (getParams().get("t") || "").trim();
         if (!token) return false;
         const g = guest || profile;
@@ -817,6 +872,7 @@ const GuestExperience = (() => {
             return;
         }
         const done = (url) => {
+            if (invitationRevoked) return;
             img.src = url;
             img.alt = "QR code confirmation";
             if (typeof onReady === "function") onReady(url);
@@ -841,6 +897,7 @@ const GuestExperience = (() => {
     }
 
     function showConfirmation(payload, code, guest) {
+        if (invitationRevoked) return;
         const resolvedGuest = unwrapGuest(guest) || profile;
         if (rsvpProfilePhotoUrl && resolvedGuest) {
             resolvedGuest.profilePhotoUrl = rsvpProfilePhotoUrl;
@@ -992,9 +1049,11 @@ const GuestExperience = (() => {
             modal.classList.remove("hidden");
             document.body.style.overflow = "hidden";
         }
+        if (isYes) void window.PwaRuntime?.offerInvitation(resolvedGuest);
     }
 
     async function downloadConfirmationPass() {
+        if (invitationRevoked) return;
         const data = lastConfirmationExport;
         if (!data) {
             showToast("Aucune carte à télécharger.");
@@ -1029,6 +1088,7 @@ const GuestExperience = (() => {
     }
 
     function showAlreadyConfirmed(guest) {
+        if (invitationRevoked) return;
         const payload = {
             name: guest.fullName,
             status: "yes",
@@ -1090,6 +1150,11 @@ const GuestExperience = (() => {
         const submitBtn = document.getElementById("rsvp-submit-btn") || event.submitter;
 
         const run = async () => {
+            if (invitationRevoked) return;
+            if (navigator.onLine === false || window.InvitationOffline?.isOffline()) {
+                showToast("Reconnectez-vous à Internet pour envoyer votre réponse.");
+                return;
+            }
             if (window.EventConfig?.init && !window.EventConfig.isReady?.()) {
                 try { await EventConfig.init(); } catch (error) {
                     showToast("Impossible de charger la configuration de cette invitation.");
@@ -1100,6 +1165,7 @@ const GuestExperience = (() => {
             const eventConfig = window.EventConfig?.getConfig?.() || {};
             const isOpenRsvp = isOpenRsvpEvent(eventConfig);
             await resolvePersonalInviteIfNeeded(isOpenRsvp);
+            if (invitationRevoked) return;
             prefillRsvp();
             const hasPersonalInvite = hasPersonalInviteToken(profile) && !!profile?.id;
             if (!isOpenRsvp && !hasPersonalInvite) {
@@ -1167,6 +1233,7 @@ const GuestExperience = (() => {
                 if (token) {
                     try { guestByToken = await GuestManager.findByToken(token); } catch (e) {}
                 }
+                if (invitationRevoked) return;
                 try {
                     updatedGuest = await GuestManager.recordRSVP({
                         guestId: guestByToken ? guestByToken.id : null,
@@ -1187,6 +1254,7 @@ const GuestExperience = (() => {
                     }
                 }
                 updatedGuest = unwrapGuest(updatedGuest);
+                if (invitationRevoked) return;
                 if (token && window.CloudAPI && CloudAPI.isEnabled() && !updatedGuest) {
                     showToast("Votre réponse n'a pas été enregistrée. Vérifiez votre connexion et réessayez.");
                     return;
@@ -1203,6 +1271,7 @@ const GuestExperience = (() => {
                 } catch (e) {}
             }
             await loadPublicRsvpMessages();
+            if (invitationRevoked) return;
 
             if (typeof window.closeModal === "function") {
                 window.closeModal("rsvp-modal");
@@ -1211,6 +1280,9 @@ const GuestExperience = (() => {
             }
 
             if (isOpenRsvp) {
+                if (payload.status === 'yes') {
+                    void window.PwaRuntime?.offerInvitation(updatedGuest, { publicConfirmed: true });
+                }
                 redirectOpenRsvpToWhatsApp(payload, eventConfig, openRsvpSide);
                 return;
             }
@@ -1259,6 +1331,8 @@ const GuestExperience = (() => {
         initAsync().catch(() => {});
     }
 
+    window.addEventListener?.("invitation:revoked", (event) => revokeInvitation(event.detail));
+
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", boot);
     } else {
@@ -1269,6 +1343,7 @@ const GuestExperience = (() => {
         init: initAsync,
         initSync,
         getProfile: () => profile,
+        revokeInvitation,
         applyProfile,
         prefillRsvp,
         openRsvp,

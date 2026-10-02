@@ -15,6 +15,15 @@
         let pendingHeroFont = null;
         let heroFontRequest = 0;
 
+        window.addEventListener('invitation:revoked', (event) => {
+            const params = new URLSearchParams(window.location.search);
+            const detail = event.detail || {};
+            if (detail.eventId !== (params.get('event') || 'demo').trim().toLowerCase()
+                || (detail.scope !== 'event' && detail.token !== (params.get('t') || '').trim())) return;
+            currentGuestProfile = null;
+            guestName = '';
+        });
+
         function prepareHeroTitleFont() {
             const title = document.getElementById('hero-title');
             if (!title || !document.fonts?.load || typeof getComputedStyle !== 'function') return Promise.resolve();
@@ -80,7 +89,7 @@
             if (window.BackgroundMusic) BackgroundMusic.armAutoplay();
             const { skipLoader = false, instant = false } = options;
             const run = () => {
-                if (!guestName) {
+                if (!guestName && !new URLSearchParams(window.location.search).get('t')) {
                     guestName = (localStorage.getItem(eventStorageKey('guest_name')) || '').trim();
                 }
                 if (window.GuestExperience && GuestExperience.getProfile()) {
@@ -137,7 +146,7 @@
         }
 
         function applyGuestProfile(guest) {
-            if (!guest) return;
+            if (!guest || window.PwaRuntime?.isRevoked?.()) return;
             currentGuestProfile = guest;
             guestName = guest.fullName || guestName;
             applyGuestName(guestName);
@@ -309,7 +318,8 @@
             const guestParam = (urlParams.get('guest') || urlParams.get('nom') || '').trim();
 
             if (window.GuestManager && token) {
-                const guestByToken = await GuestManager.findByToken(token);
+                let guestByToken = null;
+                try { guestByToken = await GuestManager.findByToken(token); } catch {}
                 if (guestByToken) {
                     applyGuestProfile(guestByToken);
                     showPersonalizedWelcome(guestByToken);
@@ -332,6 +342,11 @@
                     }
                     return;
                 }
+                // Un jeton personnel ne reprend jamais le nom d'une autre
+                // invitation mémorisée pour le même événement sur cet appareil.
+                guestName = '';
+                applyGuestName('');
+                return;
             }
 
             let resolvedName = guestParam;
@@ -1691,7 +1706,7 @@
             }
 
             if ('serviceWorker' in navigator && !isPreviewMode) {
-                navigator.serviceWorker.register('../sw.js?v=62').catch(() => {});
+                navigator.serviceWorker.register('../sw.js?v=63').catch(() => {});
             }
 
             defaultCustomizationState = getCurrentCustomizationState();

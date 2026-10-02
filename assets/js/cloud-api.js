@@ -78,7 +78,11 @@ const CloudAPI = (() => {
         } catch (error) {
             const message = "Impossible de joindre le service. Vérifiez votre connexion puis réessayez.";
             console.warn("CloudAPI RPC", functionName, error);
-            if (options.throwOnError) throw new Error(message);
+            if (options.throwOnError) {
+                const failure = new Error(message);
+                failure.code = "NETWORK_ERROR";
+                throw failure;
+            }
             throw error;
         }
         if (!response.ok) {
@@ -99,7 +103,17 @@ const CloudAPI = (() => {
             }
             return null;
         }
-        const raw = await response.text().catch(() => "");
+        let raw;
+        try {
+            raw = await response.text();
+        } catch {
+            if (options.throwOnError) {
+                const failure = new Error("La connexion a ete interrompue pendant la reception de la reponse.");
+                failure.code = "NETWORK_ERROR";
+                throw failure;
+            }
+            return expectsArray ? [] : null;
+        }
         let data = null;
         if (raw) {
             try {
@@ -107,7 +121,11 @@ const CloudAPI = (() => {
             } catch {
                 const message = "La réponse du service est illisible. Réessayez plus tard.";
                 console.warn("CloudAPI RPC", functionName, message);
-                if (options.throwOnError) throw new Error(message);
+                if (options.throwOnError) {
+                    const failure = new Error(message);
+                    failure.code = "INVALID_RESPONSE";
+                    throw failure;
+                }
                 return expectsArray ? [] : null;
             }
         }
@@ -735,20 +753,30 @@ const CloudAPI = (() => {
 
     // --- Analytics ---
     async function track(eventId, eventType, meta = {}) {
-        const payload = {
-            event_id: eventId,
-            event_type: eventType,
-            guest_token: meta.guestToken || null,
-            meta
-        };
-        if (isEnabled()) {
-            await request("analytics_events", { method: "POST", body: payload });
+        // Analytics are optional: offline reading must not enqueue writes or
+        // reject an unawaited tracking call from the invitation UI.
+        try {
+            if ((typeof navigator !== "undefined" && navigator.onLine === false)
+                || window.InvitationOffline?.isOffline()) return false;
+            const payload = {
+                event_id: eventId,
+                event_type: eventType,
+                guest_token: meta.guestToken || null,
+                meta
+            };
+            if (isEnabled()) {
+                const saved = await request("analytics_events", { method: "POST", body: payload });
+                if (saved === null || saved === false) return false;
+            }
+            const key = localKey(eventId, "analytics");
+            const list = JSON.parse(localStorage.getItem(key) || "[]");
+            list.push({ ...payload, id: crypto.randomUUID(), created_at: new Date().toISOString() });
+            if (list.length > 500) list.splice(0, list.length - 500);
+            localStorage.setItem(key, JSON.stringify(list));
+            return true;
+        } catch {
+            return false;
         }
-        const key = localKey(eventId, "analytics");
-        const list = JSON.parse(localStorage.getItem(key) || "[]");
-        list.push({ ...payload, id: crypto.randomUUID(), created_at: new Date().toISOString() });
-        if (list.length > 500) list.splice(0, list.length - 500);
-        localStorage.setItem(key, JSON.stringify(list));
     }
 
     async function getAnalytics(eventId) {
@@ -838,8 +866,34 @@ const CloudAPI = (() => {
     }
 
     async function getGuestByInviteToken(token) {
-        const guest = await requestRpc("get_guest_invite", { p_token: token });
-        return guest ? mapGuestFromCloud(guest) : null;
+        const eventId = window.EventConfig?.getEventId?.()
+            || new URLSearchParams(window.location?.search || "").get("event") || "";
+        const offline = window.InvitationOffline;
+        let result;
+        try {
+            result = await requestRpc("get_guest_invite", { p_token: token }, { throwOnError: true });
+        } catch (error) {
+            const canUseCopy = error.code === "NETWORK_ERROR"
+                || (Number(error.status) >= 500 && Number(error.status) < 600);
+            if (canUseCopy) {
+                const saved = offline?.readGuest(eventId, token);
+                if (saved) {
+                    offline.markOffline({ eventId, token, source: "guest" });
+                    return saved;
+                }
+            } else {
+                offline?.forgetGuest(eventId, token);
+            }
+            throw error;
+        }
+        const guest = result ? mapGuestFromCloud(result) : null;
+        if (!guest || guest.token !== token || (eventId && guest.eventId !== eventId)) {
+            offline?.forgetGuest(eventId, token);
+            return null;
+        }
+        if (guest.status === "yes") offline?.saveGuest(eventId, token, guest);
+        else offline?.forgetGuest(eventId, token, { notify: false });
+        return guest;
     }
 
     async function submitGuestRsvp(eventId, token, data) {
@@ -854,7 +908,14 @@ const CloudAPI = (() => {
             p_drink_choices: Array.isArray(data.drinkChoices) ? data.drinkChoices : [],
             p_profile_photo_url: data.profilePhotoUrl || ""
         }, { throwOnError: true });
-        return guest ? mapGuestFromCloud(guest) : null;
+        const mapped = guest ? mapGuestFromCloud(guest) : null;
+        if (!mapped || mapped.eventId !== eventId || mapped.token !== token) {
+            window.InvitationOffline?.forgetGuest(eventId, token);
+            return null;
+        }
+        if (mapped.status === "yes") window.InvitationOffline?.saveGuest(eventId, token, mapped);
+        else window.InvitationOffline?.forgetGuest(eventId, token, { notify: false });
+        return mapped;
     }
 
     async function getPublicGuestbookMessages(eventId) {
