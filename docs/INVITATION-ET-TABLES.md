@@ -1,6 +1,6 @@
 # Invitation et gestion des tables
 
-## Évolution préparée
+## Évolution publiée
 
 L'invitation reprend les composants existants dans cet ordre : invitation,
 à propos, programme, tenue et couleurs, menu et boissons, cadeaux, livre d'or,
@@ -17,12 +17,14 @@ indépendants du RSVP.
 Les droits de personnalisation restent ceux de la plateforme. Les droits
 existants de gestion des invités s'appliquent également aux tables.
 
-## Migration approuvée — exécution Supabase en attente
+## Migration appliquée
 
 Fichier : [SUPABASE-EVENT-TABLES.sql](SUPABASE-EVENT-TABLES.sql).
 
-Cette migration a été approuvée par le client le 2 octobre 2026. Son exécution
-sur Supabase reste à confirmer. Elle nécessite les migrations
+Cette migration a été approuvée puis exécutée dans Supabase par le client le
+2 octobre 2026. La présence de `guests.table_id` et le refus de lecture anonyme
+de `event_tables` ont ensuite été vérifiés par l'API, sans lire de données invitées.
+Elle nécessite les migrations
 `SUPABASE-PLATFORM-HARDENING.sql` et `SUPABASE-ORGANIZER-ACCESS.sql` déjà en place.
 Elle s'exécute dans une transaction et peut être rejouée.
 
@@ -56,6 +58,12 @@ dépassement est signalé. Elle ne bloque pas une réponse RSVP.
 2. Exécuter le fichier SQL complet dans le SQL Editor du projet Supabase concerné.
 3. Publier les fichiers de l'application, puis vérifier la gestion des tables
    avec un compte autorisé et une invitation personnelle existante.
+
+La version applicative `356e95f` a été publiée sur la branche `main` et sur
+`https://michelline-invitations.vercel.app` le 2 octobre 2026. Vercel confirme
+le déploiement `dpl_3EdvTxN3CvUtTRmpGFq5A6tjSrXE` à l'état `Ready`.
+Les opérations d'administration ont été testées localement ; aucune fiche
+invitée ni réponse RSVP de production n'a été modifiée pour les tests.
 
 Avant activation SQL, la nouvelle interface conserve les anciens champs de table
 et les fonctions existantes. Elle ne prétend pas avoir sauvegardé une table si
