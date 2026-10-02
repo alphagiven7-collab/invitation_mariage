@@ -4,6 +4,42 @@
 const ContentBlocks = (() => {
     const PROGRAM_COLORS = ["blue", "green", "pink", "purple", "indigo", "amber"];
     const DEFAULT_DRESS_CODE_COLORS = ["#f4e1e1", "#5a2a35", "#2d3748"];
+    const VENUE_TYPES = { civil: "Mariage civil", religious: "Cérémonie religieuse", reception: "Réception", other: "Autre rendez-vous" };
+
+    function normalizeVenues(state = {}) {
+        const legacy = {
+            name: state.venueTitle ?? (typeof state.venue === "string" ? state.venue : state.venue?.title) ?? "",
+            address: state.venueAddress ?? state.venueDetails?.address ?? "",
+            time: state.venueTime ?? state.venueDetails?.time ?? "",
+            mapLink: state.mapLink ?? state.links?.map ?? state.venueDetails?.mapLink ?? "",
+            lat: state.venueLat ?? state.venueDetails?.lat ?? "",
+            lng: state.venueLng ?? state.venueDetails?.lng ?? "",
+            mapImage: state.mapImage ?? state.venueDetails?.mapImage ?? ""
+        };
+        const entries = Array.isArray(state.venues) ? state.venues : [legacy];
+        return entries.filter((entry) => entry && typeof entry === "object").map((entry, index) => {
+            const read = (key) => String(entry[key] ?? "").trim();
+            return {
+                id: read("id") || `venue-${index + 1}`,
+                type: Object.hasOwn(VENUE_TYPES, entry.type) ? entry.type : "other",
+                label: read("label"),
+                name: read("name"), address: read("address"), time: read("time"),
+                mapLink: sanitizeExternalUrl(entry.mapLink),
+                lat: read("lat"), lng: read("lng"), mapImage: read("mapImage")
+            };
+        }).filter((venue) => venue.name || venue.address || venue.time || venue.mapLink || venue.lat || venue.lng);
+    }
+
+    function venueLabel(venue) {
+        return venue.label || VENUE_TYPES[venue.type] || VENUE_TYPES.other;
+    }
+
+    function venueToLegacy(venue = {}) {
+        return {
+            venueTitle: venue.name || "", venueAddress: venue.address || "", venueTime: venue.time || "",
+            venueLat: venue.lat || "", venueLng: venue.lng || "", mapLink: venue.mapLink || "", mapImage: venue.mapImage || ""
+        };
+    }
     const DEFAULT_PROGRAM = [
         { time: "19h30 - 20h00", title: "Arrivée des invités", color: "blue" },
         { time: "20h00 - 20h30", title: "Emplacements", color: "green" },
@@ -53,7 +89,8 @@ const ContentBlocks = (() => {
         if (state.venueAddress) {
             return `https://maps.google.com/?q=${encodeURIComponent(state.venueAddress)}`;
         }
-        return "https://maps.google.com/?q=Sultani+River+Kinshasa";
+        if (state.venueTitle) return `https://maps.google.com/?q=${encodeURIComponent(state.venueTitle)}`;
+        return "";
     }
 
     function buildMapEmbedUrl(state) {
@@ -165,21 +202,33 @@ const ContentBlocks = (() => {
     }
 
     function applyVenue(state) {
-        if (state.venueTitle) {
+        const venues = normalizeVenues(state);
+        const first = venues[0];
+        state = venueToLegacy(first);
+        const primary = document.getElementById("venue-primary-card");
+        if (primary) primary.hidden = !first;
+        const empty = document.getElementById("venues-empty");
+        if (empty) empty.hidden = venues.length > 0;
+        for (const [id, text] of [["venue-kind", first ? venueLabel(first) : ""], ["venue-time", first?.time || ""]]) {
+            const element = document.getElementById(id);
+            if (element) { element.textContent = text; element.hidden = !text; }
+        }
+        {
             const el = document.getElementById("venue-title");
             if (el) el.textContent = state.venueTitle;
         }
-        if (state.venueAddress) {
+        {
             const el = document.getElementById("venue-address");
             if (el) el.textContent = state.venueAddress;
         }
-        if (state.mapImage) {
-            const img = document.getElementById("map-image");
-            if (img) img.src = state.mapImage;
+        const img = document.getElementById("map-image");
+        if (img) {
+            if (state.mapImage) img.src = state.mapImage;
+            else img.removeAttribute("src");
         }
         const mapUrl = buildMapUrl(state);
         const link = document.getElementById("venue-map-link");
-        if (link) link.href = mapUrl;
+        if (link) { link.href = mapUrl; link.hidden = !mapUrl; }
 
         const wazeLink = document.getElementById("venue-waze-link");
         if (wazeLink) {
@@ -215,6 +264,47 @@ const ContentBlocks = (() => {
                 }
             };
         }
+        const additional = document.getElementById("venue-additional-list");
+        if (additional) {
+            additional.innerHTML = venues.slice(1).map((venue) => {
+                const mapState = venueToLegacy(venue);
+                const url = buildMapUrl(mapState);
+                const embed = buildMapEmbedUrl(mapState);
+                return `<article class="event-venue-card">
+                    <div class="event-venue-content">
+                        <p class="event-venue-kicker">${escapeHtml(venueLabel(venue))}</p>
+                        <h3 class="event-venue-name">${escapeHtml(venue.name || venueLabel(venue))}</h3>
+                        ${venue.time ? `<p class="event-venue-time">${escapeHtml(venue.time)}</p>` : ""}
+                        ${venue.address ? `<p class="event-venue-address">${escapeHtml(venue.address)}</p>` : ""}
+                        ${url ? `<a class="event-venue-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Ouvrir l’itinéraire ↗</a>` : ""}
+                    </div>
+                    ${embed ? `<iframe class="event-venue-map" src="${escapeHtml(embed)}" title="${escapeHtml(`Carte : ${venue.name || venueLabel(venue)}`)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>` : ""}
+                </article>`;
+            }).join("");
+        }
+    }
+
+    function normalizeFoodMenu(items) {
+        return (Array.isArray(items) ? items : []).filter((item) => item && typeof item === "object")
+            .map((item) => ({ title: String(item.title || "").trim(), description: String(item.description || "").trim() }))
+            .filter((item) => item.title || item.description);
+    }
+
+    function renderFoodMenu(state) {
+        const panel = document.getElementById("food-menu-panel");
+        const list = document.getElementById("food-menu-list");
+        if (!panel || !list) return;
+        const items = normalizeFoodMenu(state.foodMenu);
+        panel.hidden = state.sections?.foodMenu === false || !items.length;
+        const title = document.getElementById("food-menu-title");
+        if (title) title.textContent = state.foodMenuTitle || "À notre table";
+        list.innerHTML = items.map((item) => `<div class="event-menu-course">
+            ${item.title ? `<h4>${escapeHtml(item.title)}</h4>` : ""}
+            ${item.description ? `<p>${escapeHtml(item.description)}</p>` : ""}
+        </div>`).join("");
+        const section = document.getElementById("invitation-menu-section");
+        const drinks = document.getElementById("drink-menu-section");
+        if (section) section.hidden = panel.hidden && (!drinks || drinks.classList.contains("hidden"));
     }
 
     function applySectionVisibility(sections) {
@@ -248,6 +338,7 @@ const ContentBlocks = (() => {
         renderProgram(state.program || DEFAULT_PROGRAM);
         renderPracticalInfo(state.practicalInfo || DEFAULT_PRACTICAL);
         applyVenue(state);
+        renderFoodMenu(state);
         applyDressCodeColors(state.dressCodeColors);
         applySectionVisibility(state.sections);
     }
@@ -266,12 +357,16 @@ const ContentBlocks = (() => {
         if (!cfg) return {};
         const out = {};
         const legacyVenueTitle = typeof cfg.venue === "string" ? cfg.venue : cfg.venue?.title;
-        out.venueTitle = cfg.venueTitle || legacyVenueTitle || "";
-        out.venueAddress = cfg.venueAddress || cfg.venueDetails?.address || "";
+        out.venueTitle = cfg.venueTitle ?? legacyVenueTitle ?? "";
+        out.venueAddress = cfg.venueAddress ?? cfg.venueDetails?.address ?? "";
+        out.venueTime = cfg.venueTime ?? cfg.venueDetails?.time ?? "";
         out.mapLink = cfg.mapLink ?? cfg.links?.map ?? cfg.venueDetails?.mapLink ?? "";
         out.venueLat = cfg.venueLat ?? cfg.venueDetails?.lat ?? "";
         out.venueLng = cfg.venueLng ?? cfg.venueDetails?.lng ?? "";
         out.mapImage = cfg.mapImage ?? cfg.venueDetails?.mapImage ?? "";
+        if (Array.isArray(cfg.venues)) out.venues = normalizeVenues(cfg);
+        out.foodMenu = normalizeFoodMenu(cfg.foodMenu);
+        out.foodMenuTitle = cfg.foodMenuTitle || "À notre table";
         if (cfg.program) out.program = cfg.program;
         if (cfg.practicalInfo) out.practicalInfo = cfg.practicalInfo;
         if (cfg.title) out.title = cfg.title;
@@ -319,6 +414,12 @@ const ContentBlocks = (() => {
         renderProgram,
         renderPracticalInfo,
         applyVenue,
+        normalizeVenues,
+        venueToLegacy,
+        venueLabel,
+        VENUE_TYPES,
+        normalizeFoodMenu,
+        renderFoodMenu,
         buildMapUrl,
         buildMapEmbedUrl,
         sanitizeExternalUrl,

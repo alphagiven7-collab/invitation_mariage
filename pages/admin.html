@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administration invités</title>
-    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=58">
+    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=59">
     <link rel="stylesheet" href="../assets/css/app.css?v=76">
-    <link rel="stylesheet" href="../assets/css/admin.css?v=10">
+    <link rel="stylesheet" href="../assets/css/admin.css?v=11">
     <link rel="stylesheet" href="../assets/css/account-inputs.css?v=1">
 </head>
 <body class="admin-shell text-slate-800">
@@ -52,6 +52,7 @@
                 <p class="admin-nav-label">Navigation</p>
                 <button type="button" class="admin-tab active" data-tab="overview"><span class="admin-tab-icon">📊</span> Vue d'ensemble</button>
                 <button type="button" class="admin-tab" data-tab="guests"><span class="admin-tab-icon">👥</span> Invités</button>
+                <button type="button" class="admin-tab" data-tab="tables"><span class="admin-tab-icon">◉</span> Tables</button>
                 <button type="button" class="admin-tab" data-tab="relances"><span class="admin-tab-icon">💬</span> Relances</button>
                 <button type="button" class="admin-tab" data-tab="rsvps"><span class="admin-tab-icon">✓</span> Confirmations</button>
                 <button type="button" class="admin-tab" data-tab="presence"><span class="admin-tab-icon">🚪</span> Présence jour J</button>
@@ -103,14 +104,12 @@
                             <div class="admin-field"><label for="guest-name">Nom complet *</label><input id="guest-name" class="admin-input" placeholder="Marie N." required></div>
                             <div class="admin-field"><label for="guest-phone">Téléphone <span class="text-slate-500">(facultatif)</span></label><input id="guest-phone" type="tel" class="admin-input" placeholder="+243…"></div>
                             <div class="admin-field"><label for="guest-email">Email</label><input id="guest-email" class="admin-input" placeholder="email@…"></div>
-                            <div class="admin-field"><label for="guest-table">Table</label><input id="guest-table" class="admin-input" placeholder="Table 8"></div>
+                            <div class="admin-field"><label for="guest-table" data-table-field-label="guest">Table</label><input id="guest-table" class="admin-input" placeholder="Table 8"><select id="guest-table-select" class="admin-select" hidden aria-label="Table de l’invité"><option value="">Sans table</option></select></div>
                             <div class="admin-field"><label for="guest-profile-photo">Photo de la carte</label><input id="guest-profile-photo" type="file" accept="image/*" class="admin-input"></div>
                             <div class="admin-field" style="grid-column:1/-1"><button type="submit" class="admin-btn admin-btn-success">+ Ajouter l'invité</button></div>
                         </form>
                         </details>
                     </div>
-
-                    <div id="guests-load-more" class="hidden mt-3 text-center"><button type="button" class="admin-btn admin-btn-ghost">Afficher plus d'invités</button></div>
 
                     <section class="admin-card">
                         <h2 class="admin-card-title">Liste des invités</h2>
@@ -122,8 +121,17 @@
                                 <option value="yes">Confirmés</option>
                                 <option value="no">Refus</option>
                             </select>
+                            <select id="guest-table-filter" class="admin-select" hidden aria-label="Filtrer par table"><option value="all">Toutes les tables</option><option value="none">Sans table</option></select>
                             <button id="detect-duplicates-btn" type="button" class="admin-btn admin-btn-ghost">Détecter les doublons</button>
                             <button id="delete-selected-guests-btn" type="button" class="admin-btn admin-btn-danger" disabled>Supprimer la sélection</button>
+                        </div>
+                        <p id="guest-tables-note" class="admin-card-desc" role="status" hidden></p>
+                        <div id="guest-table-bulk" class="table-bulk" hidden>
+                            <span id="guest-selected-count" aria-live="polite">Aucun invité sélectionné</span>
+                            <button id="select-filtered-guests-btn" type="button" class="admin-btn admin-btn-ghost">Tout sélectionner</button>
+                            <label for="bulk-table-select">Affecter à</label>
+                            <select id="bulk-table-select" class="admin-select"><option value="">Sans table</option></select>
+                            <button id="assign-selected-table-btn" type="button" class="admin-btn admin-btn-primary" disabled>Affecter la sélection</button>
                         </div>
                         <div class="admin-table-wrap">
                             <table class="admin-table admin-table--guests">
@@ -133,8 +141,9 @@
                         </div>
                         <div id="guests-empty" class="admin-empty hidden">
                             <div class="admin-empty-icon">👥</div>
-                            <p>Aucun invité pour l'instant. Importez un CSV ou ajoutez manuellement.</p>
+                            <p id="guests-empty-message">Aucun invité pour l'instant. Importez un CSV ou ajoutez manuellement.</p>
                         </div>
+                        <div id="guests-load-more" class="hidden mt-3 text-center"><button type="button" class="admin-btn admin-btn-ghost">Afficher plus d'invités</button></div>
                     </section>
 
                     <section id="admin-guestbook-section" class="admin-card hidden">
@@ -142,6 +151,29 @@
                         <p class="admin-card-desc">Les messages publiés en bas de l'invitation. Vous pouvez retirer un message à tout moment.</p>
                         <div id="admin-guestbook-list" class="admin-guestbook-list"></div>
                         <p id="admin-guestbook-empty" class="admin-empty hidden">Aucun message dans le livre d'or.</p>
+                    </section>
+                </div>
+
+                <div id="tab-tables" class="tab-panel">
+                    <section class="admin-card">
+                        <div class="tables-heading"><div><h2 class="admin-card-title">Tables de l’événement</h2><p class="admin-card-desc">Réservez les places avant la confirmation. Les adultes et enfants sont comptés ; les refus sont exclus.</p></div><button id="tables-refresh-btn" type="button" class="admin-btn admin-btn-ghost">Actualiser</button></div>
+                        <p id="tables-availability" class="table-notice" role="status" hidden></p>
+                        <form id="table-form" class="table-form" hidden>
+                            <input id="table-edit-id" type="hidden">
+                            <div class="admin-field"><label for="table-name">Nom ou numéro de table *</label><input id="table-name" class="admin-input" placeholder="8 · Roses" maxlength="120" required></div>
+                            <div class="admin-field"><label for="table-capacity">Capacité (places, facultatif)</label><input id="table-capacity" class="admin-input" type="number" inputmode="numeric" min="1" step="1" placeholder="À définir"></div>
+                            <div class="table-form-actions"><button id="table-save-btn" type="submit" class="admin-btn admin-btn-success">Créer la table</button><button id="table-cancel-btn" type="button" class="admin-btn admin-btn-ghost" hidden>Annuler</button></div>
+                        </form>
+                    </section>
+                    <section id="tables-list-section" class="admin-card" hidden>
+                        <div class="admin-toolbar"><input id="table-search" class="admin-input" type="search" placeholder="Rechercher une table…" aria-label="Rechercher une table"><span id="tables-summary" class="admin-card-desc" aria-live="polite"></span></div>
+                        <div id="tables-grid" class="tables-grid"></div>
+                        <p id="tables-empty" class="admin-empty" hidden>Aucune table. Créez la première table ci-dessus.</p>
+                    </section>
+                    <section id="table-occupants-panel" class="admin-card" hidden aria-labelledby="table-occupants-title">
+                        <div class="tables-heading"><div><h2 id="table-occupants-title" class="admin-card-title" tabindex="-1"></h2><p id="table-occupants-summary" class="admin-card-desc"></p></div><button id="table-occupants-close" type="button" class="admin-btn admin-btn-ghost">Fermer la liste</button></div>
+                        <ul id="table-occupants-list" class="table-occupants-list"></ul>
+                        <button id="table-occupants-more" type="button" class="admin-btn admin-btn-ghost" hidden>Afficher plus d’invités</button>
                     </section>
                 </div>
 
@@ -250,8 +282,9 @@
                         <input id="edit-guest-email" class="admin-input">
                     </div>
                     <div class="admin-field admin-field-full">
-                        <label for="edit-guest-table">Table</label>
+                        <label for="edit-guest-table" data-table-field-label="edit-guest">Table</label>
                         <input id="edit-guest-table" class="admin-input" placeholder="Table 8">
+                        <select id="edit-guest-table-select" class="admin-select" hidden aria-label="Table de l’invité"><option value="">Sans table</option></select>
                     </div>
                 </div>
                 <p class="admin-modal-section-label">RSVP</p>
@@ -491,17 +524,19 @@
     <script src="../assets/js/django-api-config.js?v=53"></script>
     <script src="../assets/js/django-api.js?v=53"></script>
     <script src="../assets/js/event-config.js?v=73"></script>
-    <script src="../assets/js/cloud-api.js?v=80"></script>
+    <script src="../assets/js/cloud-api.js?v=82"></script>
     <script src="../assets/js/media-upload.js?v=55"></script>
     <script src="../assets/js/organizer-identity.js?v=1"></script>
     <script src="../assets/js/auth.js?v=61"></script>
     <script src="../assets/js/account-inputs.js?v=1"></script>
-    <script src="../assets/js/guest-manager.js?v=72"></script>
+    <script src="../assets/js/guest-manager.js?v=73"></script>
+    <script src="../assets/js/table-manager.js?v=1"></script>
     <script src="../assets/js/checkin-url.js?v=49"></script>
     <script src="../assets/js/checkin-api.js?v=50"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="../assets/js/envelope-export.js?v=51"></script>
     <script src="../assets/js/admin-presence.js?v=51"></script>
-    <script src="../assets/js/admin.js?v=91"></script>
+    <script src="../assets/js/admin-tables.js?v=1"></script>
+    <script src="../assets/js/admin.js?v=92"></script>
 </body>
 </html>

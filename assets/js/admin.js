@@ -24,6 +24,7 @@ function escapeHtml(str) {
 }
 
 function guestTableLabel(guest) {
+    if (window.AdminTables) return AdminTables.getGuestLabel(guest);
     const number = String(guest?.tableNumber || "").trim();
     const name = String(guest?.group || guest?.tableName || "").trim();
     if (number && name) return `${number} · ${name}`;
@@ -45,6 +46,7 @@ let selectedGuestIds = new Set();
 let pendingWelcomeFile = null;
 let pendingWelcomePreviewUrl = "";
 let pendingCsvCorrections = [];
+let editGuestOriginal = null;
 
 function importSummary(preview) {
     return `${preview.total} ligne(s) de données (hors en-tête, retours à la ligne dans les cellules regroupés), ` +
@@ -142,6 +144,7 @@ function showCsvCorrections(preview) {
 }
 
 function openEditModal(guest) {
+    editGuestOriginal = { ...guest };
     document.getElementById("edit-guest-id").value = guest.id;
     document.getElementById("edit-guest-name").value = guest.fullName || "";
     document.getElementById("edit-guest-phone").value = guest.phone || "";
@@ -154,6 +157,7 @@ function openEditModal(guest) {
     document.getElementById("edit-guest-access-code").value = guest.accessCode || "";
     document.getElementById("edit-guest-table").value = guest.tableNumber || "";
     document.getElementById("edit-guest-profile-photo").value = guest.profilePhotoUrl || "";
+    window.AdminTables?.openGuest(guest);
     document.getElementById("edit-modal-subtitle").textContent =
         `Lien actuel : ${GuestManager.buildInviteLink(guest).slice(0, 60)}…`;
     const modal = document.getElementById("edit-guest-modal");
@@ -185,13 +189,14 @@ async function getFilteredGuests() {
     const search = (document.getElementById("guest-search").value || "").toLowerCase();
     const filter = document.getElementById("guest-filter").value;
     guestsCache = await GuestManager.loadGuests();
+    window.AdminTables?.syncGuests(guestsCache);
     return guestsCache.filter((g) => {
         const matchFilter = filter === "all" || g.status === filter;
         const matchSearch = !search
             || g.fullName.toLowerCase().includes(search)
             || (g.phone || "").includes(search)
             || (g.tableNumber || "").toLowerCase().includes(search);
-        return matchFilter && matchSearch;
+        return matchFilter && matchSearch && (!window.AdminTables || AdminTables.matchesFilter(g));
     }).sort((left, right) => {
         if (left.status === "yes" && right.status !== "yes") return -1;
         if (right.status === "yes" && left.status !== "yes") return 1;
@@ -206,9 +211,20 @@ async function renderGuestsTable() {
     tbody.innerHTML = "";
     const visibleIds = new Set(guests.map((guest) => guest.id));
     selectedGuestIds = new Set([...selectedGuestIds].filter((id) => visibleIds.has(id)));
+    window.AdminTables?.updateSelection([...selectedGuestIds]);
 
     if (!guests.length) {
         empty.classList.remove("hidden");
+        const message = document.getElementById("guests-empty-message");
+        if (message) message.textContent = guestsCache.length
+            ? "Aucun invité ne correspond à ces filtres."
+            : "Aucun invité pour l'instant. Importez un CSV ou ajoutez manuellement.";
+        document.getElementById("guests-load-more")?.classList.add("hidden");
+        const selectAll = document.getElementById("select-all-guests");
+        if (selectAll) { selectAll.checked = false; selectAll.indeterminate = false; selectAll.disabled = true; }
+        const selectFiltered = document.getElementById("select-filtered-guests-btn");
+        if (selectFiltered) { selectFiltered.disabled = true; selectFiltered.textContent = "Tout sélectionner"; }
+        document.getElementById("delete-selected-guests-btn").disabled = true;
         return;
     }
     empty.classList.add("hidden");
@@ -230,6 +246,7 @@ async function renderGuestsTable() {
                     ? '<span class="admin-badge admin-badge-couple">Couple</span>'
                     : `<button type="button" class="admin-btn admin-btn-ghost admin-btn-couple" data-couple="${guest.id}" title="Marquer ${escapeHtml(guest.fullName)} comme couple" aria-label="Marquer ${escapeHtml(guest.fullName)} comme couple">👫 Couple</button>`}
                 ${guest.email ? `<br><span class="text-xs text-slate-400">${escapeHtml(guest.email)}</span>` : ""}
+                ${(guest.group || guest.tableName) ? `<br><span class="text-xs text-slate-500">Groupe : ${escapeHtml(String(guest.group || guest.tableName))}</span>` : ""}
             </td>
             <td data-label="Contact">${escapeHtml(guest.phone || "—")}</td>
             <td data-label="Table">${escapeHtml(guestTableLabel(guest))}</td>
@@ -257,6 +274,7 @@ async function renderGuestsTable() {
     const selectAll = document.getElementById("select-all-guests");
     const deleteSelected = document.getElementById("delete-selected-guests-btn");
     if (selectAll) {
+        selectAll.disabled = false;
         selectAll.checked = guests.length > 0 && guests.every((guest) => selectedGuestIds.has(guest.id));
         selectAll.indeterminate = selectedGuestIds.size > 0 && !selectAll.checked;
         selectAll.onchange = () => {
@@ -268,6 +286,19 @@ async function renderGuestsTable() {
         };
     }
     if (deleteSelected) deleteSelected.disabled = selectedGuestIds.size === 0;
+    const selectFiltered = document.getElementById("select-filtered-guests-btn");
+    if (selectFiltered) {
+        selectFiltered.disabled = false;
+        const allSelected = guests.every((guest) => selectedGuestIds.has(guest.id));
+        selectFiltered.textContent = allSelected ? "Tout désélectionner" : `Tout sélectionner (${guests.length})`;
+        selectFiltered.onclick = () => {
+            guests.forEach((guest) => {
+                if (allSelected) selectedGuestIds.delete(guest.id);
+                else selectedGuestIds.add(guest.id);
+            });
+            void renderGuestsTable();
+        };
+    }
     tbody.querySelectorAll("[data-select-guest]").forEach((checkbox) => {
         checkbox.addEventListener("change", () => {
             if (checkbox.checked) selectedGuestIds.add(checkbox.dataset.selectGuest);
@@ -559,6 +590,8 @@ function renderActiveAdminTab(tabName) {
                 : renderGuestsTable();
         case "relances":
             return renderRelances();
+        case "tables":
+            return window.AdminTables?.render();
         case "rsvps":
             return renderRSVPList();
         case "presence":
@@ -577,7 +610,7 @@ function renderActiveAdminTab(tabName) {
 async function refreshCurrentTab() {
     try {
         const tabName = getActiveAdminTab();
-        const needsGuests = ["overview", "guests", "relances", "rsvps", "presence"].includes(tabName);
+        const needsGuests = ["overview", "guests", "tables", "relances", "rsvps", "presence"].includes(tabName);
         const tasks = [];
         // Réchauffe une fois la liste pour l'onglet visible. GuestManager
         // mutualise cette promesse avec le rendu qui en a besoin.
@@ -766,11 +799,20 @@ window.addEventListener("DOMContentLoaded", async () => {
     updateCloudStatus();
     document.getElementById("wa-template").value = GuestManager.getMessageTemplate();
     setupTabs();
+    if (window.AdminTables) {
+        AdminTables.init({
+            refresh: refreshCurrentTab,
+            getSelectedIds: () => [...selectedGuestIds],
+            clearSelection: () => selectedGuestIds.clear()
+        });
+        await AdminTables.load();
+    }
     if (window.AdminPresence) AdminPresence.init();
     await refreshCurrentTab();
 
     document.getElementById("refresh-btn").addEventListener("click", async () => {
         await GuestManager.loadGuests(true);
+        await window.AdminTables?.load(true);
         await refreshCurrentTab();
         showToast("Données actualisées");
     });
@@ -803,11 +845,9 @@ window.addEventListener("DOMContentLoaded", async () => {
             fullName,
             phone: document.getElementById("guest-phone").value.trim(),
             email: document.getElementById("guest-email").value.trim(),
-            tableNumber: document.getElementById("guest-table").value.trim(),
+            ...(window.AdminTables ? AdminTables.creationAssignment() : { tableNumber: document.getElementById("guest-table").value.trim() }),
             profilePhotoUrl
         });
-        e.target.reset();
-        await refreshCurrentTab();
         if (!result || !result.guest) {
             showToast("Impossible d'ajouter cet invité.");
             return;
@@ -816,6 +856,9 @@ window.addEventListener("DOMContentLoaded", async () => {
             showToast(`Invité déjà présent : ${result.guest.fullName}`);
             return;
         }
+        e.target.reset();
+        await window.AdminTables?.load(true);
+        await refreshCurrentTab();
         if (result.guest) void openGuestQrModal(result.guest);
         if (!result.cloudSynced && CloudAPI.isEnabled()) {
             showToast(`Invité ajouté localement : ${result.guest.fullName} (cloud en attente)`);
@@ -834,7 +877,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         }
         const id = document.getElementById("edit-guest-id").value;
         try {
-            const result = await GuestManager.updateGuest(id, {
+            const values = {
                 fullName: document.getElementById("edit-guest-name").value.trim(),
                 phone: document.getElementById("edit-guest-phone").value.trim(),
                 email: document.getElementById("edit-guest-email").value.trim(),
@@ -843,14 +886,35 @@ window.addEventListener("DOMContentLoaded", async () => {
                 children: Number(document.getElementById("edit-guest-children").value) || 0,
                 qrApproved: document.getElementById("edit-guest-qr-approved").checked,
                 accessCode: document.getElementById("edit-guest-access-code").value.trim(),
-                tableNumber: document.getElementById("edit-guest-table").value.trim(),
+                ...((!window.AdminTables || AdminTables.canEditLegacy()) ? { tableNumber: document.getElementById("edit-guest-table").value.trim() } : {}),
                 profilePhotoUrl: document.getElementById("edit-guest-profile-photo").value.trim()
-            });
+            };
+            // Envoyer seulement les champs effectivement changés : une table
+            // ne doit pas réécrire un RSVP arrivé pendant l'édition.
+            const patch = Object.fromEntries(Object.entries(values).filter(([key, value]) =>
+                value !== (editGuestOriginal?.[key] ?? (typeof value === "boolean" ? false : typeof value === "number" ? 0 : ""))));
+            const result = Object.keys(patch).length
+                ? await GuestManager.updateGuest(id, patch)
+                : { guest: editGuestOriginal };
             const updated = result?.guest || null;
             if (!updated) {
                 showToast(result?.error || "Modification non enregistrée. Vérifiez votre connexion Supabase.");
                 return;
             }
+            // Garder la référence des champs affichés : une réponse RSVP plus
+            // récente renvoyée par le serveur ne doit pas transformer les
+            // anciens champs du formulaire en modifications lors d'un retry.
+            editGuestOriginal = { ...editGuestOriginal, ...patch };
+            const assignment = window.AdminTables?.editedAssignment();
+            if (assignment?.changed) {
+                try {
+                    await TableManager.assignGuests([id], assignment.tableId);
+                } catch (error) {
+                    showToast(`Les autres modifications sont enregistrées. Table non modifiée : ${error.message || "réessayez"}`);
+                    return;
+                }
+            }
+            if (Object.hasOwn(patch, "tableNumber")) await window.AdminTables?.load(true);
             guestsCache = guestsCache.map((guest) => guest.id === updated.id ? updated : guest);
             await renderGuestsTable();
             closeEditModal();
@@ -909,6 +973,7 @@ window.addEventListener("DOMContentLoaded", async () => {
                 if (!await reviewImport(preview)) return;
                 const result = await GuestManager.importCSVRows(rows, { onProgress: updateProgress });
                 document.getElementById("import-result").textContent = importOutcome(result);
+                await window.AdminTables?.load(true);
                 try { await refreshCurrentTab(); }
                 catch (error) { showToast(`Import traité ; actualisation impossible : ${error.message}`); return; }
                 showToast(result.failed ? "Import partiel : vérifiez les échecs de synchronisation." : "Import terminé");
@@ -952,6 +1017,7 @@ window.addEventListener("DOMContentLoaded", async () => {
                 const result = await GuestManager.replaceGuestsExceptConfirmed(rows);
                 document.getElementById("import-result").textContent =
                     `${result.removed} ancien(s) invité(s) retiré(s). ${importOutcome(result)}`;
+                await window.AdminTables?.load(true);
                 await refreshCurrentTab();
                 showToast(result.failed ? "Remplacement partiel : consultez les erreurs d'importation." : "Liste remplacée ; toutes les réponses RSVP sont conservées.");
                 button.disabled = false;
@@ -1034,6 +1100,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         button.disabled = false;
         button.textContent = "Appliquer les corrections sélectionnées";
         closeCsvCorrectionsModal();
+        await window.AdminTables?.load(true);
         await refreshCurrentTab();
         showToast(result.cloudSynced
             ? `${result.updated} invité(s) corrigé(s).`
@@ -1070,6 +1137,10 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("guest-filter").addEventListener("change", () => {
         const tbody = document.getElementById("guests-table-body");
         if (tbody) tbody.removeAttribute("data-render-limit");
+        void renderGuestsTable();
+    });
+    document.getElementById("guest-table-filter")?.addEventListener("change", () => {
+        document.getElementById("guests-table-body")?.removeAttribute("data-render-limit");
         void renderGuestsTable();
     });
     document.getElementById("delete-selected-guests-btn").addEventListener("click", async () => {

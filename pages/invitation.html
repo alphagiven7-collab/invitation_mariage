@@ -21,19 +21,19 @@
     <meta name="twitter:image" id="meta-twitter-image" content="https://michelline-invitations.vercel.app/assets/images/previews/preview-demo.png">
     <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#4caf50">
-    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=58">
+    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=59">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Great+Vibes&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <script defer src="../assets/js/vendor/lucide-0.469.0.min.js?v=1"></script>
-    <link rel="stylesheet" href="../assets/css/app.css?v=84">
+    <link rel="stylesheet" href="../assets/css/app.css?v=85">
     <link rel="stylesheet" href="../assets/css/gallery-enhancement.css?v=1">
     <link rel="stylesheet" href="../assets/css/program-presentation.css?v=2">
     <link rel="stylesheet" href="../assets/css/drink-menu.css?v=35">
     <script>
         if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("../sw.js?v=60").catch(() => {});
+            navigator.serviceWorker.register("../sw.js?v=62").catch(() => {});
         }
     </script>
     <style>
@@ -127,8 +127,6 @@
 
     <!-- CONTENEUR PRINCIPAL (Style Mobile) -->
     <main id="main-view" class="max-w-md mx-auto bg-[#fafafa] min-h-screen relative shadow-2xl overflow-hidden pb-10 hidden opacity-0 transition-opacity duration-500">
-        
-        <!-- 1. En-tête -->
         <header class="hero-bg" data-text-position="center">
             <img id="hero-image" class="hero-bg-image" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Photo de l'événement" loading="eager" fetchpriority="high" decoding="async">
             <div class="hero-bg-content text-white px-4">
@@ -139,8 +137,7 @@
             </div>
         </header>
 
-        <!-- 2. Invitation -->
-        <section class="px-4 -mt-12 relative z-10 invite-section">
+        <section data-invitation-section="invitation" class="px-4 -mt-12 relative z-10 invite-section">
             <article class="glass-card invitation-card invitation-card--floral rounded-2xl text-center" aria-label="Carte d'invitation">
                 <div class="invitation-card-floral invitation-card-floral--tl" aria-hidden="true"></div>
                 <div class="invitation-card-floral invitation-card-floral--br" aria-hidden="true"></div>
@@ -175,72 +172,14 @@
                 </div>
             </article>
 
-            <div class="invitation-rsvp-wrap" data-event-section="rsvp">
-                <button id="reserve-deadline-btn" type="button" onclick="confirmPresence(event)" class="btn-rsvp btn-with-loader w-full rounded-xl p-4 shadow-lg transition">
-                    <span id="reserve-deadline-text" class="text-sm font-bold uppercase tracking-widest">Confirmer ma présence</span>
-                </button>
-            </div>
         </section>
 
-        <!-- La date reste visible même si le programme est masqué. -->
-        <section class="px-4 mt-6" aria-label="Date de l'événement">
-            <div class="event-date-card bg-white rounded-2xl shadow-sm p-6 border border-gray-50">
-
-                <!-- En-tête Date -->
-                <div class="flex items-center justify-between mb-6">
-                    <div>
-                        <p id="event-weekday" class="event-date-kicker">Le grand jour</p>
-                        <p id="event-day" class="text-3xl font-light text-gray-800">30</p>
-                        <p id="event-month-year" class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Avril 2026</p>
-                    </div>
-                    <div class="bg-gray-50 px-3 py-2 rounded-xl text-center border border-gray-100">
-                        <i data-lucide="clock" class="w-4 h-4 mx-auto mb-1 text-gray-400"></i>
-                        <p id="event-time-range" class="text-[11px] font-medium text-gray-600">19h30 - 23h30</p>
-                    </div>
-                </div>
-
-                <!-- Calendrier -->
-                <div class="event-calendar mb-8 bg-gray-50 rounded-xl p-4 border border-gray-100" data-event-section="calendar">
-                    <div class="flex justify-between items-center mb-4">
-                        <i data-lucide="chevron-left" class="w-4 h-4 text-gray-300"></i>
-                        <span id="calendar-month-label" class="font-semibold text-[11px] text-gray-600 uppercase tracking-widest">Avril 2026</span>
-                        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>
-                    </div>
-                    <div class="grid grid-cols-7 gap-1 text-center text-[9px] text-gray-400 mb-2 font-semibold">
-                        <div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div><div>D</div>
-                    </div>
-                    <div id="calendar-days" class="grid grid-cols-7 gap-1 text-center text-[11px] text-gray-500" aria-label="Calendrier du mois de l'événement"></div>
-                </div>
-
-                <button type="button" id="add-to-calendar-btn" data-event-section="calendar" class="btn-with-loader w-full mb-6 inline-flex justify-center items-center gap-2 py-3 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold transition">
-                    <i data-lucide="calendar-plus" class="w-4 h-4"></i>
-                    <span>Ajouter au calendrier</span>
-                </button>
-
-                <button type="button" id="download-invitation-pdf-btn" class="hidden w-full mb-6 inline-flex justify-center items-center gap-2 py-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-800 text-xs font-semibold transition">
-                    <i data-lucide="download" class="w-4 h-4"></i>
-                    <span>Imprimer l'invitation</span>
-                </button>
-
-            </div>
-        </section>
-
-        <section class="px-4 mt-6" data-event-section="program" aria-labelledby="program-section-title">
-            <div class="program-panel">
-                <div class="program-header">
-                    <h2 id="program-section-title" class="program-title">Programme de la journée</h2>
-                </div>
-                <div id="program-timeline" class="program-timeline"></div>
-            </div>
-        </section>
-
-        <!-- 3. À propos de nous (Bouton d'ouverture modale) -->
-        <section class="px-4 mt-6" data-event-section="about">
+        <section data-invitation-section="about" class="px-4 mt-6" data-event-section="about">
             <div onclick="openModal('about-modal')" role="button" tabindex="0" data-keyboard-activate aria-controls="about-modal" aria-label="Découvrir notre histoire" class="relative rounded-2xl overflow-hidden h-28 shadow-sm group cursor-pointer bg-gray-900">
                 <img id="about-cover-image" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Couple" class="w-full h-full object-cover opacity-60" loading="lazy" decoding="async">
                 <div class="absolute inset-0 flex items-center px-6">
                     <div class="text-white">
-                        <h3 class="font-serif text-xl mb-1">À propos de nous</h3>
+                        <h3 id="about-section-title" class="font-serif text-xl mb-1">À propos de nous</h3>
                         <p class="text-[11px] text-gray-200 font-light flex items-center bg-black/30 w-fit px-2 py-1 rounded-full backdrop-blur-sm">
                             Découvrir notre histoire <i data-lucide="chevron-right" class="w-3 h-3 ml-1"></i>
                         </p>
@@ -249,31 +188,16 @@
             </div>
         </section>
 
-        <section class="px-4 mt-6" data-event-section="gallery">
-            <div onclick="openBestPhotosGallery()" role="button" tabindex="0" data-keyboard-activate aria-controls="best-photos-modal" aria-label="Ouvrir la galerie des plus belles photos du couple" class="best-photos-shell p-4 text-white cursor-pointer">
-                <p class="text-[10px] tracking-[0.3em] uppercase text-pink-200 text-center">Moments d'exception</p>
-                <h3 id="best-photos-title" class="font-serif text-2xl text-center mb-3">Les plus belles photos du couple</h3>
-                <p id="best-photos-count" class="best-photos-count" aria-live="polite"></p>
-                <div class="best-photos-preview grid grid-cols-2 gap-2 mb-3">
-                    <img id="best-photo-1" src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=700&q=80" class="h-40 w-full object-cover rounded-xl" alt="Couple 1" loading="lazy" decoding="async">
-                    <img id="best-photo-2" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=700&q=80" class="h-40 w-full object-cover rounded-xl" alt="Couple 2" loading="lazy" decoding="async">
+        <section data-invitation-section="program" class="px-4 mt-6" data-event-section="program" aria-labelledby="program-section-title">
+            <div class="program-panel">
+                <div class="program-header">
+                    <h2 id="program-section-title" class="program-title">Programme de la journée</h2>
                 </div>
-                <div class="premium-marquee">
-                    <div class="premium-marquee-track">
-                        <img id="best-marquee-1" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=500&q=80" alt="Souvenir 1" loading="lazy" decoding="async">
-                        <img id="best-marquee-2" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=500&q=80" alt="Souvenir 2" loading="lazy" decoding="async">
-                        <img id="best-marquee-3" src="https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=500&q=80" alt="Souvenir 3" loading="lazy" decoding="async">
-                        <img id="best-marquee-4" src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=500&q=80" alt="Souvenir 4" loading="lazy" decoding="async">
-                        <img id="best-marquee-5" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=500&q=80" alt="Souvenir 1b" loading="lazy" decoding="async">
-                        <img id="best-marquee-6" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=500&q=80" alt="Souvenir 2b" loading="lazy" decoding="async">
-                    </div>
-                </div>
-                <p class="best-photos-open-hint">Voir toutes les photos <span aria-hidden="true">→</span></p>
+                <div id="program-timeline" class="program-timeline"></div>
             </div>
         </section>
 
-        <!-- 4. Dress Code -->
-        <section class="px-4 mt-6" data-event-section="dressCode">
+        <section data-invitation-section="dressCode" class="px-4 mt-6" data-event-section="dressCode">
             <div class="bg-white rounded-2xl shadow-sm p-6 text-center border border-gray-50">
                 <div class="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
                     <i data-lucide="shirt" class="w-5 h-5 text-gray-600"></i>
@@ -322,43 +246,142 @@
             </div>
         </section>
 
-        <!-- 6. Lieu / Carte Google -->
-        <section class="px-4 mt-6" data-event-section="venue">
-            <div class="bg-white rounded-2xl shadow-sm p-1 border border-gray-50 overflow-hidden relative">
-                <div id="venue-map-container" class="venue-map-container relative bg-gray-200">
-                    <iframe id="venue-map-embed" class="venue-map-embed hidden" title="Carte Google Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
-                    <div id="venue-map-fallback" class="venue-map-fallback h-48 relative">
-                        <img id="map-image" src="https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover opacity-50" alt="Carte du lieu" loading="lazy" decoding="async">
-                        <div class="absolute inset-0 flex justify-center items-center pointer-events-none">
-                            <div class="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center animate-bounce">
-                                <i data-lucide="map-pin" class="w-6 h-6 text-gray-800"></i>
-                            </div>
-                        </div>
+        <section id="invitation-menu-section" data-invitation-section="menu" class="px-4 mt-6"><div id="food-menu-panel" class="event-food-menu" hidden>
+            <p class="event-section-kicker">Le plaisir de partager</p>
+            <h3 id="food-menu-title" class="event-section-title">À notre table</h3>
+            <div id="food-menu-list"></div>
+        </div>
+<div id="drink-menu-section" class="mt-4 hidden">
+            <div class="drink-menu-shell rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="drink-menu-head px-5 pt-5 pb-3 text-center">
+                    <div class="drink-menu-head-icon mx-auto mb-2" aria-hidden="true">🥂</div>
+                    <h3 id="drink-menu-title" class="font-serif text-xl text-gray-800 mb-1">Menu des boissons</h3>
+                    <p id="drink-menu-subtitle" class="text-[11px] text-gray-500 leading-relaxed max-w-sm mx-auto">Sélectionnez vos préférences pour le jour J (optionnel).</p>
+                </div>
+                <div id="drink-menu-grid" class="drink-menu-grid px-4 pb-4"></div>
+                <p class="drink-menu-footnote text-[10px] text-center text-gray-400 px-4 pb-4">Choisissez vos boissons ici avant de confirmer votre présence.</p>
+            </div>
+        </div></section>
+
+        <section data-invitation-section="gifts" data-event-section="donation" class="px-4 mt-6"><div class="event-gift-message">
+            <div class="bg-gradient-to-b from-[#fdfbf7] to-white rounded-2xl shadow-sm p-6 text-center border border-gray-100">
+                <h3 class="font-serif text-lg text-gray-800 mb-4">Un geste pour les mariés</h3>
+                <div class="text-6xl mb-4">📦</div>
+                <p id="gift-message" class="text-[11px] text-gray-500 mb-2 leading-relaxed">Votre présence est le plus beau des cadeaux. Pour toute attention particulière, utilisez le moyen de contact indiqué ci-dessous.</p>
+            </div>
+        </div>
+<div data-event-section="donation" class="bg-gradient-to-r from-pink-50 to-pink-100 border border-pink-200 rounded-xl p-5 text-center mt-3">
+                <div class="flex items-center justify-center space-x-2 mb-2 text-pink-500">
+                    <i data-lucide="gift" class="w-5 h-5"></i>
+                    <h3 class="font-bold text-sm">Offrir un don financier</h3>
+                </div>
+                <p class="text-[10px] text-gray-600 mb-4 px-2">Pour offrir une attention aux mariés, retrouvez ici le moyen de contact prévu.</p>
+
+                <button id="donation-btn" type="button" onclick="openDonationLink(event)" class="btn-with-loader w-full bg-pink-500 text-white py-3 rounded-xl text-xs font-bold shadow hover:bg-pink-600 transition mb-4">
+                    Offrir votre don
+                </button>
+
+                <!-- Logos paiements -->
+                <div class="flex justify-center items-center space-x-3 opacity-60">
+                    <span class="text-xs font-bold text-red-600">Airtel</span>
+                    <span class="text-xs font-bold text-green-600">M-Pesa</span>
+                    <span class="text-xs font-bold text-orange-500">Orange</span>
+                    <i data-lucide="credit-card" class="w-5 h-5 text-gray-600"></i>
+                </div>
+            </div></section>
+
+        <section data-invitation-section="guestbook" class="px-4 mt-6"><div class="mt-3">
+                <div onclick="openModal('guestbook-modal')" role="button" tabindex="0" data-keyboard-activate data-event-section="guestbook" aria-controls="guestbook-modal" aria-label="Ouvrir le livre d'or" class="bg-gray-800 text-white rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-900 transition h-28 relative overflow-hidden group">
+                    <img id="guestbook-cover-image" src="https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" class="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-20 transition" alt="Livre d'or" loading="lazy" decoding="async">
+                    <i data-lucide="book-open" class="w-6 h-6 mb-2 relative z-10"></i>
+                    <span class="font-medium text-[11px] relative z-10">Ouvrir le livre d'or</span>
+                </div>
+            </div>
+<div id="guestbook-public-section" data-event-section="guestbook" class="mt-4" aria-labelledby="guestbook-public-title">
+            <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
+                <div class="text-center mb-4">
+                    <h3 id="guestbook-public-title" class="font-serif text-xl text-gray-800">Livre d'or</h3>
+                </div>
+                <div id="guestbook-public-messages" class="space-y-3"></div>
+                <p id="guestbook-public-empty" class="text-center text-xs text-gray-400 py-3">Les messages des invités apparaîtront ici.</p>
+            </div>
+        </div>
+<div id="rsvp-messages-section" data-event-section="messages" class="mt-4" aria-labelledby="rsvp-messages-title">
+            <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
+                <div class="text-center mb-4">
+                    <p class="text-[10px] font-semibold uppercase tracking-widest text-pink-500">Vos mots comptent</p>
+                    <h3 id="rsvp-messages-title" class="font-serif text-xl text-gray-800 mt-1">Messages des invités</h3>
+                </div>
+                <div id="rsvp-messages-list" class="space-y-3" aria-live="polite"></div>
+                <p id="rsvp-messages-empty" class="text-center text-xs text-gray-400 py-3">Les premiers messages apparaîtront ici.</p>
+            </div>
+        </div></section>
+
+        <section data-invitation-section="gallery" class="px-4 mt-6" data-event-section="gallery">
+            <div onclick="openBestPhotosGallery()" role="button" tabindex="0" data-keyboard-activate aria-controls="best-photos-modal" aria-label="Ouvrir la galerie des plus belles photos du couple" class="best-photos-shell p-4 text-white cursor-pointer">
+                <p class="text-[10px] tracking-[0.3em] uppercase text-pink-200 text-center">Moments d'exception</p>
+                <h3 id="best-photos-title" class="font-serif text-2xl text-center mb-3">Les plus belles photos du couple</h3>
+                <p id="best-photos-count" class="best-photos-count" aria-live="polite"></p>
+                <div class="best-photos-preview grid grid-cols-2 gap-2 mb-3">
+                    <img id="best-photo-1" src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=700&q=80" class="h-40 w-full object-cover rounded-xl" alt="Couple 1" loading="lazy" decoding="async">
+                    <img id="best-photo-2" src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=700&q=80" class="h-40 w-full object-cover rounded-xl" alt="Couple 2" loading="lazy" decoding="async">
+                </div>
+                <div class="premium-marquee">
+                    <div class="premium-marquee-track">
+                        <img id="best-marquee-1" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=500&q=80" alt="Souvenir 1" loading="lazy" decoding="async">
+                        <img id="best-marquee-2" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=500&q=80" alt="Souvenir 2" loading="lazy" decoding="async">
+                        <img id="best-marquee-3" src="https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=500&q=80" alt="Souvenir 3" loading="lazy" decoding="async">
+                        <img id="best-marquee-4" src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=500&q=80" alt="Souvenir 4" loading="lazy" decoding="async">
+                        <img id="best-marquee-5" src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=500&q=80" alt="Souvenir 1b" loading="lazy" decoding="async">
+                        <img id="best-marquee-6" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=500&q=80" alt="Souvenir 2b" loading="lazy" decoding="async">
                     </div>
                 </div>
-                <div class="p-5 text-center">
-                    <h3 id="venue-title" class="font-serif text-lg mb-1 text-gray-800">Sultani River</h3>
-                    <p id="venue-address" class="text-[11px] text-gray-500 mb-1 px-4">32, avenue de la Justice (Gombe), Kinshasa, RDC</p>
-                    <div class="flex flex-wrap items-center justify-center gap-2 mb-3">
-                        <p id="venue-gps-line" class="text-[10px] text-emerald-600 hidden font-mono"></p>
-                        <button type="button" id="copy-gps-btn" class="hidden text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg">Copier GPS</button>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                    <a id="venue-map-link" href="https://maps.google.com/?q=Sultani+River+Kinshasa" target="_blank" class="inline-flex w-full justify-center items-center space-x-2 bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-3 rounded-xl text-xs font-semibold transition">
-                        <i data-lucide="navigation" class="w-4 h-4"></i>
-                        <span>Obtenir l'itinéraire</span>
-                        </a>
-                        <a id="venue-waze-link" href="#" target="_blank" rel="noopener" class="hidden inline-flex w-full justify-center items-center space-x-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-100 px-6 py-3 rounded-xl text-xs font-semibold transition">
-                            <i data-lucide="car" class="w-4 h-4"></i>
-                            <span>Ouvrir dans Waze</span>
-                        </a>
-                    </div>
-                </div>
+                <p class="best-photos-open-hint">Voir toutes les photos <span aria-hidden="true">→</span></p>
             </div>
         </section>
 
-        <!-- 7. Compte à rebours -->
-        <section class="px-4 mt-6" data-event-section="countdown">
+        <section data-invitation-section="countdown" class="px-4 mt-6"><div class="event-calendar-panel" aria-label="Date de l'événement">
+            <div class="event-date-card bg-white rounded-2xl shadow-sm p-6 border border-gray-50">
+
+                <!-- En-tête Date -->
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <p id="event-weekday" class="event-date-kicker">Le grand jour</p>
+                        <p id="event-day" class="text-3xl font-light text-gray-800">30</p>
+                        <p id="event-month-year" class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Avril 2026</p>
+                    </div>
+                    <div class="bg-gray-50 px-3 py-2 rounded-xl text-center border border-gray-100">
+                        <i data-lucide="clock" class="w-4 h-4 mx-auto mb-1 text-gray-400"></i>
+                        <p id="event-time-range" class="text-[11px] font-medium text-gray-600">19h30 - 23h30</p>
+                    </div>
+                </div>
+
+                <!-- Calendrier -->
+                <div class="event-calendar mb-8 bg-gray-50 rounded-xl p-4 border border-gray-100" data-event-section="calendar">
+                    <div class="flex justify-between items-center mb-4">
+                        <i data-lucide="chevron-left" class="w-4 h-4 text-gray-300"></i>
+                        <span id="calendar-month-label" class="font-semibold text-[11px] text-gray-600 uppercase tracking-widest">Avril 2026</span>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 text-center text-[9px] text-gray-400 mb-2 font-semibold">
+                        <div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div><div>D</div>
+                    </div>
+                    <div id="calendar-days" class="grid grid-cols-7 gap-1 text-center text-[11px] text-gray-500" aria-label="Calendrier du mois de l'événement"></div>
+                </div>
+
+                <button type="button" id="add-to-calendar-btn" data-event-section="calendar" class="btn-with-loader w-full mb-6 inline-flex justify-center items-center gap-2 py-3 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold transition">
+                    <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+                    <span>Ajouter au calendrier</span>
+                </button>
+
+                <button type="button" id="download-invitation-pdf-btn" class="hidden w-full mb-6 inline-flex justify-center items-center gap-2 py-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-800 text-xs font-semibold transition">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    <span>Imprimer l'invitation</span>
+                </button>
+
+            </div>
+        </div>
+<div class="mt-4" data-event-section="countdown">
             <div class="bg-white rounded-2xl shadow-sm p-6 text-center border border-gray-50">
                 <i data-lucide="alarm-clock" class="w-6 h-6 text-gray-300 mx-auto mb-3"></i>
                 <p id="countdown-status" class="text-sm font-medium text-pink-600 mb-3 min-h-[1.25rem]"></p>
@@ -384,74 +407,46 @@
                     🫶
                 </div>
             </div>
-        </section>
+        </div></section>
 
-        <!-- 8. Cadeaux -->
-        <section class="px-4 mt-6">
-            <div class="bg-gradient-to-b from-[#fdfbf7] to-white rounded-2xl shadow-sm p-6 text-center border border-gray-100">
-                <h3 class="font-serif text-lg text-gray-800 mb-4">Un geste pour les mariés</h3>
-                <div class="text-6xl mb-4">📦</div>
-                <p id="gift-message" class="text-[11px] text-gray-500 mb-2 leading-relaxed">Votre présence est le plus beau des cadeaux. Pour toute attention particulière, utilisez le moyen de contact indiqué ci-dessous.</p>
-            </div>
-        </section>
-
-        <!-- Menu des boissons (section dédiée) -->
-        <section id="drink-menu-section" class="px-4 mt-6 hidden">
-            <div class="drink-menu-shell rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="drink-menu-head px-5 pt-5 pb-3 text-center">
-                    <div class="drink-menu-head-icon mx-auto mb-2" aria-hidden="true">🥂</div>
-                    <h3 id="drink-menu-title" class="font-serif text-xl text-gray-800 mb-1">Menu des boissons</h3>
-                    <p id="drink-menu-subtitle" class="text-[11px] text-gray-500 leading-relaxed max-w-sm mx-auto">Sélectionnez vos préférences pour le jour J (optionnel).</p>
+        <section data-invitation-section="venues" class="px-4 mt-6"><div class="event-venues-list" data-event-section="venue">
+            <div id="venue-primary-card" class="event-venue-card bg-white rounded-2xl shadow-sm p-1 border border-gray-50 overflow-hidden relative">
+                <div id="venue-map-container" class="venue-map-container relative bg-gray-200">
+                    <iframe id="venue-map-embed" class="venue-map-embed hidden" title="Carte Google Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+                    <div id="venue-map-fallback" class="venue-map-fallback h-48 relative">
+                        <img id="map-image" src="https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover opacity-50" alt="Carte du lieu" loading="lazy" decoding="async">
+                        <div class="absolute inset-0 flex justify-center items-center pointer-events-none">
+                            <div class="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center animate-bounce">
+                                <i data-lucide="map-pin" class="w-6 h-6 text-gray-800"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div id="drink-menu-grid" class="drink-menu-grid px-4 pb-4"></div>
-                <p class="drink-menu-footnote text-[10px] text-center text-gray-400 px-4 pb-4">Choisissez vos boissons ici avant de confirmer votre présence.</p>
-            </div>
-        </section>
-
-        <!-- 9. Actions Principales (Boutons interactifs de la vidéo) -->
-        <section class="px-4 mt-6 space-y-3">
-            
-            <!-- Confirmer ma présence -->
-            <button id="confirm-presence-btn" type="button" onclick="confirmPresence(event)" class="btn-rsvp btn-with-loader w-full rounded-xl shadow p-4 flex items-center justify-center space-x-2 transition">
-                <span class="btn-rsvp-icon w-7 h-7 rounded-full flex items-center justify-center">
-                    <i data-lucide="check-circle-2" class="w-4 h-4"></i>
-                </span>
-                <span id="confirm-presence-label" class="font-semibold text-sm">Confirmer ma présence</span>
-            </button>
-
-            <!-- Livre d'Or -->
-            <div class="mt-3">
-                <div onclick="openModal('guestbook-modal')" role="button" tabindex="0" data-keyboard-activate data-event-section="guestbook" aria-controls="guestbook-modal" aria-label="Ouvrir le livre d'or" class="bg-gray-800 text-white rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-900 transition h-28 relative overflow-hidden group">
-                    <img id="guestbook-cover-image" src="https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" class="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-20 transition" alt="Livre d'or" loading="lazy" decoding="async">
-                    <i data-lucide="book-open" class="w-6 h-6 mb-2 relative z-10"></i>
-                    <span class="font-medium text-[11px] relative z-10">Ouvrir le livre d'or</span>
+                <div class="p-5 text-center">
+                    <p id="venue-kind" class="event-venue-kicker"></p>
+                    <p id="venue-time" class="event-venue-time" hidden></p>
+                    <h3 id="venue-title" class="font-serif text-lg mb-1 text-gray-800">Sultani River</h3>
+                    <p id="venue-address" class="text-[11px] text-gray-500 mb-1 px-4">32, avenue de la Justice (Gombe), Kinshasa, RDC</p>
+                    <div class="flex flex-wrap items-center justify-center gap-2 mb-3">
+                        <p id="venue-gps-line" class="text-[10px] text-emerald-600 hidden font-mono"></p>
+                        <button type="button" id="copy-gps-btn" class="hidden text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg">Copier GPS</button>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                    <a id="venue-map-link" href="https://maps.google.com/?q=Sultani+River+Kinshasa" target="_blank" rel="noopener noreferrer" class="inline-flex w-full justify-center items-center space-x-2 bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-3 rounded-xl text-xs font-semibold transition">
+                        <i data-lucide="navigation" class="w-4 h-4"></i>
+                        <span>Obtenir l'itinéraire</span>
+                        </a>
+                        <a id="venue-waze-link" href="#" target="_blank" rel="noopener" class="hidden inline-flex w-full justify-center items-center space-x-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-100 px-6 py-3 rounded-xl text-xs font-semibold transition">
+                            <i data-lucide="car" class="w-4 h-4"></i>
+                            <span>Ouvrir dans Waze</span>
+                        </a>
+                    </div>
                 </div>
             </div>
-
-            <!-- Offrir un don financier -->
-            <div data-event-section="donation" class="bg-gradient-to-r from-pink-50 to-pink-100 border border-pink-200 rounded-xl p-5 text-center mt-3">
-                <div class="flex items-center justify-center space-x-2 mb-2 text-pink-500">
-                    <i data-lucide="gift" class="w-5 h-5"></i>
-                    <h3 class="font-bold text-sm">Offrir un don financier</h3>
-                </div>
-                <p class="text-[10px] text-gray-600 mb-4 px-2">Vous souhaitez soutenir les mariés ? Offrez le montant que vous choisissez ! (100% gratuit, chèque posté sans compte)</p>
-                
-                <button id="donation-btn" type="button" onclick="openDonationLink(event)" class="btn-with-loader w-full bg-pink-500 text-white py-3 rounded-xl text-xs font-bold shadow hover:bg-pink-600 transition mb-4">
-                    Offrir votre don
-                </button>
-                
-                <!-- Logos paiements -->
-                <div class="flex justify-center items-center space-x-3 opacity-60">
-                    <span class="text-xs font-bold text-red-600">Airtel</span>
-                    <span class="text-xs font-bold text-green-600">M-Pesa</span>
-                    <span class="text-xs font-bold text-orange-500">Orange</span>
-                    <i data-lucide="credit-card" class="w-5 h-5 text-gray-600"></i>
-                </div>
-            </div>
-        </section>
-
-        <!-- 10. Informations Pratiques -->
-        <section class="px-4 mt-6" data-event-section="practical">
+        <div id="venue-additional-list" class="event-additional-venues"></div>
+            <p id="venues-empty" class="event-section-empty" hidden>Les lieux seront annoncés prochainement.</p>
+        </div>
+<div class="mt-4" data-event-section="practical">
             <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-50">
                 <h3 class="font-semibold text-xs text-gray-800 mb-4 px-2 flex justify-between items-center">
                     <span id="practical-info-title">Informations pratiques</span>
@@ -459,10 +454,8 @@
                 </h3>
                 <div id="practical-info-list" class="space-y-4"></div>
             </div>
-        </section>
-
-        <!-- 11. Informations de l'événement -->
-        <section class="px-4 mt-6">
+        </div>
+<div class="mt-4">
             <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-50 text-center">
                 <div class="w-10 h-10 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-3">
                     <i data-lucide="users" class="w-5 h-5"></i>
@@ -470,10 +463,25 @@
                 <h3 class="font-serif text-lg mb-2">Informations de l'événement</h3>
                 <p class="text-[10px] text-gray-500 px-2">Retrouvez le programme, les consignes et les informations pratiques ci-dessus.</p>
             </div>
-        </section>
+        </div></section>
 
-        <!-- 12. Besoin d'aide -->
-        <section class="px-4 mt-6 mb-12">
+        <section data-invitation-section="rsvp" data-event-section="rsvp" class="px-4 mt-6 invitation-confirmation-section">
+        <div class="invitation-confirmation-card"><p class="event-section-kicker">Nous avons hâte de vous retrouver</p>
+        <h2 class="event-section-title">Serez-vous des nôtres ?</h2>
+        <p class="invitation-confirmation-note">Votre réponse nous aidera à préparer cette belle journée.</p>
+        <button id="confirm-presence-btn" type="button" onclick="confirmPresence(event)" class="btn-rsvp btn-with-loader w-full rounded-xl shadow p-4 flex items-center justify-center space-x-2 transition">
+                <span class="btn-rsvp-icon w-7 h-7 rounded-full flex items-center justify-center">
+                    <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                </span>
+                <span id="confirm-presence-label" class="font-semibold text-sm">Confirmer ma présence</span>
+            </button>
+<div hidden aria-hidden="true" class="invitation-rsvp-wrap" data-event-section="rsvp">
+                <button id="reserve-deadline-btn" type="button" onclick="confirmPresence(event)" class="btn-rsvp btn-with-loader w-full rounded-xl p-4 shadow-lg transition">
+                    <span id="reserve-deadline-text" class="text-sm font-bold uppercase tracking-widest">Confirmer ma présence</span>
+                </button>
+            </div></div></section>
+
+        <footer class="px-4 mt-6 mb-12">
             <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 text-center">
                 <div class="bg-white w-12 h-12 rounded-xl shadow-sm flex items-center justify-center mx-auto mb-3">
                     <i data-lucide="life-buoy" class="w-6 h-6 text-indigo-400"></i>
@@ -486,28 +494,7 @@
             <div class="text-center mt-6 pb-6">
                 <p class="text-[10px] text-gray-400" data-event-section="supportContact">Besoin de nous joindre ? <a id="support-phone-link" href="https://wa.me/243845370370" class="font-bold text-gray-600 underline">Contactez Michelline Event au +243 845 370 370</a></p>
             </div>
-        </section>
-
-        <section id="rsvp-messages-section" data-event-section="messages" class="px-4 mb-12" aria-labelledby="rsvp-messages-title">
-            <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
-                <div class="text-center mb-4">
-                    <p class="text-[10px] font-semibold uppercase tracking-widest text-pink-500">Vos mots comptent</p>
-                    <h3 id="rsvp-messages-title" class="font-serif text-xl text-gray-800 mt-1">Messages des invités</h3>
-                </div>
-                <div id="rsvp-messages-list" class="space-y-3" aria-live="polite"></div>
-                <p id="rsvp-messages-empty" class="text-center text-xs text-gray-400 py-3">Les premiers messages apparaîtront ici.</p>
-            </div>
-        </section>
-
-        <section id="guestbook-public-section" data-event-section="guestbook" class="px-4 mb-12" aria-labelledby="guestbook-public-title">
-            <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-100">
-                <div class="text-center mb-4">
-                    <h3 id="guestbook-public-title" class="font-serif text-xl text-gray-800">Livre d'or</h3>
-                </div>
-                <div id="guestbook-public-messages" class="space-y-3"></div>
-                <p id="guestbook-public-empty" class="text-center text-xs text-gray-400 py-3">Les messages des invités apparaîtront ici.</p>
-            </div>
-        </section>
+        </footer>
     </main>
 
     <!-- ============================================== -->
@@ -943,14 +930,14 @@
     <script defer src="../assets/js/django-api-config.js?v=53"></script>
     <script defer src="../assets/js/django-api.js?v=53"></script>
     <script defer src="../assets/js/event-config.js?v=79"></script>
-    <script defer src="../assets/js/cloud-api.js?v=80"></script>
+    <script defer src="../assets/js/cloud-api.js?v=82"></script>
     <script defer src="../assets/js/dashboard-sync.js?v=55"></script>
-    <script defer src="../assets/js/guest-manager.js?v=72"></script>
+    <script defer src="../assets/js/guest-manager.js?v=73"></script>
     <script defer src="../assets/js/checkin-url.js?v=50"></script>
     <script defer src="../assets/js/access-pass-export.js?v=53"></script>
     <script defer src="../assets/js/vendor/qrcode-1.5.4.min.js?v=1"></script>
     <script defer src="../assets/js/invitation-pdf.js?v=10"></script>
-    <script defer src="../assets/js/content-blocks.js?v=41"></script>
+    <script defer src="../assets/js/content-blocks.js?v=42"></script>
     <script defer src="../assets/js/calendar-export.js?v=35"></script>
     <script defer src="../assets/js/background-music.js?v=40"></script>
     <script defer src="../assets/js/countdown.js?v=36"></script>
@@ -958,7 +945,7 @@
     <script defer src="../assets/js/i18n.js?v=34"></script>
     <script defer src="../assets/js/drink-generic-images.js?v=34"></script>
     <script defer src="../assets/js/drink-menu.js?v=36"></script>
-    <script defer src="../assets/js/app.js?v=79"></script>
+    <script defer src="../assets/js/app.js?v=80"></script>
     <script defer src="../assets/js/gallery-enhancement.js?v=1"></script>
     <script defer src="../assets/js/guest-experience.js?v=96"></script>
     <script>

@@ -102,7 +102,7 @@ function getConfigDefaults() {
         sections: {
             rsvp: true, program: true, practical: true, venue: true, about: true,
             music: true, messages: true, supportContact: true, gallery: true,
-            countdown: true, calendar: true, drinkMenu: true, dressCode: true, donation: true,
+            countdown: true, calendar: true, drinkMenu: true, foodMenu: true, dressCode: true, donation: true,
             ...(cfg?.sections || {})
         },
         program: blocks.program || ContentBlocks?.DEFAULT_PROGRAM || [],
@@ -111,8 +111,12 @@ function getConfigDefaults() {
         practicalSectionTitle: cfg?.practicalSectionTitle || "Informations pratiques",
         venueTitle: blocks.venueTitle || "",
         venueAddress: blocks.venueAddress || "",
+        venueTime: blocks.venueTime || "",
         venueLat: blocks.venueLat || "",
         venueLng: blocks.venueLng || "",
+        ...(Array.isArray(cfg?.venues) ? { venues: window.ContentBlocks?.normalizeVenues?.(cfg) || cfg.venues } : {}),
+        foodMenu: window.ContentBlocks?.normalizeFoodMenu?.(cfg?.foodMenu) || cfg?.foodMenu || [],
+        foodMenuTitle: cfg?.foodMenuTitle || "À notre table",
         mapLink: blocks.mapLink || cfg?.links?.map || "",
         mapImage: blocks.mapImage || "",
         title: cfg?.title || "Invitation",
@@ -151,6 +155,8 @@ function getConfigDefaults() {
         whatsappDonationPhone: cfg?.links?.whatsappDonation || cfg?.whatsappDonationPhone || "",
         donationWhatsAppMessage: cfg?.links?.donationWhatsAppMessage || "",
         giftMessage: cfg?.giftMessage || blocks.giftMessage || "",
+        guestbookTitle: cfg?.guestbookTitle || "Livre d'or",
+        guestbookCoverImage: cfg?.guestbookCoverImage || "",
         dressCodeTitle: cfg?.dressCodeTitle || "Tenue élégante",
         dressCodeColors: resolveDressCodeColors(cfg?.dressCodeColors),
         dressCodeMen: cfg?.dressCodeMen || "",
@@ -159,6 +165,7 @@ function getConfigDefaults() {
         dressPatternWomen: cfg?.dressPatternWomen || "",
         dressImages: cfg?.dressImages || [],
         eventEndTime: cfg?.eventEndTime || "",
+        countdownDate: toDateTimeLocalValue(cfg?.countdownDate ?? cfg?.eventDate ?? ""),
         supportEmail: cfg?.links?.supportEmail || "",
         rsvpLink: cfg?.links?.rsvp || "",
         metaDescription: cfg?.metaDescription || cfg?.title || "",
@@ -390,6 +397,8 @@ function readPracticalFromEditor() {
 }
 
 function readFormState() {
+    const venues = readVenuesFromEditor();
+    const primaryVenue = ContentBlocks.venueToLegacy(venues[0]);
     return {
         sections: Object.fromEntries([...document.querySelectorAll('[data-module-toggle]')].map((input) => [input.dataset.moduleToggle, input.checked])),
         title: document.getElementById("title").value.trim(),
@@ -410,12 +419,10 @@ function readFormState() {
         bestPhotos: parseMediaList(document.getElementById("bestPhotos").value, 12),
         countdownDate: document.getElementById("eventDate")?.value || "",
         eventEndTime: document.getElementById("eventEndTime")?.value || "",
-        venueTitle: document.getElementById("venueTitle").value.trim(),
-        venueAddress: document.getElementById("venueAddress").value.trim(),
-        venueLat: document.getElementById("venueLat").value.trim(),
-        venueLng: document.getElementById("venueLng").value.trim(),
-        mapLink: document.getElementById("mapLink").value.trim(),
-        mapImage: document.getElementById("mapImage").value.trim(),
+        ...primaryVenue,
+        venues,
+        foodMenu: readFoodMenuFromEditor(),
+        foodMenuTitle: document.getElementById("foodMenuTitle")?.value.trim() || "À notre table",
         programSectionTitle: document.getElementById("programSectionTitle").value.trim(),
         practicalSectionTitle: document.getElementById("practicalSectionTitle").value.trim(),
         program: readProgramFromEditor(),
@@ -448,6 +455,8 @@ function readFormState() {
         whatsappDonationPhone: document.getElementById("whatsappDonationPhone").value.trim(),
         donationWhatsAppMessage: document.getElementById("donationWhatsAppMessage").value.trim(),
         giftMessage: document.getElementById("giftMessage").value.trim(),
+        guestbookTitle: document.getElementById("guestbookTitle")?.value.trim() || "Livre d'or",
+        guestbookCoverImage: document.getElementById("guestbookCoverImage")?.value.trim() || "",
         dressCodeTitle: document.getElementById("dressCodeTitle").value.trim(),
         dressCodeColors: [1, 2, 3].map((index) => document.getElementById(`dressCodeColor${index}`).value),
         dressCodeMen: document.getElementById("dressCodeMen").value.trim(),
@@ -472,6 +481,8 @@ function readFormState() {
 
 function toDashboardPayload(formState) {
     const photos = formState.bestPhotos || [];
+    const venues = window.ContentBlocks?.normalizeVenues?.(formState) || formState.venues;
+    const primaryVenue = Array.isArray(venues) ? window.ContentBlocks?.venueToLegacy?.(venues[0]) : null;
     return {
         sections: { ...(formState.sections || {}) },
         title: formState.title,
@@ -509,6 +520,9 @@ function toDashboardPayload(formState) {
         venueLng: formState.venueLng,
         mapLink: formState.mapLink,
         mapImage: formState.mapImage,
+        ...(Array.isArray(venues) ? { venues, ...primaryVenue } : {}),
+        foodMenu: window.ContentBlocks?.normalizeFoodMenu?.(formState.foodMenu) || formState.foodMenu || [],
+        foodMenuTitle: formState.foodMenuTitle || "À notre table",
         programSectionTitle: formState.programSectionTitle,
         practicalSectionTitle: formState.practicalSectionTitle,
         program: formState.program,
@@ -536,6 +550,8 @@ function toDashboardPayload(formState) {
         whatsappDonationPhone: formState.whatsappDonationPhone,
         donationWhatsAppMessage: formState.donationWhatsAppMessage,
         giftMessage: formState.giftMessage,
+        guestbookTitle: formState.guestbookTitle || "Livre d'or",
+        guestbookCoverImage: formState.guestbookCoverImage || "",
         dressCodeTitle: formState.dressCodeTitle,
         dressCodeColors: formState.dressCodeColors,
         dressCodeMen: formState.dressCodeMen,
@@ -582,6 +598,102 @@ function renderSinglePreview(fieldId, previewId) {
     const img = document.getElementById(previewId);
     if (!img) return;
     img.src = src || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='100%25' height='100%25' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='50%25' fill='%2364758b' dominant-baseline='middle' text-anchor='middle' font-family='Arial'%3EApercu image%3C/text%3E%3C/svg%3E";
+}
+
+function readVenuesFromEditor() {
+    const root = document.getElementById("venues-editor");
+    if (!root) return [];
+    const venues = Array.from(root.querySelectorAll(".perso-venue-row")).map((row) => {
+        const venue = { id: row.dataset.venueId, mapImage: row.dataset.mapImage || "" };
+        for (const key of ["type", "label", "name", "address", "time", "mapLink", "lat", "lng"]) {
+            venue[key] = row.querySelector(`[data-venue-field="${key}"]`)?.value.trim() || "";
+        }
+        return venue;
+    });
+    return ContentBlocks.normalizeVenues({ venues });
+}
+
+function renderVenuesEditor(venues) {
+    const root = document.getElementById("venues-editor");
+    if (!root) return;
+    root.replaceChildren();
+    venues.forEach((venue) => root.appendChild(buildVenueRow(venue)));
+    updateVenueEditor();
+}
+
+function updateVenueEditor() {
+    const rows = document.querySelectorAll("#venues-editor .perso-venue-row");
+    rows.forEach((row, index) => {
+        row.querySelector(".perso-venue-number").textContent = `Lieu ${index + 1}`;
+        row.querySelector('[data-venue-action="up"]').disabled = index === 0;
+        row.querySelector('[data-venue-action="down"]').disabled = index === rows.length - 1;
+    });
+    const empty = document.getElementById("venues-editor-empty");
+    if (empty) empty.hidden = rows.length > 0;
+}
+
+function buildVenueRow(venue = {}) {
+    const row = document.createElement("article");
+    row.className = "perso-dynamic-item perso-venue-row";
+    row.dataset.venueId = venue.id || `venue-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    row.dataset.mapImage = venue.mapImage || "";
+    const field = (key, label, placeholder, extra = "") => `<label><span class="dash-field-label">${label}</span>
+        <input data-venue-field="${key}" class="admin-input" value="${escapeAttr(String(venue[key] || ""))}" placeholder="${placeholder}" ${extra}></label>`;
+    const typeOptions = Object.entries(ContentBlocks.VENUE_TYPES).map(([value, label]) =>
+        `<option value="${value}"${(venue.type || "other") === value ? " selected" : ""}>${label}</option>`).join("");
+    row.innerHTML = `<div class="perso-dynamic-item-head"><strong class="perso-venue-number">Lieu</strong>
+        <div class="perso-row-actions">
+            <button type="button" data-venue-action="up" class="perso-order-btn" aria-label="Déplacer ce lieu vers le haut">↑</button>
+            <button type="button" data-venue-action="down" class="perso-order-btn" aria-label="Déplacer ce lieu vers le bas">↓</button>
+            <button type="button" data-venue-action="remove" class="perso-remove-btn">Supprimer</button>
+        </div></div>
+        <div class="dash-grid-2">
+            <label><span class="dash-field-label">Type de rendez-vous</span><select data-venue-field="type" class="admin-input">${typeOptions}</select></label>
+            ${field("label", "Libellé personnalisé (optionnel)", "Ex. Cérémonie coutumière")}
+            ${field("name", "Nom du lieu", "Ex. Église Saint-Paul")}
+            ${field("time", "Heure du rendez-vous", "Ex. 13h00 ou 18h30 – 23h00")}
+        </div>
+        <div class="mt-3">${field("address", "Adresse complète", "Rue, numéro, ville")}</div>
+        <div class="mt-3">${field("mapLink", "Lien Google Maps (optionnel)", "https://maps.app.goo.gl/…", 'type="url"')}</div>
+        <details class="perso-venue-gps"><summary>Coordonnées GPS (optionnel)</summary><div class="dash-grid-2 mt-3">
+            ${field("lat", "Latitude", "-4.3215", 'inputmode="decimal"')}
+            ${field("lng", "Longitude", "15.3128", 'inputmode="decimal"')}
+        </div></details>`;
+    row.querySelectorAll("[data-venue-action]").forEach((button) => button.addEventListener("click", () => {
+        const action = button.dataset.venueAction;
+        if (action === "remove") row.remove();
+        if (action === "up" && row.previousElementSibling) row.parentElement.insertBefore(row, row.previousElementSibling);
+        if (action === "down" && row.nextElementSibling) row.parentElement.insertBefore(row.nextElementSibling, row);
+        updateVenueEditor();
+        schedulePreviewRefresh(200);
+    }));
+    return row;
+}
+
+function readFoodMenuFromEditor() {
+    const root = document.getElementById("food-menu-editor");
+    if (!root) return [];
+    return ContentBlocks.normalizeFoodMenu(Array.from(root.querySelectorAll(".perso-food-row")).map((row) => ({
+        title: row.querySelector('[data-food-field="title"]').value,
+        description: row.querySelector('[data-food-field="description"]').value
+    })));
+}
+
+function renderFoodMenuEditor(items) {
+    const root = document.getElementById("food-menu-editor");
+    if (!root) return;
+    root.replaceChildren();
+    items.forEach((item) => root.appendChild(buildFoodMenuRow(item)));
+}
+
+function buildFoodMenuRow(item = {}) {
+    const row = document.createElement("div");
+    row.className = "perso-dynamic-item perso-food-row";
+    row.innerHTML = `<div class="perso-dynamic-item-head"><span>Au menu</span><button type="button" class="perso-remove-btn">Supprimer</button></div>
+        <label><span class="dash-field-label">Titre ou étape du repas</span><input data-food-field="title" class="admin-input" value="${escapeAttr(item.title || "")}" placeholder="Entrée, plat, buffet, dessert…"></label>
+        <label class="block mt-3"><span class="dash-field-label">Description</span><textarea data-food-field="description" class="admin-input" rows="2" placeholder="Les plats proposés à vos invités">${escapeHtml(item.description || "")}</textarea></label>`;
+    row.querySelector("button").addEventListener("click", () => { row.remove(); schedulePreviewRefresh(200); });
+    return row;
 }
 
 function buildProgramRow(step, index) {
@@ -816,6 +928,10 @@ function hydrateForm(state) {
     document.getElementById("whatsappDonationPhone").value = state.whatsappDonationPhone || "";
     document.getElementById("donationWhatsAppMessage").value = state.donationWhatsAppMessage || "";
     document.getElementById("giftMessage").value = state.giftMessage || "";
+    const guestbookTitle = document.getElementById("guestbookTitle");
+    const guestbookCover = document.getElementById("guestbookCoverImage");
+    if (guestbookTitle) guestbookTitle.value = state.guestbookTitle || "Livre d'or";
+    if (guestbookCover) guestbookCover.value = state.guestbookCoverImage || "";
     document.getElementById("dressCodeTitle").value = state.dressCodeTitle || "Tenue élégante";
     resolveDressCodeColors(state.dressCodeColors).forEach((color, index) => {
         document.getElementById(`dressCodeColor${index + 1}`).value = color;
@@ -848,6 +964,10 @@ function hydrateForm(state) {
     document.getElementById("venueAddress").value = state.venueAddress || "";
     document.getElementById("venueLat").value = state.venueLat || "";
     document.getElementById("venueLng").value = state.venueLng || "";
+    renderVenuesEditor(ContentBlocks.normalizeVenues(state));
+    renderFoodMenuEditor(ContentBlocks.normalizeFoodMenu(state.foodMenu));
+    const foodMenuTitle = document.getElementById("foodMenuTitle");
+    if (foodMenuTitle) foodMenuTitle.value = state.foodMenuTitle || "À notre table";
     document.getElementById("mapLink").value = state.mapLink || "";
     document.getElementById("mapImage").value = state.mapImage || "";
     document.getElementById("programSectionTitle").value = state.programSectionTitle || "Programme de la journée";
@@ -882,6 +1002,7 @@ function hydrateForm(state) {
     renderSinglePreview("welcomeImage", "preview-welcomeImage");
     renderSinglePreview("mapImage", "preview-mapImage");
     renderSinglePreview("aboutImage", "preview-aboutImage");
+    renderSinglePreview("guestbookCoverImage", "preview-guestbookCoverImage");
 }
 
 function wireMusicControls() {
@@ -1308,6 +1429,15 @@ window.addEventListener("DOMContentLoaded", async () => {
         const count = root.querySelectorAll(".perso-dynamic-item").length;
         root.appendChild(buildPracticalRow({ icon: "info", title: "", text: "" }, count));
     });
+    document.getElementById("add-venue")?.addEventListener("click", () => {
+        document.getElementById("venues-editor").appendChild(buildVenueRow());
+        updateVenueEditor();
+        schedulePreviewRefresh(200);
+    });
+    document.getElementById("add-food-item")?.addEventListener("click", () => {
+        document.getElementById("food-menu-editor").appendChild(buildFoodMenuRow());
+        schedulePreviewRefresh(200);
+    });
     document.getElementById("add-drink-item")?.addEventListener("click", () => {
         const root = document.getElementById("drink-menu-editor");
         const count = root.querySelectorAll(".perso-drink-row").length;
@@ -1358,11 +1488,13 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("welcomeImage").addEventListener("input", () => renderSinglePreview("welcomeImage", "preview-welcomeImage"));
     document.getElementById("mapImage").addEventListener("input", () => renderSinglePreview("mapImage", "preview-mapImage"));
     document.getElementById("aboutImage").addEventListener("input", () => renderSinglePreview("aboutImage", "preview-aboutImage"));
+    document.getElementById("guestbookCoverImage")?.addEventListener("input", () => renderSinglePreview("guestbookCoverImage", "preview-guestbookCoverImage"));
 
     await wireUploader("upload-hero", "heroImage", "preview-heroImage");
     await wireUploader("upload-welcome", "welcomeImage", "preview-welcomeImage");
     await wireUploader("upload-map", "mapImage", "preview-mapImage");
     await wireUploader("upload-about", "aboutImage", "preview-aboutImage");
+    await wireUploader("upload-guestbook", "guestbookCoverImage", "preview-guestbookCoverImage");
     await wireUploader("upload-best", "bestPhotos", null, true, 12);
     await wireUploader("upload-dress", "dressImages", null, true, 8);
     await wireUploader("upload-dressPatternMen", "dressPatternMen", "preview-dressPatternMen");

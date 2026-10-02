@@ -268,3 +268,20 @@
         width: 100%;
     }
 }
+
+.perso-row-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.perso-order-btn { width: 32px; height: 32px; border: 1px solid #dbe2e9; border-radius: 8px; background: #fff; color: #475569; font-weight: 700; }
+.perso-order-btn:hover:not(:disabled) { border-color: #b76b8b; color: #9f315e; }
+.perso-order-btn:disabled { opacity: .3; cursor: default; }
+.perso-order-btn:focus-visible { outline: 2px solid #be185d; outline-offset: 2px; }
+.perso-venue-row { padding: 20px; }
+.perso-venue-row .dash-field-label { display: block; margin-bottom: 6px; }
+.perso-venue-gps { margin-top: 18px; font-size: 12px; color: #64748b; }
+.perso-venue-gps summary { cursor: pointer; }
+.perso-food-row textarea { min-height: 78px; resize: vertical; }
+@media (max-width: 600px) {
+    .perso-venue-row { padding: 14px; }
+    .perso-venue-row .dash-grid-2 { grid-template-columns: 1fr; }
+    .perso-venue-row .perso-dynamic-item-head { gap: 10px; flex-wrap: wrap; }
+    .perso-venue-row .admin-input, .perso-food-row .admin-input { font-size: 16px; }
+}

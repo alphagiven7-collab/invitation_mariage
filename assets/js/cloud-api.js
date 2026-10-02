@@ -40,9 +40,12 @@ const CloudAPI = (() => {
         if (!res.ok) {
             const errText = await res.text().catch(() => "");
             if (throwOnError) {
-                let message = "";
-                try { message = JSON.parse(errText).message || ""; } catch {}
-                throw new Error(`Supabase (${res.status}) : ${message || "requête refusée"}`);
+                let details = {};
+                try { details = JSON.parse(errText); } catch {}
+                const error = new Error(`Supabase (${res.status}) : ${details.message || "requête refusée"}`);
+                error.code = details.code;
+                error.status = res.status;
+                throw error;
             }
             console.warn("CloudAPI", table, method, res.status, errText.slice(0, 240));
             return null;
@@ -81,13 +84,18 @@ const CloudAPI = (() => {
         if (!response.ok) {
             const error = await response.text().catch(() => "");
             let message = "";
+            let code;
             try {
                 const parsed = JSON.parse(error);
                 message = parsed.message || parsed.hint || parsed.details || "";
+                code = parsed.code;
             } catch {}
             console.warn("CloudAPI RPC", functionName, response.status, error.slice(0, 240));
             if (options.throwOnError) {
-                throw new Error(message || `Supabase a refusé la requête (${response.status}).`);
+                const failure = new Error(message || `Supabase a refusé la requête (${response.status}).`);
+                failure.code = code;
+                failure.status = response.status;
+                throw failure;
             }
             return null;
         }
@@ -335,7 +343,94 @@ const CloudAPI = (() => {
                 : null,
             profile_photo_url: guest.profilePhotoUrl || null
         };
+        // Une attribution explicite ne doit jamais être supprimée par un repli
+        // destiné aux anciennes bases de données.
+        if (guest.tableId !== undefined) return [{ ...withExtras, table_id: guest.tableId || null }];
         return [withExtras, withQr, minimal];
+    }
+
+    async function patchGuest(eventId, guestId, patch) {
+        if (!isEnabled()) throw new Error("Le service des invités n'est pas disponible.");
+        const fields = {
+            fullName: "full_name", phone: "phone", email: "email", group: "group_name",
+            status: "status", adults: "adults", children: "children", rsvpMessage: "rsvp_message",
+            respondedAt: "responded_at", qrApproved: "qr_approved", accessCode: "access_code",
+            tableNumber: "table_number", tableId: "table_id", drinkChoices: "drink_choices",
+            profilePhotoUrl: "profile_photo_url", checkedInAt: "checked_in_at", token: "token"
+        };
+        const body = {};
+        for (const [key, column] of Object.entries(fields)) {
+            if (!Object.prototype.hasOwnProperty.call(patch, key)) continue;
+            body[column] = key === "drinkChoices" ? JSON.stringify(patch[key] || []) : patch[key];
+        }
+        if (!Object.keys(body).length) throw new Error("Aucune modification à enregistrer.");
+        const result = await request("guests", {
+            method: "PATCH",
+            query: `?id=eq.${encodeURIComponent(guestId)}&event_id=eq.${encodeURIComponent(eventId)}`,
+            body, prefer: "return=representation", throwOnError: true
+        });
+        const row = extractGuestRow(result);
+        if (!row) throw new Error("L'invité n'existe plus ou vous n'avez pas accès à cet événement.");
+        return { guest: mapGuestFromCloud(row), cloudSynced: true };
+    }
+
+    function requireTableManager(eventId) {
+        if (!isEnabled() || !window.AuthGuard?.isGuestManager?.(eventId)) {
+            throw new Error("Connexion organisateur requise pour gérer les tables.");
+        }
+    }
+
+    function tableServiceError(error) {
+        if (["42P01", "42883", "PGRST202", "PGRST205"].includes(error.code)) {
+            const unavailable = new Error("La gestion des tables n'est pas encore activée pour ce site.");
+            unavailable.code = "TABLES_NOT_READY";
+            return unavailable;
+        }
+        return error;
+    }
+
+    function mapTable(row) {
+        if (!row?.id || typeof row.name !== "string") throw new Error("Le service n'a pas confirmé la table.");
+        return { id: row.id, eventId: row.event_id, name: row.name, capacity: row.capacity ?? null, createdAt: row.created_at };
+    }
+
+    async function getTables(eventId) {
+        requireTableManager(eventId);
+        try {
+            return (await requestAllRows("event_tables",
+                `?event_id=eq.${encodeURIComponent(eventId)}&order=name.asc,id.asc`)).map(mapTable);
+        } catch (error) { throw tableServiceError(error); }
+    }
+
+    async function tableRpc(eventId, name, body) {
+        requireTableManager(eventId);
+        try {
+            return await requestRpc(name, { p_event_id: eventId, ...body }, { throwOnError: true });
+        } catch (error) { throw tableServiceError(error); }
+    }
+
+    async function createTable(eventId, { name, capacity }) {
+        return mapTable(extractGuestRow(await tableRpc(eventId, "create_managed_table", {
+            p_name: name, p_capacity: capacity ?? null
+        })));
+    }
+
+    async function updateTable(eventId, tableId, { name, capacity }) {
+        return mapTable(extractGuestRow(await tableRpc(eventId, "update_managed_table", {
+            p_table_id: tableId, p_name: name, p_capacity: capacity ?? null
+        })));
+    }
+
+    async function deleteTable(eventId, tableId) {
+        await tableRpc(eventId, "delete_managed_table", { p_table_id: tableId });
+    }
+
+    async function assignGuestTable(eventId, guestIds, tableId) {
+        const count = await tableRpc(eventId, "assign_managed_table", {
+            p_guest_ids: guestIds, p_table_id: tableId || null
+        });
+        if (!Number.isInteger(count) || count < 0) throw new Error("L'affectation des invités n'a pas été confirmée.");
+        return { updatedCount: count };
     }
 
     async function writeGuestRecord(method, query, payloads) {
@@ -918,10 +1013,11 @@ const CloudAPI = (() => {
             qrApproved: !!(row.qr_approved ?? row.qrApproved),
             accessCode: row.access_code || row.accessCode || "",
             tableNumber: row.table_number || row.tableNumber || "",
+            ...(row.table_id !== undefined ? { tableId: row.table_id } : {}),
             drinkChoices: parseDrinkChoices(row.drink_choices ?? row.drinkChoices),
             profilePhotoUrl: row.profile_photo_url || row.profilePhotoUrl || "",
-            adults: row.adults || 1,
-            children: row.children || 0,
+            adults: row.adults ?? 1,
+            children: row.children ?? 0,
             rsvpMessage: row.rsvp_message || "",
             respondedAt: row.responded_at,
             checkedInAt: row.checked_in_at || row.checkedInAt || null,
@@ -997,6 +1093,12 @@ const CloudAPI = (() => {
         saveGuestsLocal,
         restoreDeletedGuest,
         upsertGuest,
+        patchGuest,
+        getTables,
+        createTable,
+        updateTable,
+        deleteTable,
+        assignGuestTable,
         removeGuestsCloud,
         syncAllGuests,
         removeGuestCloud,

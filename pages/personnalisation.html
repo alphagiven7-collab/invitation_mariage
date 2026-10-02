@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personnalisation — Invitation mariage</title>
-    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=58">
-    <link rel="stylesheet" href="../assets/css/app.css?v=82">
+    <link rel="stylesheet" href="../assets/css/tailwind.min.css?v=59">
+    <link rel="stylesheet" href="../assets/css/app.css?v=85">
     <link rel="stylesheet" href="../assets/css/admin.css">
-    <link rel="stylesheet" href="../assets/css/personnalisation.css">
+    <link rel="stylesheet" href="../assets/css/personnalisation.css?v=2">
 </head>
 <body class="admin-shell text-slate-800">
     <main class="dash-wrap">
@@ -16,7 +16,7 @@
                 <div>
                     <p class="admin-overline">Studio concepteur</p>
                     <h1>Personnaliser l'invitation</h1>
-                    <p class="admin-subtitle">Programme du jour · lieu &amp; GPS · infos pratiques · textes · photos · date · couleurs — sauvegarde cloud + aperçu live.</p>
+                    <p class="admin-subtitle">Modifiez vos textes, photos, menus et lieux dans l’ordre de l’invitation. Vérifiez l’aperçu puis sauvegardez.</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                     <select id="perso-event-switcher" class="admin-select" style="max-width:240px; font-weight:600;" aria-label="Changer d'événement"></select>
@@ -34,47 +34,42 @@
         <div class="perso-workspace">
         <div class="perso-layout">
             <nav class="perso-sidebar perso-nav" aria-label="Sections personnalisation">
-                <p class="perso-nav-label">Sections</p>
-                <a href="#sec-textes"><span class="perso-nav-icon">✦</span> Identité</a>
-                <a href="#sec-accueil"><span class="perso-nav-icon">💌</span> Porte d'entrée</a>
-                <a href="#sec-rsvp"><span class="perso-nav-icon">✓</span> RSVP</a>
-                <a href="#sec-date"><span class="perso-nav-icon">📅</span> Date &amp; compte à rebours</a>
-                <a href="#sec-lieu"><span class="perso-nav-icon">📍</span> Lieu &amp; carte</a>
-                <a href="#sec-programme"><span class="perso-nav-icon">🕐</span> Programme du jour</a>
-                <a href="#sec-pratique"><span class="perso-nav-icon">ℹ️</span> Infos pratiques</a>
-                <a href="#sec-photos"><span class="perso-nav-icon">🖼</span> Photos</a>
-                <a href="#sec-tenue"><span class="perso-nav-icon">👔</span> Code vestimentaire</a>
-                <a href="#sec-about"><span class="perso-nav-icon">📖</span> Notre histoire</a>
-                <a href="#sec-musique"><span class="perso-nav-icon">♫</span> Musique</a>
-                <a href="#sec-couleurs"><span class="perso-nav-icon">🎨</span> Couleurs &amp; RSVP</a>
-                <a href="#sec-liens"><span class="perso-nav-icon">🔗</span> Liens &amp; SEO</a>
-                <a href="#sec-aide"><span class="perso-nav-icon">?</span> Aide</a>
-            </nav>
+    <p class="perso-nav-label">Votre invitation</p>
+    <a href="#sec-textes">01 · Invitation</a><a href="#sec-about">02 · À propos</a>
+    <a href="#sec-programme">03 · Programme</a><a href="#sec-tenue">04 · Tenue &amp; couleurs</a>
+    <a href="#sec-menu">05 · Menu &amp; boissons</a><a href="#sec-liens">06 · Cadeaux &amp; contact</a>
+    <a href="#sec-livre-or">07 · Livre d'or</a><a href="#sec-photos">08 · Photos du couple</a>
+    <a href="#sec-date">09 · Date &amp; compte à rebours</a>
+    <a href="#sec-lieu">10 · Lieux &amp; horaires</a><a href="#sec-rsvp">11 · Confirmation</a>
+    <p class="perso-nav-label">Réglages</p>
+    <a href="#sec-modules">Sections visibles</a><a href="#sec-accueil">Ouverture</a>
+    <a href="#sec-pratique">Infos pratiques</a><a href="#sec-couleurs">Couleurs du thème</a>
+    <a href="#sec-musique">Musique</a><a href="#sec-aide">Aide</a>
+</nav>
 
             <form id="settings-form" class="dash-main">
-                <section class="admin-card perso-section" id="sec-modules">
+<section class="admin-card perso-section" id="sec-modules">
                     <h2 class="admin-card-title">Modules de l'invitation</h2>
                     <p class="admin-card-desc">Désactivez les blocs inutiles. Les données restent conservées.</p>
                     <div class="dash-grid-2">
                         <label><input type="checkbox" data-module-toggle="rsvp" checked> Confirmation RSVP</label>
                         <label><input type="checkbox" data-module-toggle="gallery" checked> Galerie photos</label>
-                        <label><input type="checkbox" data-module-toggle="guestbook" checked> Livre d'or</label>
-                        <label><input type="checkbox" data-module-toggle="messages" checked> Messages des invités</label>
                         <label><input type="checkbox" data-module-toggle="program" checked> Programme</label>
                         <label><input type="checkbox" data-module-toggle="practical" checked> Informations pratiques</label>
-                        <label><input type="checkbox" data-module-toggle="venue" checked> Lieu et carte</label>
+                        <label><input type="checkbox" data-module-toggle="venue" checked> Lieux et itinéraires</label>
                         <label><input type="checkbox" data-module-toggle="calendar" checked> Calendrier</label>
                         <label><input type="checkbox" data-module-toggle="countdown" checked> Compte à rebours</label>
                         <label><input type="checkbox" data-module-toggle="dressCode" checked> Code vestimentaire</label>
                         <label><input type="checkbox" data-module-toggle="about" checked> Notre histoire</label>
                         <label><input type="checkbox" data-module-toggle="music" checked> Musique</label>
+                        <label><input type="checkbox" data-module-toggle="foodMenu" checked> Menu du repas</label>
                         <label><input type="checkbox" data-module-toggle="drinkMenu" checked> Menu des boissons</label>
                         <label><input type="checkbox" data-module-toggle="donation" checked> Cadeaux / dons</label>
                         <label><input type="checkbox" data-module-toggle="supportContact" checked> Contact Michelline Event</label>
                     </div>
                 </section>
 
-                <section class="admin-card perso-section" id="sec-textes">
+<section class="admin-card perso-section" id="sec-textes">
                     <h2 class="admin-card-title">Identité &amp; textes</h2>
                     <p class="admin-card-desc">Titre, sous-titre et message principal sur la carte d'invitation principale.</p>
                     <div class="dash-grid-2">
@@ -112,7 +107,7 @@
                     </label>
                 </section>
 
-                <section class="admin-card perso-section" id="sec-accueil">
+<section class="admin-card perso-section" id="sec-accueil">
                     <h2 class="admin-card-title">Porte d'entrée (enveloppe)</h2>
                     <p class="admin-card-desc">Textes affichés avant que l'invité entre sur l'invitation.</p>
                     <label class="block mb-3">
@@ -132,111 +127,33 @@
                     </label>
                 </section>
 
-                <section class="admin-card perso-section" id="sec-rsvp">
-                    <h2 class="admin-card-title">RSVP &amp; confirmation</h2>
-                    <p class="admin-card-desc">Libellé du bouton rose « Confirmer ma présence » et rappel de date limite.</p>
-                    <label id="wedding-rsvp-mode-field" class="block mb-3 hidden">
-                        <span class="dash-field-label">Mode de confirmation du mariage</span>
-                        <select id="rsvpMode" class="admin-select">
-                            <option value="personal">Invitation personnelle avec liste et QR</option>
-                            <option value="open">RSVP ouvert sans liste, avec choix de famille et WhatsApp</option>
-                        </select>
-                    </label>
+<section class="admin-card perso-section" id="sec-about">
+                    <h2 class="admin-card-title">Notre histoire</h2>
+                    <p class="admin-card-desc">Modale « À propos de nous » sur l'invitation.</p>
                     <label class="block">
-                        <span class="dash-field-label">Texte du bouton RSVP</span>
-                        <input id="reserveText" class="admin-input" placeholder="Confirmer ma présence">
+                        <span class="dash-field-label">Titre</span>
+                        <input id="aboutTitle" class="admin-input" placeholder="Notre Histoire">
                     </label>
                     <label class="mt-3 block">
-                        <span class="dash-field-label">Rappel date limite RSVP</span>
-                        <input id="rsvpDeadlineText" class="admin-input" placeholder="Merci de confirmer avant le 25 avril 2026">
+                        <span class="dash-field-label">Paragraphe 1</span>
+                        <textarea id="aboutStory1" rows="3" class="admin-input" style="min-height:86px;resize:vertical"></textarea>
                     </label>
                     <label class="mt-3 block">
-                        <span class="dash-field-label">Lien RSVP externe (optionnel)</span>
-                        <input id="rsvpLink" class="admin-input" placeholder="Google Form, WhatsApp…">
+                        <span class="dash-field-label">Paragraphe 2</span>
+                        <textarea id="aboutStory2" rows="3" class="admin-input" style="min-height:86px;resize:vertical"></textarea>
                     </label>
-                    <div id="open-rsvp-settings" class="mt-4 space-y-3">
-                        <p class="dash-field-label">RSVP ouvert — redirection WhatsApp</p>
-                        <p class="perso-gps-hint">Après l'enregistrement, le côté de famille choisi ouvre le numéro WhatsApp correspondant. Renseignez les deux numéros au format international.</p>
-                        <div class="admin-form-grid">
-                            <label class="block">
-                                <span class="dash-field-label">Numéro WhatsApp de redirection — côté homme</span>
-                                <input id="openRsvpMalePhone" type="tel" class="admin-input" placeholder="Ex. +243 810 000 001">
-                            </label>
-                            <label class="block">
-                                <span class="dash-field-label">Numéro WhatsApp de redirection — côté femme</span>
-                                <input id="openRsvpFemalePhone" type="tel" class="admin-input" placeholder="Ex. +243 810 000 002">
-                            </label>
-                        </div>
-                        <div class="admin-form-grid">
-                            <label class="block">
-                                <span class="dash-field-label">Nom de la famille - Homme</span>
-                                <input id="openRsvpMaleFamily" class="admin-input" placeholder="Ex. Famille Kabasele">
-                            </label>
-                            <label class="block">
-                                <span class="dash-field-label">Nom de la famille - Femme</span>
-                                <input id="openRsvpFemaleFamily" class="admin-input" placeholder="Ex. Famille Nsimba">
-                            </label>
-                        </div>
-                        <label class="block">
-                            <span class="dash-field-label">Texte du message WhatsApp</span>
-                            <textarea id="openRsvpWhatsAppMessage" rows="5" class="admin-input" style="min-height:118px;resize:vertical" placeholder="Bonjour,&#10;&#10;{nom} a répondu pour {evenement}.&#10;Réponse : {reponse}&#10;Côté : {cote}"></textarea>
-                        </label>
-                    </div>
-                </section>
-
-                <section class="admin-card perso-section" id="sec-date">
-                    <h2 class="admin-card-title">Date &amp; compte à rebours</h2>
-                    <p class="admin-card-desc">Met à jour le calendrier, le compte à rebours et l'heure affichée sur l'invitation.</p>
-                    <label class="block mt-2">
-                        <span class="dash-field-label">Date et heure de début</span>
-                        <input id="eventDate" type="datetime-local" class="admin-input">
-                    </label>
-                    <label class="block mt-3">
-                        <span class="dash-field-label">Heure de fin</span>
-                        <input id="eventEndTime" type="time" class="admin-input">
-                    </label>
-                </section>
-
-                <section class="admin-card perso-section" id="sec-lieu">
-                    <h2 class="admin-card-title">Lieu, GPS &amp; carte</h2>
-                    <p class="admin-card-desc">Nom du lieu, adresse, coordonnées GPS et lien Google Maps. <strong>La carte interactive s'affiche automatiquement</strong> dès qu'une adresse ou des coordonnées GPS sont renseignées.</p>
-                    <div class="dash-grid-2">
-                        <label>
-                            <span class="dash-field-label">Nom du lieu</span>
-                            <input id="venueTitle" class="admin-input" placeholder="Ex : Sultani River">
-                        </label>
-                        <label>
-                            <span class="dash-field-label">Lien Google Maps (optionnel)</span>
-                            <input id="mapLink" class="admin-input" placeholder="https://maps.google.com/...">
-                        </label>
-                    </div>
-                    <label class="mt-3 block">
-                        <span class="dash-field-label">Adresse complète</span>
-                        <input id="venueAddress" class="admin-input" placeholder="32, avenue de la Justice, Kinshása">
-                    </label>
-                    <div class="dash-grid-2 mt-3">
-                        <label>
-                            <span class="dash-field-label">Latitude GPS</span>
-                            <input id="venueLat" class="admin-input" placeholder="-4.3215" inputmode="decimal">
-                        </label>
-                        <label>
-                            <span class="dash-field-label">Longitude GPS</span>
-                            <input id="venueLng" class="admin-input" placeholder="15.3128" inputmode="decimal">
-                        </label>
-                    </div>
-                    <p class="perso-gps-hint">Astuce : copiez les coordonnées depuis Google Maps (clic droit sur le lieu → « Plus coordonnées »). Elles s'affichent sous l'adresse sur l'invitation.</p>
                     <article class="dash-media-item mt-3">
-                        <h4>Image de la carte</h4>
-                        <img id="preview-mapImage" class="perso-map-preview" alt="Aperçu carte">
+                        <h4>Image « À propos »</h4>
+                        <img id="preview-aboutImage" class="dash-media-preview" alt="Aperçu à propos">
                         <label class="dash-upload-btn mt-2">
-                            Importer image carte
-                            <input id="upload-map" type="file" accept="image/*" class="hidden">
+                            Importer image
+                            <input id="upload-about" type="file" accept="image/*" class="hidden">
                         </label>
-                        <input id="mapImage" class="admin-input mt-2" placeholder="URL image carte">
+                        <input id="aboutImage" class="admin-input mt-2" placeholder="URL image à propos">
                     </article>
                 </section>
 
-                <section class="admin-card perso-section" id="sec-programme">
+<section class="admin-card perso-section" id="sec-programme">
                     <h2 class="admin-card-title">Programme du jour</h2>
                     <p class="admin-card-desc">Chronologie de la journée — horaires, étapes et couleurs des pastilles.</p>
                     <label class="block mb-3">
@@ -247,18 +164,140 @@
                     <button type="button" id="add-program-step" class="perso-add-btn">+ Ajouter une étape</button>
                 </section>
 
-                <section class="admin-card perso-section" id="sec-pratique">
-                    <h2 class="admin-card-title">Informations pratiques</h2>
-                    <p class="admin-card-desc">Parking, hébergement, dress code, transport… Ajoutez autant de blocs que nécessaire.</p>
-                    <label class="block mb-3">
+<section class="admin-card perso-section" id="sec-tenue">
+                    <h2 class="admin-card-title">Code vestimentaire</h2>
+                    <p class="admin-card-desc">Photos de tenues et styles recommandés — défilent sur l'invitation (jusqu'à 8 images).</p>
+                    <label class="block">
                         <span class="dash-field-label">Titre de la section</span>
-                        <input id="practicalSectionTitle" class="admin-input" placeholder="Informations pratiques">
+                        <input id="dressCodeTitle" class="admin-input" placeholder="Tenue élégante">
                     </label>
-                    <div id="practical-editor" class="perso-dynamic-list" aria-live="polite"></div>
-                    <button type="button" id="add-practical-item" class="perso-add-btn">+ Ajouter une info</button>
+                    <fieldset class="mt-3">
+                        <legend class="dash-field-label">Couleurs recommandées</legend>
+                        <p class="admin-card-desc">Choisissez les trois couleurs affichées sous le titre du dress code.</p>
+                        <div class="grid grid-cols-3 gap-2 mt-2">
+                            <label class="block"><span class="dash-field-label">Couleur 1</span><input id="dressCodeColor1" type="color" class="admin-input" style="height:44px;padding:4px" value="#f4e1e1"></label>
+                            <label class="block"><span class="dash-field-label">Couleur 2</span><input id="dressCodeColor2" type="color" class="admin-input" style="height:44px;padding:4px" value="#5a2a35"></label>
+                            <label class="block"><span class="dash-field-label">Couleur 3</span><input id="dressCodeColor3" type="color" class="admin-input" style="height:44px;padding:4px" value="#2d3748"></label>
+                        </div>
+                    </fieldset>
+                    <div class="admin-form-grid mt-3">
+                        <label class="block">
+                            <span class="dash-field-label">Tenue attendue - Côté homme</span>
+                            <input id="dressCodeMen" class="admin-input" placeholder="Ex: Costume bleu nuit, cravate dorée">
+                        </label>
+                        <label class="block">
+                            <span class="dash-field-label">Tenue attendue - Côté femme</span>
+                            <input id="dressCodeWomen" class="admin-input" placeholder="Ex: Robe longue aux motifs dorés">
+                        </label>
+                    </div>
+                    <div class="dash-media-grid mt-3">
+                        <article class="dash-media-item">
+                            <h4>Photo tenue attendue - Homme</h4>
+                            <img id="preview-dressPatternMen" class="dash-media-preview" alt="Aperçu tenue attendue côté homme">
+                            <label class="dash-upload-btn mt-2">Importer photo homme<input id="upload-dressPatternMen" type="file" accept="image/*" class="hidden"></label>
+                            <input id="dressPatternMen" class="admin-input mt-2" placeholder="URL photo tenue homme">
+                        </article>
+                        <article class="dash-media-item">
+                            <h4>Photo tenue attendue - Femme</h4>
+                            <img id="preview-dressPatternWomen" class="dash-media-preview" alt="Aperçu tenue attendue côté femme">
+                            <label class="dash-upload-btn mt-2">Importer photo femme<input id="upload-dressPatternWomen" type="file" accept="image/*" class="hidden"></label>
+                            <input id="dressPatternWomen" class="admin-input mt-2" placeholder="URL photo tenue femme">
+                        </article>
+                    </div>
+                    <label class="dash-upload-btn mb-2 mt-3">
+                        Importer photos tenue (multi, max 8)
+                        <input id="upload-dress" type="file" accept="image/*" multiple class="hidden">
+                    </label>
+                    <textarea id="dressImages" rows="3" class="admin-input" style="min-height:86px;resize:vertical" placeholder="URLs séparées par des virgules (8 max)"></textarea>
+                    <div id="dress-photos-preview" class="dash-multi-preview mt-2"></div>
                 </section>
 
-                <section class="admin-card perso-section" id="sec-photos">
+<section class="admin-card perso-section" id="sec-menu">
+    <h2 class="admin-card-title">Menu du repas</h2>
+    <p class="admin-card-desc">Présentez les plats, le buffet ou les étapes du repas. Cette partie reste masquée lorsque vous n'ajoutez aucun élément.</p>
+    <label class="block mb-3"><span class="dash-field-label">Titre du menu</span><input id="foodMenuTitle" class="admin-input" placeholder="À notre table"></label>
+    <div id="food-menu-editor" class="perso-dynamic-list"></div>
+    <button type="button" id="add-food-item" class="perso-add-btn">+ Ajouter un plat ou une étape</button>
+</section>
+
+<section class="admin-card perso-section" id="sec-rsvp-card">
+                    <h2 class="admin-card-title">Boissons sur l'invitation &amp; carte d'accès</h2>
+                    <p class="admin-card-desc">Menu visuel des boissons sur l'invitation et photos optionnelles sur la carte de confirmation (QR).</p>
+                    <div class="dash-grid-2">
+                        <label>
+                            <span class="dash-field-label">Titre du menu boissons</span>
+                            <input id="drinkMenuTitle" class="admin-input" placeholder="Menu des boissons">
+                        </label>
+                        <label>
+                            <span class="dash-field-label">Sous-titre (optionnel)</span>
+                            <input id="drinkMenuSubtitle" class="admin-input" placeholder="Sélectionnez vos préférences…">
+                        </label>
+                    </div>
+                    <p class="perso-gps-hint mt-2 mb-2">Jusqu'à 8 boissons — nom, description courte et image (URL ou import). Sélection multiple optionnelle pour les invités.</p>
+                    <div id="drink-menu-editor" class="perso-dynamic-list"></div>
+                    <button type="button" id="add-drink-item" class="perso-add-btn mt-2">+ Ajouter une boisson</button>
+                    <div class="dash-grid-2 mt-3">
+                        <label>
+                            <span class="dash-field-label">Photo carte (gauche / invité)</span>
+                            <input id="confirmationCouplePhoto1" class="admin-input" placeholder="URL photo profil ou couple">
+                        </label>
+                        <label>
+                            <span class="dash-field-label">Photo carte (droite / couple)</span>
+                            <input id="confirmationCouplePhoto2" class="admin-input" placeholder="URL photo du couple">
+                        </label>
+                    </div>
+                    <p class="perso-gps-hint mt-2">Assignez la table et le code d'accès par invité dans l'administration.</p>
+                </section>
+
+<section class="admin-card perso-section" id="sec-liens">
+                    <h2 class="admin-card-title">Cadeaux, contact &amp; partage</h2>
+                    <p class="admin-card-desc">Don via WhatsApp, email support et description pour le partage sur les réseaux.</p>
+                    <div class="dash-grid-2">
+                        <label>
+                            <span class="dash-field-label">WhatsApp don (numéro international)</span>
+                            <input id="whatsappDonationPhone" class="admin-input" placeholder="243XXXXXXXXX" inputmode="tel">
+                        </label>
+                        <label>
+                            <span class="dash-field-label">Email contact</span>
+                            <input id="supportEmail" type="email" class="admin-input" placeholder="contact@…">
+                        </label>
+                    </div>
+                    <label class="mt-3 block">
+                        <span class="dash-field-label">Message WhatsApp pré-rempli pour le don</span>
+                        <textarea id="donationWhatsAppMessage" rows="2" class="admin-input" style="min-height:64px;resize:vertical" placeholder="Bonjour {couple}, je souhaite vous faire un don pour votre mariage…"></textarea>
+                        <p class="perso-gps-hint mt-1">Utilisez <code>{couple}</code> pour insérer les prénoms automatiquement.</p>
+                    </label>
+                    <label class="mt-3 block">
+                        <span class="dash-field-label">Texte de la section cadeau</span>
+                        <textarea id="giftMessage" rows="2" class="admin-input" style="min-height:64px;resize:vertical" placeholder="Votre présence est le plus beau des cadeaux…"></textarea>
+                    </label>
+                    <label class="mt-3 block">
+                        <span class="dash-field-label">Lien don alternatif (optionnel)</span>
+                        <input id="donationLink" class="admin-input" placeholder="https://paypal.com/… (si pas de WhatsApp)">
+                    </label>
+                    <label class="mt-3 block">
+                        <span class="dash-field-label">Description SEO (partage réseaux)</span>
+                        <textarea id="metaDescription" rows="2" class="admin-input" style="min-height:64px;resize:vertical" placeholder="Invitation officielle au mariage de…"></textarea>
+                    </label>
+                </section>
+
+<section class="admin-card perso-section" id="sec-livre-or">
+    <h2 class="admin-card-title">Livre d'or</h2>
+    <p class="admin-card-desc">Invitez vos proches à laisser un souvenir. Les messages s'affichent dans cette partie de l'invitation.</p>
+    <div class="dash-grid-2 mb-3">
+        <label><input type="checkbox" data-module-toggle="guestbook" checked> Afficher le livre d'or</label>
+        <label><input type="checkbox" data-module-toggle="messages" checked> Afficher les messages RSVP</label>
+    </div>
+    <label class="block mb-3"><span class="dash-field-label">Titre</span><input id="guestbookTitle" class="admin-input" placeholder="Livre d'or"></label>
+    <article class="dash-media-item">
+        <h4>Photo de couverture (optionnelle)</h4>
+        <img id="preview-guestbookCoverImage" class="dash-media-preview" alt="Aperçu du livre d'or">
+        <label class="dash-upload-btn">Importer une photo<input id="upload-guestbook" type="file" accept="image/*" class="hidden"></label>
+        <input id="guestbookCoverImage" class="admin-input mt-2" placeholder="Ou coller une URL d'image">
+    </article>
+</section>
+
+<section class="admin-card perso-section" id="sec-photos">
                     <h2 class="admin-card-title">Photos principales &amp; galerie</h2>
                     <p class="admin-card-desc">Images d'accueil, bannière et galerie du couple (jusqu'à 12 photos).</p>
                     <div class="dash-media-grid">
@@ -340,81 +379,145 @@
                     <div id="best-photos-preview" class="dash-multi-preview"></div>
                 </section>
 
-                <section class="admin-card perso-section" id="sec-tenue">
-                    <h2 class="admin-card-title">Code vestimentaire</h2>
-                    <p class="admin-card-desc">Photos de tenues et styles recommandés — défilent sur l'invitation (jusqu'à 8 images).</p>
-                    <label class="block">
-                        <span class="dash-field-label">Titre de la section</span>
-                        <input id="dressCodeTitle" class="admin-input" placeholder="Tenue élégante">
+<section class="admin-card perso-section" id="sec-date">
+                    <h2 class="admin-card-title">Date &amp; compte à rebours</h2>
+                    <p class="admin-card-desc">Met à jour le calendrier, le compte à rebours et l'heure affichée sur l'invitation.</p>
+                    <label class="block mt-2">
+                        <span class="dash-field-label">Date et heure de début</span>
+                        <input id="eventDate" type="datetime-local" class="admin-input">
                     </label>
-                    <fieldset class="mt-3">
-                        <legend class="dash-field-label">Couleurs recommandées</legend>
-                        <p class="admin-card-desc">Choisissez les trois couleurs affichées sous le titre du dress code.</p>
-                        <div class="grid grid-cols-3 gap-2 mt-2">
-                            <label class="block"><span class="dash-field-label">Couleur 1</span><input id="dressCodeColor1" type="color" class="admin-input" style="height:44px;padding:4px" value="#f4e1e1"></label>
-                            <label class="block"><span class="dash-field-label">Couleur 2</span><input id="dressCodeColor2" type="color" class="admin-input" style="height:44px;padding:4px" value="#5a2a35"></label>
-                            <label class="block"><span class="dash-field-label">Couleur 3</span><input id="dressCodeColor3" type="color" class="admin-input" style="height:44px;padding:4px" value="#2d3748"></label>
-                        </div>
-                    </fieldset>
-                    <div class="admin-form-grid mt-3">
-                        <label class="block">
-                            <span class="dash-field-label">Tenue attendue - Côté homme</span>
-                            <input id="dressCodeMen" class="admin-input" placeholder="Ex: Costume bleu nuit, cravate dorée">
-                        </label>
-                        <label class="block">
-                            <span class="dash-field-label">Tenue attendue - Côté femme</span>
-                            <input id="dressCodeWomen" class="admin-input" placeholder="Ex: Robe longue aux motifs dorés">
-                        </label>
-                    </div>
-                    <div class="dash-media-grid mt-3">
-                        <article class="dash-media-item">
-                            <h4>Photo tenue attendue - Homme</h4>
-                            <img id="preview-dressPatternMen" class="dash-media-preview" alt="Aperçu tenue attendue côté homme">
-                            <label class="dash-upload-btn mt-2">Importer photo homme<input id="upload-dressPatternMen" type="file" accept="image/*" class="hidden"></label>
-                            <input id="dressPatternMen" class="admin-input mt-2" placeholder="URL photo tenue homme">
-                        </article>
-                        <article class="dash-media-item">
-                            <h4>Photo tenue attendue - Femme</h4>
-                            <img id="preview-dressPatternWomen" class="dash-media-preview" alt="Aperçu tenue attendue côté femme">
-                            <label class="dash-upload-btn mt-2">Importer photo femme<input id="upload-dressPatternWomen" type="file" accept="image/*" class="hidden"></label>
-                            <input id="dressPatternWomen" class="admin-input mt-2" placeholder="URL photo tenue femme">
-                        </article>
-                    </div>
-                    <label class="dash-upload-btn mb-2 mt-3">
-                        Importer photos tenue (multi, max 8)
-                        <input id="upload-dress" type="file" accept="image/*" multiple class="hidden">
+                    <label class="block mt-3">
+                        <span class="dash-field-label">Heure de fin</span>
+                        <input id="eventEndTime" type="time" class="admin-input">
                     </label>
-                    <textarea id="dressImages" rows="3" class="admin-input" style="min-height:86px;resize:vertical" placeholder="URLs séparées par des virgules (8 max)"></textarea>
-                    <div id="dress-photos-preview" class="dash-multi-preview mt-2"></div>
                 </section>
 
-                <section class="admin-card perso-section" id="sec-about">
-                    <h2 class="admin-card-title">Notre histoire</h2>
-                    <p class="admin-card-desc">Modale « À propos de nous » sur l'invitation.</p>
-                    <label class="block">
-                        <span class="dash-field-label">Titre</span>
-                        <input id="aboutTitle" class="admin-input" placeholder="Notre Histoire">
-                    </label>
+<section class="admin-card perso-section" id="sec-lieu">
+    <h2 class="admin-card-title">Les lieux de votre journée</h2>
+    <p class="admin-card-desc">Mariage civil, cérémonie religieuse, réception ou autre rendez-vous : ajoutez chaque lieu avec son adresse et son horaire. Les flèches changent leur ordre sur l'invitation.</p>
+    <div id="venues-editor" class="perso-dynamic-list"></div>
+    <p id="venues-editor-empty" class="perso-gps-hint">Aucun lieu pour le moment. Ajoutez votre premier rendez-vous.</p>
+    <button type="button" id="add-venue" class="perso-add-btn">+ Ajouter un lieu</button>
+    <div hidden aria-hidden="true"><div class="dash-grid-2">
+                        <label>
+                            <span class="dash-field-label">Nom du lieu</span>
+                            <input id="venueTitle" class="admin-input" placeholder="Ex : Sultani River">
+                        </label>
+                        <label>
+                            <span class="dash-field-label">Lien Google Maps (optionnel)</span>
+                            <input id="mapLink" class="admin-input" placeholder="https://maps.google.com/...">
+                        </label>
+                    </div>
                     <label class="mt-3 block">
-                        <span class="dash-field-label">Paragraphe 1</span>
-                        <textarea id="aboutStory1" rows="3" class="admin-input" style="min-height:86px;resize:vertical"></textarea>
+                        <span class="dash-field-label">Adresse complète</span>
+                        <input id="venueAddress" class="admin-input" placeholder="32, avenue de la Justice, Kinshása">
                     </label>
-                    <label class="mt-3 block">
-                        <span class="dash-field-label">Paragraphe 2</span>
-                        <textarea id="aboutStory2" rows="3" class="admin-input" style="min-height:86px;resize:vertical"></textarea>
-                    </label>
+                    <div class="dash-grid-2 mt-3">
+                        <label>
+                            <span class="dash-field-label">Latitude GPS</span>
+                            <input id="venueLat" class="admin-input" placeholder="-4.3215" inputmode="decimal">
+                        </label>
+                        <label>
+                            <span class="dash-field-label">Longitude GPS</span>
+                            <input id="venueLng" class="admin-input" placeholder="15.3128" inputmode="decimal">
+                        </label>
+                    </div>
+                    <p class="perso-gps-hint">Astuce : copiez les coordonnées depuis Google Maps (clic droit sur le lieu → « Plus coordonnées »). Elles s'affichent sous l'adresse sur l'invitation.</p>
                     <article class="dash-media-item mt-3">
-                        <h4>Image « À propos »</h4>
-                        <img id="preview-aboutImage" class="dash-media-preview" alt="Aperçu à propos">
+                        <h4>Image de la carte</h4>
+                        <img id="preview-mapImage" class="perso-map-preview" alt="Aperçu carte">
                         <label class="dash-upload-btn mt-2">
-                            Importer image
-                            <input id="upload-about" type="file" accept="image/*" class="hidden">
+                            Importer image carte
+                            <input id="upload-map" type="file" accept="image/*" class="hidden">
                         </label>
-                        <input id="aboutImage" class="admin-input mt-2" placeholder="URL image à propos">
+                        <input id="mapImage" class="admin-input mt-2" placeholder="URL image carte">
                     </article>
+                </div>
+</section>
+
+<section class="admin-card perso-section" id="sec-pratique">
+                    <h2 class="admin-card-title">Informations pratiques</h2>
+                    <p class="admin-card-desc">Parking, hébergement, dress code, transport… Ajoutez autant de blocs que nécessaire.</p>
+                    <label class="block mb-3">
+                        <span class="dash-field-label">Titre de la section</span>
+                        <input id="practicalSectionTitle" class="admin-input" placeholder="Informations pratiques">
+                    </label>
+                    <div id="practical-editor" class="perso-dynamic-list" aria-live="polite"></div>
+                    <button type="button" id="add-practical-item" class="perso-add-btn">+ Ajouter une info</button>
                 </section>
 
-                <section class="admin-card perso-section" id="sec-musique">
+<section class="admin-card perso-section" id="sec-rsvp">
+                    <h2 class="admin-card-title">RSVP &amp; confirmation</h2>
+                    <p class="admin-card-desc">Libellé du bouton rose « Confirmer ma présence » et rappel de date limite.</p>
+                    <label id="wedding-rsvp-mode-field" class="block mb-3 hidden">
+                        <span class="dash-field-label">Mode de confirmation du mariage</span>
+                        <select id="rsvpMode" class="admin-select">
+                            <option value="personal">Invitation personnelle avec liste et QR</option>
+                            <option value="open">RSVP ouvert sans liste, avec choix de famille et WhatsApp</option>
+                        </select>
+                    </label>
+                    <label class="block">
+                        <span class="dash-field-label">Texte du bouton RSVP</span>
+                        <input id="reserveText" class="admin-input" placeholder="Confirmer ma présence">
+                    </label>
+                    <label class="mt-3 block">
+                        <span class="dash-field-label">Rappel date limite RSVP</span>
+                        <input id="rsvpDeadlineText" class="admin-input" placeholder="Merci de confirmer avant le 25 avril 2026">
+                    </label>
+                    <label class="mt-3 block">
+                        <span class="dash-field-label">Lien RSVP externe (optionnel)</span>
+                        <input id="rsvpLink" class="admin-input" placeholder="Google Form, WhatsApp…">
+                    </label>
+                    <div id="open-rsvp-settings" class="mt-4 space-y-3">
+                        <p class="dash-field-label">RSVP ouvert — redirection WhatsApp</p>
+                        <p class="perso-gps-hint">Après l'enregistrement, le côté de famille choisi ouvre le numéro WhatsApp correspondant. Renseignez les deux numéros au format international.</p>
+                        <div class="admin-form-grid">
+                            <label class="block">
+                                <span class="dash-field-label">Numéro WhatsApp de redirection — côté homme</span>
+                                <input id="openRsvpMalePhone" type="tel" class="admin-input" placeholder="Ex. +243 810 000 001">
+                            </label>
+                            <label class="block">
+                                <span class="dash-field-label">Numéro WhatsApp de redirection — côté femme</span>
+                                <input id="openRsvpFemalePhone" type="tel" class="admin-input" placeholder="Ex. +243 810 000 002">
+                            </label>
+                        </div>
+                        <div class="admin-form-grid">
+                            <label class="block">
+                                <span class="dash-field-label">Nom de la famille - Homme</span>
+                                <input id="openRsvpMaleFamily" class="admin-input" placeholder="Ex. Famille Kabasele">
+                            </label>
+                            <label class="block">
+                                <span class="dash-field-label">Nom de la famille - Femme</span>
+                                <input id="openRsvpFemaleFamily" class="admin-input" placeholder="Ex. Famille Nsimba">
+                            </label>
+                        </div>
+                        <label class="block">
+                            <span class="dash-field-label">Texte du message WhatsApp</span>
+                            <textarea id="openRsvpWhatsAppMessage" rows="5" class="admin-input" style="min-height:118px;resize:vertical" placeholder="Bonjour,&#10;&#10;{nom} a répondu pour {evenement}.&#10;Réponse : {reponse}&#10;Côté : {cote}"></textarea>
+                        </label>
+                    </div>
+                </section>
+
+<section class="admin-card perso-section" id="sec-couleurs">
+                    <h2 class="admin-card-title">Palette &amp; bouton RSVP</h2>
+                    <p class="admin-card-desc">Couleurs du thème et du bouton rose « Confirmer ma présence ».</p>
+                    <div class="dash-grid-2">
+                        <label>
+                            <span class="dash-field-label">Couleur principale</span>
+                            <input id="primaryColor" type="color" class="admin-input" style="height:44px;padding:4px">
+                        </label>
+                        <label>
+                            <span class="dash-field-label">Couleur accent</span>
+                            <input id="accentColor" type="color" class="admin-input" style="height:44px;padding:4px">
+                        </label>
+                    </div>
+                    <label class="mt-3 block">
+                        <span class="dash-field-label">Couleur bouton RSVP (rose par défaut)</span>
+                        <input id="rsvpButtonColor" type="color" class="admin-input" style="height:44px;padding:4px" value="#ec4899">
+                    </label>
+                </section>
+
+<section class="admin-card perso-section" id="sec-musique">
                     <h2 class="admin-card-title">Musique de fond</h2>
                     <p class="admin-card-desc">Ambiance sonore sur l'invitation — démarre quand l'invité entre (bouton ♪ sur la page). MP3 direct ou lien YouTube.</p>
                     <label class="flex items-center gap-2 mb-3 cursor-pointer">
@@ -441,87 +544,7 @@
                     <p class="perso-gps-hint mt-2">Privilégiez un fichier MP3 pour une lecture rapide sur iPhone et Samsung. La musique peut commencer dès un toucher sur l’enveloppe ; le bouton ♪ reste disponible. Les liens YouTube dépendent aussi du chargement de YouTube.</p>
                 </section>
 
-                <section class="admin-card perso-section" id="sec-rsvp-card">
-                    <h2 class="admin-card-title">Boissons sur l'invitation &amp; carte d'accès</h2>
-                    <p class="admin-card-desc">Menu visuel des boissons sur l'invitation et photos optionnelles sur la carte de confirmation (QR).</p>
-                    <div class="dash-grid-2">
-                        <label>
-                            <span class="dash-field-label">Titre du menu boissons</span>
-                            <input id="drinkMenuTitle" class="admin-input" placeholder="Menu des boissons">
-                        </label>
-                        <label>
-                            <span class="dash-field-label">Sous-titre (optionnel)</span>
-                            <input id="drinkMenuSubtitle" class="admin-input" placeholder="Sélectionnez vos préférences…">
-                        </label>
-                    </div>
-                    <p class="perso-gps-hint mt-2 mb-2">Jusqu'à 8 boissons — nom, description courte et image (URL ou import). Sélection multiple optionnelle pour les invités.</p>
-                    <div id="drink-menu-editor" class="perso-dynamic-list"></div>
-                    <button type="button" id="add-drink-item" class="perso-add-btn mt-2">+ Ajouter une boisson</button>
-                    <div class="dash-grid-2 mt-3">
-                        <label>
-                            <span class="dash-field-label">Photo carte (gauche / invité)</span>
-                            <input id="confirmationCouplePhoto1" class="admin-input" placeholder="URL photo profil ou couple">
-                        </label>
-                        <label>
-                            <span class="dash-field-label">Photo carte (droite / couple)</span>
-                            <input id="confirmationCouplePhoto2" class="admin-input" placeholder="URL photo du couple">
-                        </label>
-                    </div>
-                    <p class="perso-gps-hint mt-2">Assignez la table et le code d'accès par invité dans l'administration.</p>
-                </section>
-
-                <section class="admin-card perso-section" id="sec-couleurs">
-                    <h2 class="admin-card-title">Palette &amp; bouton RSVP</h2>
-                    <p class="admin-card-desc">Couleurs du thème et du bouton rose « Confirmer ma présence ».</p>
-                    <div class="dash-grid-2">
-                        <label>
-                            <span class="dash-field-label">Couleur principale</span>
-                            <input id="primaryColor" type="color" class="admin-input" style="height:44px;padding:4px">
-                        </label>
-                        <label>
-                            <span class="dash-field-label">Couleur accent</span>
-                            <input id="accentColor" type="color" class="admin-input" style="height:44px;padding:4px">
-                        </label>
-                    </div>
-                    <label class="mt-3 block">
-                        <span class="dash-field-label">Couleur bouton RSVP (rose par défaut)</span>
-                        <input id="rsvpButtonColor" type="color" class="admin-input" style="height:44px;padding:4px" value="#ec4899">
-                    </label>
-                </section>
-
-                <section class="admin-card perso-section" id="sec-liens">
-                    <h2 class="admin-card-title">Liens, contact &amp; SEO</h2>
-                    <p class="admin-card-desc">Don via WhatsApp, email support et description pour le partage sur les réseaux.</p>
-                    <div class="dash-grid-2">
-                        <label>
-                            <span class="dash-field-label">WhatsApp don (numéro international)</span>
-                            <input id="whatsappDonationPhone" class="admin-input" placeholder="243XXXXXXXXX" inputmode="tel">
-                        </label>
-                        <label>
-                            <span class="dash-field-label">Email contact</span>
-                            <input id="supportEmail" type="email" class="admin-input" placeholder="contact@…">
-                        </label>
-                    </div>
-                    <label class="mt-3 block">
-                        <span class="dash-field-label">Message WhatsApp pré-rempli pour le don</span>
-                        <textarea id="donationWhatsAppMessage" rows="2" class="admin-input" style="min-height:64px;resize:vertical" placeholder="Bonjour {couple}, je souhaite vous faire un don pour votre mariage…"></textarea>
-                        <p class="perso-gps-hint mt-1">Utilisez <code>{couple}</code> pour insérer les prénoms automatiquement.</p>
-                    </label>
-                    <label class="mt-3 block">
-                        <span class="dash-field-label">Texte de la section cadeau</span>
-                        <textarea id="giftMessage" rows="2" class="admin-input" style="min-height:64px;resize:vertical" placeholder="Votre présence est le plus beau des cadeaux…"></textarea>
-                    </label>
-                    <label class="mt-3 block">
-                        <span class="dash-field-label">Lien don alternatif (optionnel)</span>
-                        <input id="donationLink" class="admin-input" placeholder="https://paypal.com/… (si pas de WhatsApp)">
-                    </label>
-                    <label class="mt-3 block">
-                        <span class="dash-field-label">Description SEO (partage réseaux)</span>
-                        <textarea id="metaDescription" rows="2" class="admin-input" style="min-height:64px;resize:vertical" placeholder="Invitation officielle au mariage de…"></textarea>
-                    </label>
-                </section>
-
-                <section class="admin-card perso-section" id="sec-aide">
+<section class="admin-card perso-section" id="sec-aide">
                     <h2 class="admin-card-title">Aide &amp; flux recommandé</h2>
                     <p class="admin-card-desc">1) Renseignez le lieu et le GPS · 2) Programme du jour · 3) Infos pratiques · 4) Photos &amp; textes · 5) <strong>Sauvegarder</strong> · 6) Ouvrir l'invitation pour vérifier.</p>
                     <p class="admin-card-desc mb-0">Tous les réglages ci-dessus sont la source unique de vérité : sauvegardez ici, l'invitation se met à jour automatiquement (local + cloud).</p>
@@ -561,13 +584,13 @@
     <script src="../assets/js/event-config.js?v=79"></script>
     <script src="../assets/js/organizer-identity.js?v=1"></script>
     <script src="../assets/js/auth.js?v=61"></script>
-    <script src="../assets/js/content-blocks.js?v=41"></script>
+    <script src="../assets/js/content-blocks.js?v=42"></script>
     <script src="../assets/js/countdown.js?v=36"></script>
-    <script src="../assets/js/cloud-api.js?v=80"></script>
+    <script src="../assets/js/cloud-api.js?v=82"></script>
     <script src="../assets/js/dashboard-sync.js?v=55"></script>
     <script src="../assets/js/db.js?v=26"></script>
     <script src="../assets/js/drink-generic-images.js?v=26"></script>
     <script src="../assets/js/drink-menu.js?v=36"></script>
-    <script src="../assets/js/personnalisation.js?v=77"></script>
+    <script src="../assets/js/personnalisation.js?v=78"></script>
 </body>
 </html>

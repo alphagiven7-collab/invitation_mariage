@@ -7,6 +7,15 @@ const GuestManager = (() => {
     let cacheEventId = null;
     let guestsLoadPromise = null;
     let guestsLoadEventId = null;
+    let cacheRevision = 0;
+
+    function invalidateCache() {
+        cache = null;
+        cacheEventId = null;
+        guestsLoadPromise = null;
+        guestsLoadEventId = null;
+        cacheRevision += 1;
+    }
 
     function getEventId() {
         if (window.EventConfig && EventConfig.isReady()) return EventConfig.getEventId();
@@ -123,6 +132,7 @@ const GuestManager = (() => {
             qrApproved: false,
             accessCode: "",
             tableNumber: String(row.tableNumber || "").trim(),
+            ...(row.tableId !== undefined ? { tableId: row.tableId || null } : {}),
             drinkChoices: [],
             profilePhotoUrl: String(row.profilePhotoUrl || "").trim(),
             adults: 1,
@@ -167,6 +177,7 @@ const GuestManager = (() => {
         // lorsqu'un rafraîchissement forcé est en cours.
         if (guestsLoadPromise && guestsLoadEventId === eventId) return guestsLoadPromise;
         if (cache && cacheEventId === eventId && !force) return cache;
+        const revision = cacheRevision;
 
         const load = (async () => {
             let guests;
@@ -180,8 +191,10 @@ const GuestManager = (() => {
                     guests = [];
                 }
             }
-            cache = guests;
-            cacheEventId = eventId;
+            if (revision === cacheRevision) {
+                cache = guests;
+                cacheEventId = eventId;
+            }
             return guests;
         })();
         guestsLoadPromise = load;
@@ -201,17 +214,23 @@ const GuestManager = (() => {
         if (window.CloudAPI && CloudAPI.isEnabled()) {
             cache = null;
         } else {
+            try {
+                localStorage.setItem(storageKey(), JSON.stringify(guests));
+            } catch (error) {
+                invalidateCache();
+                throw error;
+            }
             cache = guests;
-            localStorage.setItem(storageKey(), JSON.stringify(guests));
+            cacheEventId = eventId;
         }
     }
 
-    async function addGuest({ fullName, phone = "", email = "", group = "", tableNumber = "", profilePhotoUrl = "" }) {
+    async function addGuest({ fullName, phone = "", email = "", group = "", tableNumber = "", tableId, profilePhotoUrl = "" }) {
         const trimmedName = (fullName || "").trim();
         if (!hasValidGuestName(trimmedName)) return { guest: null, duplicate: false, cloudSynced: false };
 
         await loadGuests(true);
-        const draft = createGuest({ fullName: trimmedName, phone, email, group, tableNumber, profilePhotoUrl });
+        const draft = createGuest({ fullName: trimmedName, phone, email, group, tableNumber, tableId, profilePhotoUrl });
         const slug = draft.slug;
         const guests = [...(await loadGuests())];
         const existing = guests.find((g) => nameKey(g) === nameKey(draft));
@@ -291,6 +310,7 @@ const GuestManager = (() => {
         if (patch.qrApproved !== undefined) next.qrApproved = !!patch.qrApproved;
         if (patch.accessCode !== undefined) next.accessCode = String(patch.accessCode || "").trim().toUpperCase();
         if (patch.tableNumber !== undefined) next.tableNumber = String(patch.tableNumber || "").trim();
+        if (patch.tableId !== undefined) next.tableId = patch.tableId || null;
         if (patch.drinkChoices !== undefined) {
             next.drinkChoices = Array.isArray(patch.drinkChoices) ? patch.drinkChoices : [];
         }
@@ -300,7 +320,10 @@ const GuestManager = (() => {
         let cloudSynced = !(window.CloudAPI && CloudAPI.isEnabled());
         if (window.CloudAPI && CloudAPI.isEnabled()) {
             try {
-                const result = await CloudAPI.upsertGuest(getEventId(), next, { requireExisting: true });
+                const changed = Object.fromEntries(Object.keys(patch).map((key) => [key, next[key]]));
+                const result = CloudAPI.patchGuest
+                    ? await CloudAPI.patchGuest(getEventId(), id, changed)
+                    : await CloudAPI.upsertGuest(getEventId(), next, { requireExisting: true });
                 saved = result?.guest || null;
                 cloudSynced = !!result?.cloudSynced;
             } catch (e) {
@@ -317,6 +340,21 @@ const GuestManager = (() => {
         cache = null;
         await loadGuests(true);
         return { guest: saved, cloudSynced };
+    }
+
+    async function applyLocalTableAssignment(guestIds, tableId, tableNumber) {
+        if (window.CloudAPI?.isEnabled?.()) throw new Error("L'affectation doit être enregistrée sur le serveur.");
+        const ids = new Set(guestIds);
+        const guests = await loadGuests(true);
+        if (guests.filter((guest) => ids.has(guest.id)).length !== ids.size) {
+            throw new Error("La liste des invités a changé. Actualisez puis réessayez.");
+        }
+        const updated = guests.map((guest) => ids.has(guest.id)
+            ? { ...guest, tableId: tableId || null, tableNumber: tableNumber || "",
+                ...(Object.hasOwn(guest, "table") ? { table: tableNumber || "" } : {}) } : guest);
+        await persistGuests(updated);
+        invalidateCache();
+        return { updatedCount: ids.size };
     }
 
     async function markGuestAsCouple(id) {
@@ -917,6 +955,8 @@ const GuestManager = (() => {
 
     return {
         loadGuests,
+        invalidateCache,
+        applyLocalTableAssignment,
         addGuest,
         findByToken,
         findBySlug,

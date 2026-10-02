@@ -590,6 +590,10 @@
                 venueAddress: document.getElementById('venue-address').textContent.trim(),
                 venueLat: savedBlocks.venueLat || '',
                 venueLng: savedBlocks.venueLng || '',
+                ...(Array.isArray(savedBlocks.venues || EventConfig.getConfig()?.venues)
+                    ? { venues: savedBlocks.venues || EventConfig.getConfig().venues } : {}),
+                foodMenu: savedBlocks.foodMenu || EventConfig.getConfig()?.foodMenu || [],
+                foodMenuTitle: savedBlocks.foodMenuTitle || EventConfig.getConfig()?.foodMenuTitle || 'À notre table',
                 programSectionTitle: savedBlocks.programSectionTitle || document.getElementById('program-section-title')?.textContent.trim() || '',
                 practicalSectionTitle: savedBlocks.practicalSectionTitle || document.getElementById('practical-info-title')?.textContent.trim() || '',
                 program: savedBlocks.program || (window.ContentBlocks ? ContentBlocks.DEFAULT_PROGRAM : []),
@@ -835,7 +839,11 @@
             if (state.timeRange) document.getElementById('event-time-range').textContent = state.timeRange;
             if (state.venueTitle) document.getElementById('venue-title').textContent = state.venueTitle;
             if (state.venueAddress) document.getElementById('venue-address').textContent = state.venueAddress;
-            if (state.aboutTitle) document.getElementById('about-story-title').textContent = state.aboutTitle;
+            if (state.aboutTitle) {
+                document.getElementById('about-story-title').textContent = state.aboutTitle;
+                const aboutHeading = document.getElementById('about-section-title');
+                if (aboutHeading) aboutHeading.textContent = state.aboutTitle;
+            }
             if (state.aboutStory1) document.getElementById('about-story-paragraph-1').textContent = state.aboutStory1;
             if (state.aboutStory2) document.getElementById('about-story-paragraph-2').textContent = state.aboutStory2;
 
@@ -911,6 +919,10 @@
             }
             if (state.guestbookCoverImage) {
                 document.getElementById('guestbook-cover-image').src = state.guestbookCoverImage;
+            }
+            if (state.guestbookTitle) {
+                const title = document.getElementById('guestbook-public-title');
+                if (title) title.textContent = state.guestbookTitle;
             }
 
             const primaryColor = state.primaryColor || '#4caf50';
@@ -1046,6 +1058,17 @@
                 shareImage: document.getElementById('custom-share-image').value.trim(),
                 metaDescription: document.getElementById('custom-meta-description').value.trim()
             };
+            if (Array.isArray(state.venues)) {
+                const remaining = state.venues.slice(1);
+                const primary = {
+                    ...(state.venues[0] || {}),
+                    name: state.venueTitle,
+                    address: state.venueAddress,
+                    mapLink: state.mapLink,
+                    mapImage: state.mapImage
+                };
+                state.venues = ContentBlocks.normalizeVenues({ venues: [primary, ...remaining] });
+            }
             applyCustomizationState(state);
             showToast('Aperçu mis à jour');
             return state;
@@ -1668,7 +1691,7 @@
             }
 
             if ('serviceWorker' in navigator && !isPreviewMode) {
-                navigator.serviceWorker.register('../sw.js?v=61').catch(() => {});
+                navigator.serviceWorker.register('../sw.js?v=62').catch(() => {});
             }
 
             defaultCustomizationState = getCurrentCustomizationState();
