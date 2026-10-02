@@ -8,16 +8,18 @@ const source = fs.readFileSync(
   path.join(__dirname, '..', 'assets', 'js', 'background-music.js'), 'utf8'
 );
 
-function createHarness({ youtube = false } = {}) {
+function createHarness({ youtube = false, manualReadiness = false } = {}) {
   let sourceAttribute = null;
   let playCount = 0;
   let pauseCount = 0;
   let destroyedCount = 0;
   let player = null;
+  const players = [], listeners = {};
   const buttonClasses = new Set();
   const audio = {
     paused: true,
     ended: false,
+    readyState: 4,
     getAttribute(name) { return name === 'src' ? sourceAttribute : null; },
     removeAttribute(name) { if (name === 'src') sourceAttribute = null; },
     set src(value) { sourceAttribute = value; },
@@ -45,7 +47,7 @@ function createHarness({ youtube = false } = {}) {
       }[id] || null;
     },
     createElement() { return {}; },
-    addEventListener() {},
+    addEventListener(type, listener) { listeners[type] = listener; },
     body: { appendChild() {} }
   };
   const YT = {
@@ -53,24 +55,36 @@ function createHarness({ youtube = false } = {}) {
     Player: class {
       constructor(_id, options) {
         player = this;
-        queueMicrotask(() => options.events.onReady({ target: this }));
+        players.push(this);
+        this.events = options.events;
+        this.state = 0;
+        this.destroyed = false;
+        if (!manualReadiness) queueMicrotask(() => this.ready());
       }
+      ready() { this.events.onReady({ target: this }); }
+      fail() { this.state = -1; this.events.onError({ target: this }); }
       setVolume() {}
-      getPlayerState() { return playCount > pauseCount ? 1 : 0; }
-      playVideo() { playCount += 1; }
-      pauseVideo() { pauseCount += 1; }
-      destroy() { destroyedCount += 1; }
+      getPlayerState() { return this.state; }
+      playVideo() {
+        if (this.destroyed) throw new Error('The destroyed player cannot play');
+        this.state = 1;
+        playCount += 1;
+      }
+      pauseVideo() { this.state = 0; pauseCount += 1; }
+      destroy() { this.destroyed = true; this.state = -1; destroyedCount += 1; }
     }
   };
   const window = { document, ...(youtube ? { YT } : {}) };
   vm.runInNewContext(source, {
-    window, document, YT,
+    window, document, YT, setTimeout, clearTimeout,
     sessionStorage: { getItem() { return null; }, setItem() {} }
   }, { filename: 'background-music.js' });
   return {
     music: window.BackgroundMusic,
     audio,
     buttonClasses,
+    players,
+    listeners,
     player: () => player,
     source: () => sourceAttribute,
     plays: () => playCount,
@@ -122,4 +136,33 @@ test('disabling the music module stops YouTube and prevents it from restarting',
   h.music.onGuestEnter();
   await tick();
   assert.equal(h.plays(), playsWhenDisabled);
+});
+
+test('rapid retry gestures after a YouTube error preserve the replacement until it is ready', async () => {
+  const h = createHarness({ youtube: true, manualReadiness: true });
+  h.music.init();
+  h.music.apply({ backgroundMusicUrl: 'https://youtu.be/ABCDEFGHIJK' });
+  await tick();
+  h.player().ready();
+  await tick();
+  h.music.armAutoplay();
+  await tick();
+  h.player().fail();
+
+  h.listeners.pointerdown();
+  await tick();
+  const replacement = h.player();
+  assert.equal(h.players.length, 2);
+  assert.equal(h.destroys(), 1);
+  h.listeners.pointerup();
+  h.listeners.click();
+  const pendingPlayback = h.music.play();
+  replacement.ready();
+
+  assert.equal(await pendingPlayback, true, 'Retry must settle when the replacement is ready');
+  await tick();
+  assert.equal(h.players.length, 2);
+  assert.equal(h.destroys(), 1, 'Subsequent gestures must not destroy the pending replacement');
+  assert.equal(replacement.destroyed, false);
+  assert.equal(replacement.getPlayerState(), 1);
 });

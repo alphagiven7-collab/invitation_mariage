@@ -40,6 +40,7 @@ test('Background music buffers during the gate and starts on the first guest act
   const gateListeners = {};
   const audio = {
     paused: true,
+    readyState: 4,
     volume: 0,
     loop: false,
     getAttribute(name) { return name === 'src' ? sourceAttribute : null; },
@@ -127,7 +128,7 @@ test('YouTube music is ready at the gate before the guest starts playback', asyn
   };
   const window = { document, YT };
   const sandbox = {
-    window, document, YT,
+    window, document, YT, setTimeout, clearTimeout,
     sessionStorage: { getItem() { return null; }, setItem() {} }
   };
   vm.runInNewContext(

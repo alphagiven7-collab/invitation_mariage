@@ -949,7 +949,10 @@
             document.getElementById('meta-twitter-image').content = shareImage;
 
             if (window.ContentBlocks) ContentBlocks.apply(state);
-            if (window.BackgroundMusic) BackgroundMusic.apply(state);
+            if (window.BackgroundMusic) {
+                const musicDefaults = window.ContentBlocks ? ContentBlocks.getDefaultsFromConfig(state) : {};
+                BackgroundMusic.apply({ ...musicDefaults, ...state });
+            }
         }
 
         async function applyPreviewDashboardState(state) {
@@ -1299,10 +1302,12 @@
             const sections = config?.sections || {};
             document.querySelectorAll('[data-event-section]').forEach((element) => {
                 const key = element.dataset.eventSection;
+                if (key === 'music' && window.BackgroundMusic) return;
                 const disabled = sections[key] === false;
                 element.classList.toggle('hidden', disabled);
                 element.setAttribute('aria-hidden', disabled ? 'true' : 'false');
             });
+            if (window.BackgroundMusic) BackgroundMusic.refreshUi?.();
         }
 
         function guestbookMessageFromCloud(message) {
@@ -1627,6 +1632,11 @@
         (async function bootstrapApp() {
             const isPreviewMode = isPreviewModePage;
 
+            if (window.BackgroundMusic) {
+                BackgroundMusic.init();
+                if (!isPreviewMode) BackgroundMusic.armAutoplay();
+            }
+
             if (window.EventConfig) {
                 try {
                     await EventConfig.init();
@@ -1658,7 +1668,7 @@
             }
 
             if ('serviceWorker' in navigator && !isPreviewMode) {
-                navigator.serviceWorker.register('../sw.js?v=60').catch(() => {});
+                navigator.serviceWorker.register('../sw.js?v=61').catch(() => {});
             }
 
             defaultCustomizationState = getCurrentCustomizationState();
@@ -1734,12 +1744,11 @@
                 ContentBlocks.apply(merged);
             }
 
-            if (window.BackgroundMusic) {
+            if (window.BackgroundMusic && isPreviewMode) {
                 const cfg = EventConfig.getConfig && EventConfig.getConfig();
                 const defaults = window.ContentBlocks ? ContentBlocks.getDefaultsFromConfig(cfg) : {};
                 const merged = { ...defaults, ...(dashboardState || {}) };
                 BackgroundMusic.apply(merged);
-                BackgroundMusic.init();
                 BackgroundMusic.armAutoplay();
             }
 

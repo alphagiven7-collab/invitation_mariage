@@ -9,6 +9,7 @@ const BackgroundMusic = (() => {
     let youtubePlayerReady = false;
     let youtubeSetupPromise = null;
     let youtubeSetupId = null;
+    let youtubeRequest = 0;
     let playbackMode = "none";
     let settings = {
         backgroundMusicUrl: "",
@@ -19,6 +20,30 @@ const BackgroundMusic = (() => {
     let wantAutoplay = false;
     let interactionWired = false;
     let wired = false;
+    let playbackError = false;
+    let autoplayBlocked = false;
+    let recoveryTimer = null;
+    let recoveryAttempts = 0;
+    let preferenceKey = null;
+
+    function cancelRecovery() {
+        if (recoveryTimer !== null) clearTimeout(recoveryTimer);
+        recoveryTimer = null;
+    }
+
+    function shouldResume() {
+        return settings.backgroundMusicEnabled && settings.backgroundMusicUrl && wantAutoplay && !userPaused;
+    }
+
+    function scheduleRecovery() {
+        updateToggleUi();
+        if (!shouldResume() || recoveryTimer !== null || recoveryAttempts >= 2) return;
+        const url = settings.backgroundMusicUrl;
+        recoveryTimer = setTimeout(() => {
+            recoveryTimer = null;
+            if (url === settings.backgroundMusicUrl && shouldResume()) void play();
+        }, ++recoveryAttempts * 1500);
+    }
 
     function getAudio() {
         if (!audio) audio = document.getElementById("background-music");
@@ -48,9 +73,16 @@ const BackgroundMusic = (() => {
     function loadYouTubeApi() {
         if (window.YT && window.YT.Player) return Promise.resolve();
         if (youtubeReady) return youtubeReady;
-        youtubeReady = new Promise((resolve) => {
+        youtubeReady = new Promise((resolve, reject) => {
+            const timer = setTimeout(() => fail(), 12000);
+            const fail = () => {
+                clearTimeout(timer);
+                document.querySelector('script[src*="youtube.com/iframe_api"]')?.remove();
+                reject(new Error("YouTube indisponible"));
+            };
             const prev = window.onYouTubeIframeAPIReady;
             window.onYouTubeIframeAPIReady = () => {
+                clearTimeout(timer);
                 if (typeof prev === "function") prev();
                 resolve();
             };
@@ -58,7 +90,11 @@ const BackgroundMusic = (() => {
             const script = document.createElement("script");
             script.src = "https://www.youtube.com/iframe_api";
             script.async = true;
+            script.onerror = fail;
             document.head.appendChild(script);
+        }).catch((error) => {
+            youtubeReady = null;
+            throw error;
         });
         return youtubeReady;
     }
@@ -85,7 +121,7 @@ const BackgroundMusic = (() => {
         if (!el || !settings.backgroundMusicUrl) return null;
         el.preload = "auto";
         el.volume = settings.backgroundMusicVolume;
-        if (el.getAttribute("src") !== settings.backgroundMusicUrl) {
+        if (el.getAttribute("src") !== settings.backgroundMusicUrl || el.error) {
             el.src = settings.backgroundMusicUrl;
             el.loop = true;
             el.load();
@@ -96,9 +132,10 @@ const BackgroundMusic = (() => {
     function setupYouTubePlayer(videoId) {
         if (youtubePlayerReady && youtubePlayer && youtubeVideoId === videoId) return Promise.resolve();
         if (youtubeSetupPromise && youtubeSetupId === videoId) return youtubeSetupPromise;
+        const request = ++youtubeRequest;
         youtubeSetupId = videoId;
-        youtubeSetupPromise = createYouTubePlayer(videoId).finally(() => {
-            if (youtubeSetupId === videoId) {
+        youtubeSetupPromise = createYouTubePlayer(videoId, request).finally(() => {
+            if (youtubeRequest === request) {
                 youtubeSetupPromise = null;
                 youtubeSetupId = null;
             }
@@ -106,9 +143,9 @@ const BackgroundMusic = (() => {
         return youtubeSetupPromise;
     }
 
-    async function createYouTubePlayer(videoId) {
+    async function createYouTubePlayer(videoId, request) {
         await loadYouTubeApi();
-        if (!settings.backgroundMusicEnabled || parseYouTubeId(settings.backgroundMusicUrl) !== videoId) return;
+        if (request !== youtubeRequest || !settings.backgroundMusicEnabled || parseYouTubeId(settings.backgroundMusicUrl) !== videoId) return;
         let host = document.getElementById("youtube-music-host");
         if (!host) {
             host = document.createElement("div");
@@ -123,7 +160,11 @@ const BackgroundMusic = (() => {
         const inner = document.createElement("div");
         inner.id = "youtube-music-player";
         host.appendChild(inner);
-        await new Promise((resolve) => {
+        await new Promise((resolve, reject) => {
+            const timer = setTimeout(() => {
+                if (request === youtubeRequest && youtubeVideoId === videoId) destroyYouTubePlayer();
+                reject(new Error("Le lecteur YouTube ne répond pas"));
+            }, 12000);
             youtubePlayer = new YT.Player("youtube-music-player", {
                 videoId,
                 playerVars: {
@@ -139,6 +180,12 @@ const BackgroundMusic = (() => {
                 },
                 events: {
                     onReady: (event) => {
+                        clearTimeout(timer);
+                        if (request !== youtubeRequest || !settings.backgroundMusicEnabled || parseYouTubeId(settings.backgroundMusicUrl) !== videoId) {
+                            event.target.destroy();
+                            resolve();
+                            return;
+                        }
                         youtubePlayerReady = true;
                         event.target.setVolume(Math.round(settings.backgroundMusicVolume * 100));
                         if (settings.backgroundMusicEnabled && wantAutoplay && !userPaused) {
@@ -146,9 +193,24 @@ const BackgroundMusic = (() => {
                         }
                         resolve();
                     },
-                    onStateChange: updateToggleUi,
-                    onAutoplayBlocked: ensureInteractionRetry,
-                    onError: () => { resolve(); }
+                    onStateChange: () => {
+                        if (request !== youtubeRequest) return;
+                        if (isYouTubePlaying()) { playbackError = false; autoplayBlocked = false; }
+                        updateToggleUi();
+                    },
+                    onAutoplayBlocked: () => {
+                        if (request !== youtubeRequest) return;
+                        autoplayBlocked = true;
+                        updateToggleUi();
+                        ensureInteractionRetry();
+                    },
+                    onError: () => {
+                        clearTimeout(timer);
+                        if (request !== youtubeRequest) { resolve(); return; }
+                        playbackError = true;
+                        updateToggleUi();
+                        resolve();
+                    }
                 }
             });
         });
@@ -158,7 +220,7 @@ const BackgroundMusic = (() => {
         if (playbackMode === "youtube") return isYouTubePlaying();
         if (playbackMode === "audio") {
             const el = getAudio();
-            return !!(el && !el.paused && !el.ended);
+            return !!(el && !el.paused && !el.ended && !el.error && el.readyState >= 2);
         }
         return false;
     }
@@ -171,9 +233,11 @@ const BackgroundMusic = (() => {
             if (!settings.backgroundMusicEnabled || userPaused || !wantAutoplay || isPlaying()) return;
             void play();
         };
-        document.addEventListener("touchend", retry, { passive: true });
-        document.addEventListener("click", retry);
-        document.addEventListener("keydown", retry, { passive: true });
+        // La capture conserve le geste même si un bouton arrête sa propagation.
+        // play() est appelé dans le geste, avant toute attente asynchrone.
+        for (const type of ["pointerdown", "pointerup", "touchend", "click", "keydown"]) {
+            document.addEventListener(type, retry, { capture: true, passive: true });
+        }
     }
 
     async function tryAutoplay(force = false) {
@@ -188,18 +252,26 @@ const BackgroundMusic = (() => {
 
     function apply(state) {
         if (!state) return;
+        const previousUrl = settings.backgroundMusicUrl;
         settings = {
-            backgroundMusicUrl: state.backgroundMusicUrl || "",
+            backgroundMusicUrl: (state.backgroundMusicUrl || "").trim(),
             backgroundMusicVolume: clampVolume(state.backgroundMusicVolume ?? 0.35),
             backgroundMusicEnabled: state.backgroundMusicEnabled !== false && state.sections?.music !== false
         };
+        restorePausedPreference();
+        if (previousUrl !== settings.backgroundMusicUrl) {
+            cancelRecovery();
+            recoveryAttempts = 0;
+            playbackError = false;
+            autoplayBlocked = false;
+        }
 
         const btn = document.getElementById("music-toggle-btn");
         const hasTrack = Boolean(settings.backgroundMusicUrl);
         const ytId = parseYouTubeId(settings.backgroundMusicUrl);
 
         if (!hasTrack || !settings.backgroundMusicEnabled) {
-            wantAutoplay = false;
+            cancelRecovery();
             stopAudioElement();
             if (youtubePlayer?.pauseVideo) youtubePlayer.pauseVideo();
             destroyYouTubePlayer();
@@ -217,7 +289,14 @@ const BackgroundMusic = (() => {
             if (youtubePlayer && youtubeVideoId !== ytId) destroyYouTubePlayer();
             // L'iframe se charge pendant la lecture de la porte : elle est prête
             // quand l'invité touche l'enveloppe ou le bouton de musique.
-            void setupYouTubePlayer(ytId).catch(() => {});
+            const requestedUrl = settings.backgroundMusicUrl;
+            const pending = setupYouTubePlayer(ytId);
+            const request = youtubeRequest;
+            void pending.catch(() => {
+                if (request !== youtubeRequest || requestedUrl !== settings.backgroundMusicUrl || !settings.backgroundMusicEnabled) return;
+                playbackError = true;
+                updateToggleUi();
+            });
             // La configuration peut changer après l'entrée (aperçu ou édition).
             // Dans ce cas seulement, initialise la nouvelle piste YouTube.
             if (wantAutoplay && !userPaused) void play();
@@ -241,10 +320,18 @@ const BackgroundMusic = (() => {
     function updateToggleUi() {
         const btn = document.getElementById("music-toggle-btn");
         if (!btn) return;
+        const available = Boolean(settings.backgroundMusicEnabled && settings.backgroundMusicUrl);
+        if (available) btn.classList.remove("hidden");
+        else btn.classList.add("hidden");
+        btn.setAttribute("aria-hidden", available ? "false" : "true");
         const playing = isPlaying();
+        const state = !available ? "disabled" : userPaused ? "paused" : playing ? "playing"
+            : playbackError ? "error" : autoplayBlocked ? "blocked" : "ready";
+        btn.setAttribute("data-music-state", state);
         btn.setAttribute("aria-pressed", playing ? "true" : "false");
-        btn.setAttribute("title", playing ? "Couper la musique" : "Lancer la musique");
-        btn.setAttribute("aria-label", playing ? "Couper la musique" : "Lancer la musique");
+        const label = playing ? "Couper la musique" : playbackError ? "Réessayer la musique" : "Lancer la musique";
+        btn.setAttribute("title", label);
+        btn.setAttribute("aria-label", label);
         const icon = btn.querySelector(".music-toggle-icon");
         if (icon) icon.textContent = playing ? "♫" : "♪";
     }
@@ -253,10 +340,15 @@ const BackgroundMusic = (() => {
         if (!settings.backgroundMusicUrl || !settings.backgroundMusicEnabled) return false;
         if (userPaused) return false;
         if (isPlaying()) return true;
+        const requestedUrl = settings.backgroundMusicUrl;
         try {
             if (playbackMode === "youtube") {
                 const ytId = parseYouTubeId(settings.backgroundMusicUrl);
                 if (!ytId) return false;
+                if (playbackError) {
+                    playbackError = false;
+                    destroyYouTubePlayer();
+                }
                 // Préserver le geste utilisateur lorsque le lecteur est déjà prêt.
                 if (!youtubePlayerReady || youtubeVideoId !== ytId) await setupYouTubePlayer(ytId);
                 if (!settings.backgroundMusicEnabled || userPaused || parseYouTubeId(settings.backgroundMusicUrl) !== ytId || !youtubePlayer) return false;
@@ -266,6 +358,7 @@ const BackgroundMusic = (() => {
                 const el = prepareAudioElement();
                 if (!el) return false;
                 await el.play();
+                if (requestedUrl !== settings.backgroundMusicUrl) return false;
                 if (!settings.backgroundMusicEnabled || userPaused) {
                     el.pause();
                     return false;
@@ -280,14 +373,23 @@ const BackgroundMusic = (() => {
                 const el = prepareAudioElement();
                 if (!el) return false;
                 await el.play();
+                if (requestedUrl !== settings.backgroundMusicUrl) return false;
                 if (!settings.backgroundMusicEnabled || userPaused) {
                     el.pause();
                     return false;
                 }
             }
+            playbackError = false;
+            autoplayBlocked = false;
             updateToggleUi();
-            return true;
+            return isPlaying();
         } catch (error) {
+            if (requestedUrl !== settings.backgroundMusicUrl) return false;
+            if (error.name === "NotAllowedError") autoplayBlocked = true;
+            else if (error.name !== "AbortError") {
+                playbackError = true;
+                if (playbackMode === "audio") scheduleRecovery();
+            }
             updateToggleUi();
             if (!userPaused) ensureInteractionRetry();
             return false;
@@ -295,6 +397,7 @@ const BackgroundMusic = (() => {
     }
 
     function pause() {
+        cancelRecovery();
         if (playbackMode === "youtube" && youtubePlayer && youtubePlayer.pauseVideo) {
             youtubePlayer.pauseVideo();
         } else {
@@ -308,7 +411,7 @@ const BackgroundMusic = (() => {
         if (!settings.backgroundMusicUrl || !settings.backgroundMusicEnabled) return;
         const playing = playbackMode === "youtube" ? isYouTubePlaying() : (() => {
             const el = getAudio();
-            return !!(el && !el.paused);
+            return !!(el && !el.paused && !el.error);
         })();
         if (playing) {
             userPaused = true;
@@ -320,6 +423,7 @@ const BackgroundMusic = (() => {
             ensureInteractionRetry();
             void play();
         }
+        savePausedPreference();
     }
 
     function readPausedPreference() {
@@ -328,6 +432,13 @@ const BackgroundMusic = (() => {
             : "default";
         try { return sessionStorage.getItem(`wedding_event_${eventId}_music_paused`) === "1"; }
         catch { return userPaused; }
+    }
+
+    function restorePausedPreference() {
+        const eventId = window.EventConfig?.getEventId?.() || "default";
+        if (preferenceKey === eventId) return;
+        preferenceKey = eventId;
+        userPaused = readPausedPreference();
     }
 
     function savePausedPreference() {
@@ -339,7 +450,7 @@ const BackgroundMusic = (() => {
 
     function armAutoplay() {
         if (!settings.backgroundMusicEnabled) return;
-        userPaused = readPausedPreference();
+        restorePausedPreference();
         if (userPaused) return;
         wantAutoplay = true;
         ensureInteractionRetry();
@@ -348,7 +459,7 @@ const BackgroundMusic = (() => {
 
     function onGuestEnter() {
         if (!settings.backgroundMusicEnabled) return;
-        userPaused = readPausedPreference();
+        restorePausedPreference();
         if (userPaused) return;
         wantAutoplay = true;
         if (!isPlaying()) void tryAutoplay();
@@ -361,7 +472,6 @@ const BackgroundMusic = (() => {
         if (btn) {
             btn.addEventListener("click", () => {
                 toggle();
-                savePausedPreference();
             });
         }
         const el = getAudio();
@@ -369,7 +479,29 @@ const BackgroundMusic = (() => {
             el.addEventListener("play", updateToggleUi);
             el.addEventListener("pause", updateToggleUi);
             el.addEventListener("ended", updateToggleUi);
+            el.addEventListener("playing", () => {
+                if (!settings.backgroundMusicEnabled || userPaused) { el.pause(); return; }
+                cancelRecovery();
+                recoveryAttempts = 0;
+                playbackError = false;
+                autoplayBlocked = false;
+                updateToggleUi();
+            });
+            el.addEventListener("error", () => {
+                if (playbackMode !== "audio" || !el.getAttribute("src")) return;
+                playbackError = true;
+                scheduleRecovery();
+            });
+            el.addEventListener("loadeddata", updateToggleUi);
+            el.addEventListener("waiting", updateToggleUi);
         }
+        const resume = () => {
+            if (document.visibilityState === "hidden" || !shouldResume()) return;
+            if (!isPlaying()) void play();
+        };
+        window.addEventListener?.("online", resume);
+        window.addEventListener?.("pageshow", resume);
+        document.addEventListener("visibilitychange", resume);
         const gate = document.getElementById("welcome-gate");
         if (gate) {
             const startAtGate = () => armAutoplay();
@@ -393,6 +525,7 @@ const BackgroundMusic = (() => {
         onGuestEnter,
         init,
         parseYouTubeId,
+        refreshUi: updateToggleUi,
         getSettings: () => ({ ...settings })
     };
 })();
